@@ -49,16 +49,17 @@ openssl rand -base64 32
 npm install
 ```
 
-2. Run database migrations:
+2. Push database schema to your database:
 
 ```bash
-npx prisma migrate dev --name init
+npm run db:push
 ```
 
-3. Generate Prisma client:
+Or alternatively, generate and run migrations:
 
 ```bash
-npx prisma generate
+npm run db:generate
+npm run db:migrate
 ```
 
 ## Running the App
@@ -76,7 +77,13 @@ Visit [http://localhost:3000](http://localhost:3000) to see the login page.
 By default, the first user to sign up will need to be manually set as admin in the database:
 
 ```sql
-UPDATE "User" SET "isAdmin" = true WHERE email = 'your-email@example.com';
+UPDATE "user" SET "is_admin" = true WHERE email = 'your-email@example.com';
+```
+
+You can also use Drizzle Studio to manage your database:
+
+```bash
+npm run db:studio
 ```
 
 ## Next Steps
