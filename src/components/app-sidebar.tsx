@@ -22,12 +22,6 @@ const menuItems = [
   { title: 'Settings', url: '#', icon: Settings2 },
 ];
 
-const userData = {
-  name: 'User',
-  email: 'user@example.com',
-  avatar: '/avatars/user.jpg',
-};
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
@@ -67,7 +61,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );
