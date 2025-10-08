@@ -4,6 +4,9 @@ import { config as smartiveConfig } from '@smartive/eslint-config';
 const config = [
   ...smartiveConfig('nextjs'),
   {
+    ignores: ['src/components/**'],
+  },
+  {
     rules: {
       'react/forbid-component-props': ['off'],
       'no-restricted-imports': [
