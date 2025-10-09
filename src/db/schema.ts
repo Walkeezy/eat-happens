@@ -15,6 +15,7 @@ export const user = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
     isAdmin: boolean('is_admin').notNull().default(false),
+    isConfirmed: boolean('is_confirmed').notNull().default(false),
   },
   (table) => [index('user_email_idx').on(table.email)],
 );
@@ -109,5 +110,27 @@ export const rating = pgTable(
   (table) => [
     unique('rating_user_event_idx').on(table.userId, table.eventId),
     index('rating_event_id_idx').on(table.eventId),
+  ],
+);
+
+export const eventAssignment = pgTable(
+  'event_assignment',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => event.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    assignedBy: text('assigned_by')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    unique('event_assignment_user_event_idx').on(table.userId, table.eventId),
+    index('event_assignment_event_id_idx').on(table.eventId),
+    index('event_assignment_user_id_idx').on(table.userId),
   ],
 );

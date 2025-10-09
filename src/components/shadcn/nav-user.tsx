@@ -4,14 +4,11 @@ import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/shadcn/dropdown-menu';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/shadcn/sidebar';
+import { SidebarMenu, SidebarMenuItem } from '@/components/shadcn/sidebar';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { authClient } from '@/lib/auth-client';
-import { CaretSortIcon } from '@radix-ui/react-icons';
 
 export function NavUser() {
-  const { isMobile } = useSidebar();
   const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
 
@@ -60,35 +57,24 @@ export function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="size-10 rounded-lg">
-                <AvatarImage src={userAvatar} alt={userName} />
-                <AvatarFallback className="rounded-lg">{userInitials}</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{userName}</span>
-                <span className="truncate text-xs">{userEmail}</span>
-              </div>
-              <CaretSortIcon className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
-            align="end"
-            sideOffset={4}
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <Avatar className="size-10 rounded-lg">
+            <AvatarImage src={userAvatar} alt={userName} />
+            <AvatarFallback className="rounded-lg">{userInitials}</AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">{userName}</span>
+            <span className="truncate text-xs">{userEmail}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            aria-label="Abmelden"
+            title="Abmelden"
           >
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <LogOut className="size-4" />
+          </button>
+        </div>
       </SidebarMenuItem>
     </SidebarMenu>
   );
