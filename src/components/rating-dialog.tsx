@@ -14,8 +14,9 @@ import {
 } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
-import { CreateRatingData, Event, Rating } from '@/types/events';
+import type { event, rating } from '@/db/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { Lock, MessageSquare, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
@@ -29,6 +30,10 @@ const ratingSchema = z.object({
 });
 
 type RatingFormData = z.infer<typeof ratingSchema>;
+
+type Event = InferSelectModel<typeof event>;
+type Rating = InferSelectModel<typeof rating>;
+type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score' | 'comment'>;
 
 type Props = {
   event: Event;

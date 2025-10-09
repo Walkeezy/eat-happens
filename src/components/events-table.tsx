@@ -5,10 +5,19 @@ import { RatingDialog } from '@/components/rating-dialog';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
-import { Event } from '@/types/events';
+import type { event, rating } from '@/db/schema';
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
+import type { InferSelectModel } from 'drizzle-orm';
 import { ArrowUpDown, Calendar, Star, Users } from 'lucide-react';
 import { useState } from 'react';
+
+type Event = InferSelectModel<typeof event> & {
+  ratings?: InferSelectModel<typeof rating>[];
+  averageRating?: number;
+  totalRatings?: number;
+};
+
+type Rating = InferSelectModel<typeof rating>;
 
 type Props = {
   events: Event[];
@@ -113,7 +122,9 @@ export const EventsTable = ({ events, currentUserId, isAdmin }: Props) => {
       header: 'Actions',
       cell: ({ row }) => {
         const event = row.original;
-        const userRating = currentUserId ? event.ratings?.find((r) => r.userId === currentUserId) || undefined : undefined;
+        const userRating = currentUserId
+          ? event.ratings?.find((r: Rating) => r.userId === currentUserId) || undefined
+          : undefined;
 
         return (
           <div className="flex items-center justify-end gap-2">

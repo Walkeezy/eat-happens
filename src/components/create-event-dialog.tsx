@@ -14,14 +14,18 @@ import {
 } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
-import { CreateEventData, User } from '@/types/events';
+import type { event, user } from '@/db/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { CalendarPlus, Loader2, UserCheck, UserMinus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FC, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+
+type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date'>;
+type User = InferSelectModel<typeof user>;
 
 const createEventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant name is required'),

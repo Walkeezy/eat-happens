@@ -1,12 +1,16 @@
 'use server';
 
+import { rating } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { isUserAssignedToEvent } from '@/services/assignments';
 import { upsertRating } from '@/services/ratings';
-import { CreateRatingData } from '@/types/events';
+import { InferInsertModel } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+
+// Inferred types
+type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score' | 'comment'>;
 
 const createRatingSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
@@ -35,6 +39,7 @@ export async function upsertRatingAction(data: CreateRatingData) {
 
   try {
     const rating = await upsertRating(session.user.id, validatedData);
+
     return { success: true, rating };
   } catch (error) {
     console.error('Error upserting rating:', error);

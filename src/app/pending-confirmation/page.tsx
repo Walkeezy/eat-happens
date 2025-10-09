@@ -1,5 +1,6 @@
 'use client';
 
+import { UnauthenticatedLayout } from '@/components/layout/unauthenticated-layout';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { authClient } from '@/lib/auth-client';
@@ -39,7 +40,7 @@ export default function PendingConfirmationPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <UnauthenticatedLayout>
       <Card className="mx-auto w-full max-w-md text-center">
         <CardHeader>
           <div className="mb-4 flex justify-center">
@@ -63,6 +64,6 @@ export default function PendingConfirmationPage() {
           </Button>
         </CardFooter>
       </Card>
-    </div>
+    </UnauthenticatedLayout>
   );
 }

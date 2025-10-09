@@ -1,8 +1,11 @@
 import { db } from '@/db';
 import { rating } from '@/db/schema';
-import { CreateRatingData, Rating } from '@/types/events';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+// Types specific to this service
+type Rating = InferSelectModel<typeof rating>;
+type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score' | 'comment'>;
 
 export async function upsertRating(userId: string, data: CreateRatingData): Promise<Rating> {
   // Check if rating exists
@@ -23,7 +26,7 @@ export async function upsertRating(userId: string, data: CreateRatingData): Prom
       .where(and(eq(rating.userId, userId), eq(rating.eventId, data.eventId)))
       .returning();
 
-    return updatedRating as Rating;
+    return updatedRating;
   }
 
   // Create new rating
@@ -39,5 +42,5 @@ export async function upsertRating(userId: string, data: CreateRatingData): Prom
     })
     .returning();
 
-  return newRating as Rating;
+  return newRating;
 }

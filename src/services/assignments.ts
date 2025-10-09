@@ -1,8 +1,11 @@
 import { db } from '@/db';
 import { eventAssignment, user } from '@/db/schema';
-import { EventAssignment, User } from '@/types/events';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, InferSelectModel, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+// Inferred types
+type EventAssignment = InferSelectModel<typeof eventAssignment>;
+type User = InferSelectModel<typeof user>;
 
 export async function isUserAssignedToEvent(userId: string, eventId: string): Promise<boolean> {
   const [assignment] = await db

@@ -14,7 +14,9 @@ import {
 } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
-import { Event, UpdateEventData, User } from '@/types/events';
+import { event, user } from '@/db/schema';
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, SquarePen, UserCheck, UserMinus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -22,6 +24,11 @@ import { FC, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+
+// Inferred types
+type Event = InferSelectModel<typeof event>;
+type UpdateEventData = Partial<Pick<InferInsertModel<typeof event>, 'restaurant' | 'date'>>;
+type User = InferSelectModel<typeof user>;
 
 const editEventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant name is required'),

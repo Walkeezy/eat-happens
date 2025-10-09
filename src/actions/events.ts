@@ -1,12 +1,19 @@
 'use server';
 
+import { event, eventAssignment } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import { createEvent, updateEvent } from '@/services/events';
-import { CreateEventData, EventAssignment, UpdateEventData } from '@/types/events';
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { headers } from 'next/headers';
+
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+
+// Inferred types
+type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date'>;
+type UpdateEventData = Partial<CreateEventData>;
+type EventAssignment = InferSelectModel<typeof eventAssignment>;
 
 const createEventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant name is required'),
