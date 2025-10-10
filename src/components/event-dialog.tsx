@@ -16,7 +16,7 @@ import { z } from 'zod';
 const eventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.string().min(1, 'Datum ist erforderlich'),
-  users: z.array(z.string()),
+  users: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss ausgewählt werden'),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -51,9 +51,9 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
       };
 
       if (mode === 'edit' && event) {
-        const result = await updateEventWithAssignmentsAction(event.id, eventData);
+        await updateEventWithAssignmentsAction(event.id, eventData);
       } else {
-        const result = await createEventWithAssignmentsAction(eventData);
+        await createEventWithAssignmentsAction(eventData);
       }
 
       form.reset();
@@ -104,39 +104,50 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
               )}
             />
 
-            <FormLabel>Benutzer zuweisen</FormLabel>
-            <div className="space-y-3">
-              <div className="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3">
-                {users.length === 0 ? (
-                  <p className="py-4 text-center text-sm text-muted-foreground">Keine bestätigten Benutzer verfügbar.</p>
-                ) : (
-                  users.map((user) => (
-                    <FormField
-                      key={user.id}
-                      control={form.control}
-                      name="users"
-                      render={({ field }) => {
-                        return (
-                          <FormItem key={user.id} className="flex flex-row items-center gap-2">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(user.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...(field.value || []), user.id])
-                                    : field.onChange(field.value?.filter((value) => value !== user.id) || []);
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal">{user.name || user.email}</FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="users"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Benutzer zuweisen *</FormLabel>
+                  <div className="space-y-3">
+                    <div className="max-h-40 space-y-2 overflow-y-auto rounded-md border p-3">
+                      {users.length === 0 ? (
+                        <p className="py-4 text-center text-sm text-muted-foreground">
+                          Keine bestätigten Benutzer verfügbar.
+                        </p>
+                      ) : (
+                        users.map((user) => (
+                          <FormField
+                            key={user.id}
+                            control={form.control}
+                            name="users"
+                            render={({ field }) => {
+                              return (
+                                <FormItem key={user.id} className="flex flex-row items-center gap-2">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(user.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...(field.value || []), user.id])
+                                          : field.onChange(field.value?.filter((value) => value !== user.id) || []);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm font-normal">{user.firstName}</FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {form.formState.errors.root && <div className="text-sm text-red-600">{form.formState.errors.root.message}</div>}
 

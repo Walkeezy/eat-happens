@@ -22,6 +22,10 @@ export async function assignMultipleUsers(
   eventId: string,
   userIds: string[],
 ): Promise<EventAssignment[]> {
+  if (userIds.length === 0) {
+    throw new Error('At least one user must be assigned to the event');
+  }
+
   const assignments = userIds.map((userId) => ({
     id: nanoid(),
     userId,

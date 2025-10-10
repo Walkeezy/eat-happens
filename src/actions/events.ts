@@ -10,13 +10,13 @@ import { z } from 'zod';
 const createEventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.date(),
-  assignedUserIds: z.array(z.string()),
+  assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
 });
 
 const updateEventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.date(),
-  assignedUserIds: z.array(z.string()),
+  assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
 });
 
 export async function updateEventWithAssignmentsAction(
