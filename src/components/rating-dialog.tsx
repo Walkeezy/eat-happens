@@ -3,12 +3,12 @@
 import { upsertRatingAction } from '@/actions/ratings';
 import { Button } from '@/components/shadcn/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
-import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
+import { Form, FormField, FormItem, FormMessage } from '@/components/shadcn/form';
 import { StarVoting } from '@/components/star-voting';
 import type { CreateRatingData, Event, Rating } from '@/types/events';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { FC, ReactNode, useCallback, useState } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -40,34 +40,28 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
 
   const watchedScore = form.watch('score');
 
-  const onSubmit = useCallback(
-    async ({ score }: RatingFormData) => {
-      try {
-        const ratingData: CreateRatingData = {
-          eventId: event.id,
-          score,
-        };
+  const onSubmit = async ({ score }: RatingFormData) => {
+    try {
+      const ratingData: CreateRatingData = {
+        eventId: event.id,
+        score,
+      };
 
-        await upsertRatingAction(ratingData);
+      await upsertRatingAction(ratingData);
 
-        setOpen(false);
-        router.refresh();
-      } catch (error) {
-        console.error('Error saving rating', error);
-        const errorMessage =
-          error instanceof Error ? error.message : 'Fehler beim Speichern der Bewertung. Bitte versuche es erneut.';
-        form.setError('root', { message: errorMessage });
-      }
-    },
-    [event.id, existingRating, router, form],
-  );
+      setOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error('Error saving rating', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Fehler beim Speichern der Bewertung. Bitte versuche es erneut.';
+      form.setError('root', { message: errorMessage });
+    }
+  };
 
-  const handleScoreChange = useCallback(
-    (score: number) => {
-      form.setValue('score', score);
-    },
-    [form],
-  );
+  const handleScoreChange = (score: number) => {
+    form.setValue('score', score);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -76,15 +70,13 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Dieses Dinner bewerten' : 'Deine Bewertung aktualisieren'}</DialogTitle>
         </DialogHeader>
-
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
               control={form.control}
               name="score"
               render={() => (
-                <FormItem>
-                  <FormLabel>Deine Bewertung *</FormLabel>
+                <FormItem className="mt-6 mb-8">
                   <StarVoting score={watchedScore} onScoreChange={handleScoreChange} />
                   <FormMessage />
                 </FormItem>
@@ -93,16 +85,8 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
 
             {form.formState.errors.root && <div className="text-sm text-red-600">{form.formState.errors.root.message}</div>}
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                className="min-h-[44px] w-full sm:w-auto"
-              >
-                Abbrechen
-              </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting} className="min-h-[44px] w-full sm:w-auto">
+            <div className="flex justify-center">
+              <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
                 {form.formState.isSubmitting
                   ? 'Speichere...'
                   : mode === 'edit'

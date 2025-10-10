@@ -28,6 +28,7 @@ export type EventWithDetails = Event & {
   assignments?: EventAssignment[];
   assignedUsers?: {
     id: string;
+    name: string | null;
     firstName: string | null;
     lastName: string | null;
     email: string;

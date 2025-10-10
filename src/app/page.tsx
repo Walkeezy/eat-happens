@@ -45,7 +45,7 @@ export default async function HomePage() {
           {unratedEvents.length > 0 && (
             <div>
               <div className="mb-4 flex items-center gap-2">
-                <h2 className="text-lg font-semibold">Events zum Bewerten</h2>
+                <h2 className="text-lg font-semibold">Deine Events zum Bewerten</h2>
                 <Badge>{unratedEvents.length}</Badge>
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">

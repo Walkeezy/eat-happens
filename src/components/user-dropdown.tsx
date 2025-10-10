@@ -10,10 +10,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu';
 import { authClient } from '@/lib/auth-client';
-import { getUserFullName, getUserInitials } from '@/lib/user-utils';
 import { CalendarDays, Ellipsis, LogOut } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
+
+const getInitials = (name: string | null) => {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase();
+};
 
 export function UserDropdown() {
   const { data: session } = authClient.useSession();
@@ -34,11 +43,11 @@ export function UserDropdown() {
     return null;
   }
 
-  const user = session.user as typeof session.user & { isAdmin: boolean; firstName: string | null; lastName: string | null };
-  const userName = getUserFullName(user.firstName, user.lastName);
+  const user = session.user as typeof session.user & { isAdmin: boolean; name: string | null };
+  const userName = user.name || user.email || '';
   const userEmail = user.email || '';
   const userAvatar = user.image || '';
-  const userInitials = getUserInitials(user.firstName, user.lastName);
+  const userInitials = getInitials(user.name);
 
   return (
     <DropdownMenu>

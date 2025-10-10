@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
-import { getUserFullName } from '@/lib/user-utils';
 import type { Event, User } from '@/types/events';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -34,8 +33,14 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const isEdit = mode === 'edit';
-  const title = isEdit ? 'Event bearbeiten' : 'Event erstellen';
+  const form = useForm<EventFormData>({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      restaurant: event?.restaurant || '',
+      date: event ? new Date(event.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      users: assignedUserIds,
+    },
+  });
 
   const onSubmit = async ({ restaurant, date, users }: EventFormData) => {
     try {
@@ -45,7 +50,7 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
         assignedUserIds: users,
       };
 
-      if (isEdit && event) {
+      if (mode === 'edit' && event) {
         const result = await updateEventWithAssignmentsAction(event.id, eventData);
       } else {
         const result = await createEventWithAssignmentsAction(eventData);
@@ -61,21 +66,12 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
     }
   };
 
-  const form = useForm<EventFormData>({
-    resolver: zodResolver(eventSchema),
-    defaultValues: {
-      restaurant: event?.restaurant || '',
-      date: event ? new Date(event.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      users: assignedUserIds,
-    },
-  });
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{mode === 'edit' ? 'Event bearbeiten' : 'Event erstellen'}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -132,9 +128,7 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="text-sm font-normal">
-                              {getUserFullName(user.firstName, user.lastName)}
-                            </FormLabel>
+                            <FormLabel className="text-sm font-normal">{user.name || user.email}</FormLabel>
                           </FormItem>
                         );
                       }}
@@ -146,15 +140,9 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
 
             {form.formState.errors.root && <div className="text-sm text-red-600">{form.formState.errors.root.message}</div>}
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end">
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting
-                  ? isEdit
-                    ? 'Speichere...'
-                    : 'Erstelle...'
-                  : isEdit
-                    ? 'Änderungen speichern'
-                    : 'Event erstellen'}
+                {form.formState.isSubmitting ? 'Speichere...' : mode === 'edit' ? 'Änderungen speichern' : 'Event erstellen'}
               </Button>
             </div>
           </form>
