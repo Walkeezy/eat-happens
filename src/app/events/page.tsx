@@ -1,26 +1,11 @@
 import { CreateEventDialog } from '@/components/create-event-dialog';
 import { EventsTable } from '@/components/events-table';
-import { auth } from '@/lib/auth';
+import { verifySession } from '@/lib/verify-session';
 import { getEvents } from '@/services/events';
 import { CalendarDays } from 'lucide-react';
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 export default async function EventsPage() {
-  // Get current session
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    redirect('/login');
-  }
-
-  const user = session.user as typeof session.user & { isAdmin: boolean; isConfirmed: boolean };
-
-  if (!user.isConfirmed) {
-    redirect('/pending-confirmation');
-  }
+  const { user } = await verifySession();
 
   // Get events data
   const events = await getEvents();

@@ -1,6 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
+import { Button } from '@/components/shadcn/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +11,7 @@ import {
 } from '@/components/shadcn/dropdown-menu';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { authClient } from '@/lib/auth-client';
-import { CalendarDays, LogOut } from 'lucide-react';
+import { CalendarDays, Ellipsis, LogOut } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -51,12 +52,9 @@ export function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center justify-center">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={userAvatar} alt={userName} />
-            <AvatarFallback>{userInitials}</AvatarFallback>
-          </Avatar>
-        </button>
+        <Button variant="ghost">
+          <Ellipsis />
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <div className="flex items-center gap-2 p-2">
