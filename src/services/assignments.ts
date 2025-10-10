@@ -54,7 +54,7 @@ export async function getAllConfirmedUsers(): Promise<User[]> {
   return confirmedUsers as User[];
 }
 
-export async function getCurrentAssignments(eventId: string): Promise<string[]> {
+async function getCurrentAssignments(eventId: string): Promise<string[]> {
   const assignments = await db
     .select({ userId: eventAssignment.userId })
     .from(eventAssignment)
