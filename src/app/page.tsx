@@ -1,4 +1,4 @@
-import EventCard from '@/components/event-card';
+import { EventCard } from '@/components/event-card';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';

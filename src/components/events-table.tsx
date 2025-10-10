@@ -3,33 +3,14 @@
 import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
-import type { user } from '@/db/schema';
+import { dayjs } from '@/lib/dayjs';
+import type { EventWithDetails, User } from '@/types/events';
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
-import type { InferSelectModel } from 'drizzle-orm';
 import { SquarePen } from 'lucide-react';
 import { useState } from 'react';
 
-// Import the EventWithDetails type from events service
-type Event = {
-  id: string;
-  date: Date;
-  restaurant: string;
-  createdAt: Date;
-  updatedAt: Date;
-  assignedUsers?: {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    email: string;
-    image?: string | null;
-    isAdmin: boolean;
-    isConfirmed: boolean;
-  }[];
-};
-type User = InferSelectModel<typeof user>;
-
 type Props = {
-  events: Event[];
+  events: EventWithDetails[];
   users: User[];
   currentUserId?: string;
   isAdmin?: boolean;
@@ -38,31 +19,16 @@ type Props = {
 export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columns: ColumnDef<Event>[] = [
+  const columns: ColumnDef<EventWithDetails>[] = [
     {
       accessorKey: 'restaurant',
       header: 'Restaurant',
-      cell: ({ row }) => {
-        return <div className="font-medium">{row.original.restaurant}</div>;
-      },
-      enableSorting: true,
+      cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
     },
     {
       accessorKey: 'date',
       header: 'Datum',
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center">
-            {new Date(row.original.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </div>
-        );
-      },
-      enableSorting: true,
-      sortDescFirst: true,
+      cell: ({ row }) => dayjs(row.original.date).format('D. MMMM YYYY'),
     },
     {
       accessorKey: 'assignedUsers',
@@ -85,22 +51,20 @@ export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) =>
       cell: ({ row }) => {
         const event = row.original;
         return (
-          <div className="flex items-center justify-end gap-2">
-            {isAdmin && (
-              <EventDialog
-                mode="edit"
-                event={event}
-                users={users}
-                assignedUserIds={event.assignedUsers?.map((user) => user.id) ?? []}
-                trigger={
-                  <Button variant="outline" size="sm">
-                    <SquarePen />
-                    Bearbeiten
-                  </Button>
-                }
-              />
-            )}
-          </div>
+          isAdmin && (
+            <EventDialog
+              mode="edit"
+              event={event}
+              users={users}
+              assignedUserIds={event.assignedUsers?.map((user) => user.id) ?? []}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <SquarePen />
+                  Bearbeiten
+                </Button>
+              }
+            />
+          )
         );
       },
     },

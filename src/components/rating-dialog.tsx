@@ -2,23 +2,14 @@
 
 import { upsertRatingAction } from '@/actions/ratings';
 import { Button } from '@/components/shadcn/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/shadcn/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
-import { StarRating } from '@/components/star-rating';
-import type { event, rating } from '@/db/schema';
+import { StarVoting } from '@/components/star-voting';
+import type { CreateRatingData, Event, Rating } from '@/types/events';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { useRouter } from 'next/navigation';
-import { FC, ReactNode, useCallback, useMemo, useState } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 import { z } from 'zod';
 
 const ratingSchema = z.object({
@@ -27,18 +18,16 @@ const ratingSchema = z.object({
 });
 
 type RatingFormData = z.infer<typeof ratingSchema>;
-type Event = InferSelectModel<typeof event>;
-type Rating = InferSelectModel<typeof rating>;
-type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score'>;
 
 type Props = {
+  mode: 'create' | 'edit';
   event: Event;
   existingRating?: Rating;
   isAssigned?: boolean;
   trigger: ReactNode;
 };
 
-export const RatingDialog: FC<Props> = ({ event, existingRating, isAssigned = true, trigger }) => {
+export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -53,11 +42,6 @@ export const RatingDialog: FC<Props> = ({ event, existingRating, isAssigned = tr
 
   const onSubmit = useCallback(
     async ({ score }: RatingFormData) => {
-      if (!isAssigned) {
-        toast.error('Du kannst nur Events bewerten, denen du zugewiesen bist');
-        return;
-      }
-
       try {
         const ratingData: CreateRatingData = {
           eventId: event.id,
@@ -68,16 +52,14 @@ export const RatingDialog: FC<Props> = ({ event, existingRating, isAssigned = tr
 
         setOpen(false);
         router.refresh();
-        toast.success(existingRating ? 'Bewertung erfolgreich aktualisiert' : 'Bewertung erfolgreich abgegeben');
       } catch (error) {
         console.error('Error saving rating', error);
         const errorMessage =
           error instanceof Error ? error.message : 'Fehler beim Speichern der Bewertung. Bitte versuche es erneut.';
-        toast.error(errorMessage);
         form.setError('root', { message: errorMessage });
       }
     },
-    [isAssigned, event.id, existingRating, router, form],
+    [event.id, existingRating, router, form],
   );
 
   const handleScoreChange = useCallback(
@@ -87,21 +69,12 @@ export const RatingDialog: FC<Props> = ({ event, existingRating, isAssigned = tr
     [form],
   );
 
-  const dialogConfig = useMemo(
-    () => ({
-      title: existingRating ? 'Deine Bewertung aktualisieren' : 'Dieses Dinner bewerten',
-      description: `Wie war deine Erfahrung bei ${event.restaurant}?`,
-    }),
-    [existingRating, event.restaurant],
-  );
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{dialogConfig.title}</DialogTitle>
-          <DialogDescription>{dialogConfig.description}</DialogDescription>
+          <DialogTitle>{mode === 'create' ? 'Dieses Dinner bewerten' : 'Deine Bewertung aktualisieren'}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -112,7 +85,7 @@ export const RatingDialog: FC<Props> = ({ event, existingRating, isAssigned = tr
               render={() => (
                 <FormItem>
                   <FormLabel>Deine Bewertung *</FormLabel>
-                  <StarRating score={watchedScore} onScoreChange={handleScoreChange} />
+                  <StarVoting score={watchedScore} onScoreChange={handleScoreChange} />
                   <FormMessage />
                 </FormItem>
               )}
@@ -132,7 +105,7 @@ export const RatingDialog: FC<Props> = ({ event, existingRating, isAssigned = tr
               <Button type="submit" disabled={form.formState.isSubmitting} className="min-h-[44px] w-full sm:w-auto">
                 {form.formState.isSubmitting
                   ? 'Speichere...'
-                  : existingRating
+                  : mode === 'edit'
                     ? 'Bewertung aktualisieren'
                     : 'Bewertung abgeben'}
               </Button>

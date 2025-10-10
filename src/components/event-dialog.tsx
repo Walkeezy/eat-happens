@@ -6,17 +6,13 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
-import type { event, user } from '@/db/schema';
 import { getUserFullName } from '@/lib/user-utils';
+import type { Event, User } from '@/types/events';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { InferSelectModel } from 'drizzle-orm';
 import { useRouter } from 'next/navigation';
 import { FC, ReactNode, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-type Event = InferSelectModel<typeof event>;
-type User = InferSelectModel<typeof user>;
 
 const eventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
