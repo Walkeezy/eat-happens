@@ -44,11 +44,11 @@ export default function PendingConfirmationPage() {
       <Card className="mx-auto w-full max-w-md text-center">
         <CardHeader>
           <div className="mb-4 flex justify-center">
-            <div className="rounded-full bg-yellow-100 p-3 dark:bg-yellow-900/20">
-              <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-500" />
+            <div className="rounded-full bg-yellow-100 p-2 dark:bg-yellow-900/20">
+              <Clock className="size-4 text-yellow-600 dark:text-yellow-500" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Bestätigung ausstehend</CardTitle>
+          <CardTitle>Bestätigung ausstehend</CardTitle>
           <CardDescription>
             Dein Account wurde erstellt, wartet aber noch auf die Bestätigung durch einen Administrator.
           </CardDescription>

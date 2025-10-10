@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid';
 
 // Types specific to this service
 type Rating = InferSelectModel<typeof rating>;
-type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score' | 'comment'>;
+type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score'>;
 
 export async function upsertRating(userId: string, data: CreateRatingData): Promise<Rating> {
   // Check if rating exists
@@ -21,7 +21,6 @@ export async function upsertRating(userId: string, data: CreateRatingData): Prom
       .update(rating)
       .set({
         score: data.score,
-        comment: data.comment,
       })
       .where(and(eq(rating.userId, userId), eq(rating.eventId, data.eventId)))
       .returning();
@@ -38,7 +37,6 @@ export async function upsertRating(userId: string, data: CreateRatingData): Prom
       userId,
       eventId: data.eventId,
       score: data.score,
-      comment: data.comment,
     })
     .returning();
 

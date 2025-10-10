@@ -5,7 +5,8 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Eat Happens',
     short_name: 'Eat Happens',
     start_url: '/',
-    display: 'standalone',
+    display: 'fullscreen',
+    orientation: 'portrait-primary',
     background_color: '#f8f5ff',
     theme_color: '#6929ff',
     icons: [

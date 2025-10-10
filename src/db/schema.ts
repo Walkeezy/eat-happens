@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import { boolean, index, pgTable, smallint, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // Better-auth tables (generated schema)
@@ -5,7 +6,9 @@ export const user = pgTable(
   'user',
   {
     id: text('id').primaryKey(),
-    name: text('name').notNull(),
+    name: text('name'),
+    firstName: text('first_name'),
+    lastName: text('last_name'),
     email: text('email').notNull().unique(),
     emailVerified: boolean('email_verified').notNull().default(false),
     image: text('image'),
@@ -75,14 +78,10 @@ export const verification = pgTable(
     expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
-  (table) => [
-    unique('verification_identifier_value_idx').on(table.identifier, table.value),
-    index('verification_identifier_idx').on(table.identifier),
-  ],
+  (table) => [index('verification_identifier_idx').on(table.identifier), index('verification_value_idx').on(table.value)],
 );
 
 // App-specific tables
@@ -91,6 +90,10 @@ export const event = pgTable('event', {
   date: timestamp('date').notNull(),
   restaurant: text('restaurant').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const rating = pgTable(
@@ -104,8 +107,11 @@ export const rating = pgTable(
       .notNull()
       .references(() => event.id, { onDelete: 'cascade' }),
     score: smallint('score').notNull(),
-    comment: text('comment'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (table) => [
     unique('rating_user_event_idx').on(table.userId, table.eventId),
@@ -124,6 +130,10 @@ export const eventAssignment = pgTable(
       .notNull()
       .references(() => event.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
     assignedBy: text('assigned_by')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
@@ -134,3 +144,41 @@ export const eventAssignment = pgTable(
     index('event_assignment_user_id_idx').on(table.userId),
   ],
 );
+
+// Relations
+export const userRelations = relations(user, ({ many }) => ({
+  ratings: many(rating),
+  assignments: many(eventAssignment),
+  assignedBy: many(eventAssignment),
+}));
+
+export const eventRelations = relations(event, ({ many }) => ({
+  ratings: many(rating),
+  assignments: many(eventAssignment),
+}));
+
+export const ratingRelations = relations(rating, ({ one }) => ({
+  event: one(event, {
+    fields: [rating.eventId],
+    references: [event.id],
+  }),
+  user: one(user, {
+    fields: [rating.userId],
+    references: [user.id],
+  }),
+}));
+
+export const eventAssignmentRelations = relations(eventAssignment, ({ one }) => ({
+  event: one(event, {
+    fields: [eventAssignment.eventId],
+    references: [event.id],
+  }),
+  user: one(user, {
+    fields: [eventAssignment.userId],
+    references: [user.id],
+  }),
+  assignedByUser: one(user, {
+    fields: [eventAssignment.assignedBy],
+    references: [user.id],
+  }),
+}));

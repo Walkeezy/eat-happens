@@ -38,7 +38,7 @@ export async function getAllConfirmedUsersAction() {
 
   // Check if user is admin
   if (!session.user.isAdmin) {
-    throw new Error('Only admins can view all users');
+    throw new Error('Nur Administratoren können alle Benutzer einsehen');
   }
 
   try {
@@ -47,7 +47,7 @@ export async function getAllConfirmedUsersAction() {
     return { success: true, users };
   } catch (error) {
     console.error('Error fetching confirmed users:', error);
-    throw new Error('Failed to fetch confirmed users');
+    throw new Error('Bestätigte Benutzer konnten nicht abgerufen werden');
   }
 }
 
@@ -63,7 +63,7 @@ export async function getCurrentAssignmentsAction(eventId: string) {
 
   // Check if user is admin
   if (!session.user.isAdmin) {
-    throw new Error('Only admins can view assignments');
+    throw new Error('Nur Administratoren können Zuweisungen einsehen');
   }
 
   try {
@@ -72,6 +72,6 @@ export async function getCurrentAssignmentsAction(eventId: string) {
     return { success: true, assignedUserIds };
   } catch (error) {
     console.error('Error fetching current assignments:', error);
-    throw new Error('Failed to fetch current assignments');
+    throw new Error('Aktuelle Zuweisungen konnten nicht abgerufen werden');
   }
 }

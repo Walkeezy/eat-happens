@@ -1,44 +1,47 @@
 'use client';
 
-import { EditEventDialog } from '@/components/edit-event-dialog';
-import { RatingDialog } from '@/components/rating-dialog';
-import { Badge } from '@/components/shadcn/badge';
+import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
-import type { event, rating } from '@/db/schema';
+import type { user } from '@/db/schema';
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import type { InferSelectModel } from 'drizzle-orm';
-import { ArrowUpDown, Calendar, Star, Users } from 'lucide-react';
+import { SquarePen } from 'lucide-react';
 import { useState } from 'react';
 
-type Event = InferSelectModel<typeof event> & {
-  ratings?: InferSelectModel<typeof rating>[];
-  averageRating?: number;
-  totalRatings?: number;
+// Import the EventWithDetails type from events service
+type Event = {
+  id: string;
+  date: Date;
+  restaurant: string;
+  createdAt: Date;
+  updatedAt: Date;
+  assignedUsers?: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+    image?: string | null;
+    isAdmin: boolean;
+    isConfirmed: boolean;
+  }[];
 };
-
-type Rating = InferSelectModel<typeof rating>;
+type User = InferSelectModel<typeof user>;
 
 type Props = {
   events: Event[];
+  users: User[];
   currentUserId?: string;
   isAdmin?: boolean;
 };
 
-export const EventsTable = ({ events, currentUserId, isAdmin }: Props) => {
+export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns: ColumnDef<Event>[] = [
     {
       accessorKey: 'restaurant',
-      header: ({ column }) => {
-        return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            Restaurant
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      header: 'Restaurant',
       cell: ({ row }) => {
         return <div className="font-medium">{row.original.restaurant}</div>;
       },
@@ -46,15 +49,7 @@ export const EventsTable = ({ events, currentUserId, isAdmin }: Props) => {
     },
     {
       accessorKey: 'date',
-      header: ({ column }) => {
-        return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            <Calendar className="mr-2 h-4 w-4" />
-            Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      header: 'Datum',
       cell: ({ row }) => {
         return (
           <div className="flex items-center">
@@ -70,66 +65,41 @@ export const EventsTable = ({ events, currentUserId, isAdmin }: Props) => {
       sortDescFirst: true,
     },
     {
-      accessorKey: 'averageRating',
-      header: ({ column }) => {
-        return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            <Star className="mr-2 h-4 w-4" />
-            Rating
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      accessorKey: 'assignedUsers',
+      header: 'Gäste',
       cell: ({ row }) => {
-        const { averageRating, totalRatings } = row.original;
-
-        if (!totalRatings || totalRatings === 0) {
-          return <Badge variant="secondary">No ratings yet</Badge>;
+        const assignedUsers = row.original.assignedUsers;
+        if (!assignedUsers || assignedUsers.length === 0) {
+          return <div className="font-medium">-</div>;
         }
-
-        return (
-          <div className="flex items-center gap-2">
-            <Badge variant="default">
-              <Star className="mr-1 h-3 w-3 fill-current" />
-              {averageRating?.toFixed(1)} ({totalRatings})
-            </Badge>
-          </div>
-        );
+        const firstNames = assignedUsers
+          .map((user) => user.firstName)
+          .filter((name) => name !== null)
+          .join(', ');
+        return <div className="font-medium">{firstNames || '-'}</div>;
       },
-      enableSorting: true,
-      sortDescFirst: true,
-    },
-    {
-      accessorKey: 'totalRatings',
-      header: ({ column }) => {
-        return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            <Users className="mr-2 h-4 w-4" />
-            Participants
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const { totalRatings } = row.original;
-        return <div className="text-center">{totalRatings || 0}</div>;
-      },
-      enableSorting: true,
-      sortDescFirst: true,
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: 'Aktionen',
       cell: ({ row }) => {
         const event = row.original;
-        const userRating = currentUserId
-          ? event.ratings?.find((r: Rating) => r.userId === currentUserId) || undefined
-          : undefined;
-
         return (
           <div className="flex items-center justify-end gap-2">
-            {currentUserId && <RatingDialog event={event} currentUserId={currentUserId} existingRating={userRating} />}
-            {isAdmin && <EditEventDialog event={event} />}
+            {isAdmin && (
+              <EventDialog
+                mode="edit"
+                event={event}
+                users={users}
+                assignedUserIds={event.assignedUsers?.map((user) => user.id) ?? []}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    <SquarePen />
+                    Bearbeiten
+                  </Button>
+                }
+              />
+            )}
           </div>
         );
       },

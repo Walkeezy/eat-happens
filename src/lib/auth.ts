@@ -8,6 +8,14 @@ export const auth = betterAuth({
   }),
   user: {
     additionalFields: {
+      firstName: {
+        type: 'string',
+        required: false,
+      },
+      lastName: {
+        type: 'string',
+        required: false,
+      },
       isAdmin: {
         type: 'boolean',
         defaultValue: false,
@@ -27,6 +35,10 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      mapProfileToUser: (profile) => ({
+        firstName: profile.given_name,
+        lastName: profile.family_name,
+      }),
     },
   },
   trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'],

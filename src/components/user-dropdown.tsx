@@ -9,14 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu';
-import { Skeleton } from '@/components/shadcn/skeleton';
 import { authClient } from '@/lib/auth-client';
+import { getUserFullName, getUserInitials } from '@/lib/user-utils';
 import { CalendarDays, Ellipsis, LogOut } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export function UserDropdown() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session } = authClient.useSession();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -30,30 +30,21 @@ export function UserDropdown() {
     });
   };
 
-  if (isPending) {
-    return <Skeleton className="h-8 w-8 rounded-full" />;
-  }
-
   if (!session?.user) {
     return null;
   }
 
-  const user = session.user as typeof session.user & { isAdmin: boolean };
-  const userName = user.name || 'User';
+  const user = session.user as typeof session.user & { isAdmin: boolean; firstName: string | null; lastName: string | null };
+  const userName = getUserFullName(user.firstName, user.lastName);
   const userEmail = user.email || '';
   const userAvatar = user.image || '';
-  const userInitials = userName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const userInitials = getUserInitials(user.firstName, user.lastName);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost">
-          <Ellipsis />
+        <Button variant="ghost" className="h-10 w-10 p-0">
+          <Ellipsis className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -71,7 +62,7 @@ export function UserDropdown() {
         {user.isAdmin && (
           <>
             <DropdownMenuItem asChild>
-              <NextLink href="/events">
+              <NextLink href="/events" className="w-full cursor-pointer">
                 <CalendarDays className="mr-2 h-4 w-4" />
                 Events verwalten
               </NextLink>
@@ -80,7 +71,7 @@ export function UserDropdown() {
           </>
         )}
         <DropdownMenuItem asChild>
-          <button onClick={handleLogout} className="w-full">
+          <button onClick={handleLogout} className="w-full cursor-pointer">
             <LogOut className="mr-2 h-4 w-4" />
             Abmelden
           </button>

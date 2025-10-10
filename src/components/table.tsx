@@ -10,7 +10,7 @@ interface TableProps<TData> {
 
 export function Table<TData>({ table }: TableProps<TData>) {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border bg-background">
       <ShadcnTable>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -37,7 +37,7 @@ export function Table<TData>({ table }: TableProps<TData>) {
           ) : (
             <TableRow>
               <TableCell colSpan={table.getHeaderGroups()[0].headers.length} className="h-24 text-center">
-                No results.
+                Keine Ergebnisse.
               </TableCell>
             </TableRow>
           )}

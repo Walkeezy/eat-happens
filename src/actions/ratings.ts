@@ -10,12 +10,11 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 // Inferred types
-type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score' | 'comment'>;
+type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score'>;
 
 const createRatingSchema = z.object({
-  eventId: z.string().min(1, 'Event ID is required'),
-  score: z.number().min(1, 'Score must be at least 1').max(5, 'Score must be at most 5'),
-  comment: z.string().optional(),
+  eventId: z.string().min(1, 'Event-ID ist erforderlich'),
+  score: z.number().min(1, 'Bewertung muss mindestens 1 sein').max(5, 'Bewertung darf höchstens 5 sein'),
 });
 
 export async function upsertRatingAction(data: CreateRatingData) {
@@ -34,7 +33,7 @@ export async function upsertRatingAction(data: CreateRatingData) {
   // Check if user is assigned to the event
   const isAssigned = await isUserAssignedToEvent(session.user.id, validatedData.eventId);
   if (!isAssigned) {
-    throw new Error('You can only rate events you are assigned to');
+    throw new Error('Du kannst nur Events bewerten, denen du zugewiesen bist');
   }
 
   try {
@@ -43,6 +42,6 @@ export async function upsertRatingAction(data: CreateRatingData) {
     return { success: true, rating };
   } catch (error) {
     console.error('Error upserting rating:', error);
-    throw new Error('Failed to save rating');
+    throw new Error('Bewertung konnte nicht gespeichert werden');
   }
 }

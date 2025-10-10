@@ -1,34 +1,27 @@
 'use server';
 
-import { event, eventAssignment } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import { createEvent, updateEvent } from '@/services/events';
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { headers } from 'next/headers';
-
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-// Inferred types
-type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date'>;
-type UpdateEventData = Partial<CreateEventData>;
-type EventAssignment = InferSelectModel<typeof eventAssignment>;
-
 const createEventWithAssignmentsSchema = z.object({
-  restaurant: z.string().min(1, 'Restaurant name is required'),
+  restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.date(),
-  assignedUserIds: z.array(z.string()).optional(),
+  assignedUserIds: z.array(z.string()),
 });
 
-const updateEventSchema = z.object({
-  restaurant: z.string().min(1, 'Restaurant name is required').optional(),
-  date: z.date().optional(),
+const updateEventWithAssignmentsSchema = z.object({
+  restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
+  date: z.date(),
+  assignedUserIds: z.array(z.string()),
 });
 
 export async function updateEventWithAssignmentsAction(
   eventId: string,
-  data: UpdateEventData & { assignedUserIds?: string[] },
+  data: { restaurant: string; date: Date; assignedUserIds: string[] },
 ) {
   // Get current session
   const session = await auth.api.getSession({
@@ -41,24 +34,24 @@ export async function updateEventWithAssignmentsAction(
 
   // Check if user is admin
   if (!session.user.isAdmin) {
-    throw new Error('Only admins can update events');
+    throw new Error('Nur Administratoren können Events aktualisieren');
   }
 
   // Validate data
-  const validatedData = updateEventSchema.parse(data);
+  const validatedData = updateEventWithAssignmentsSchema.parse(data);
 
   try {
     // Update the event first
-    const event = await updateEvent(eventId, validatedData);
+    const event = await updateEvent(eventId, {
+      restaurant: validatedData.restaurant,
+      date: validatedData.date,
+    });
     if (!event) {
-      throw new Error('Event not found');
+      throw new Error('Event nicht gefunden');
     }
 
-    // Handle assignment updates if provided
-    let assignmentChanges = 0;
-    if (data.assignedUserIds !== undefined) {
-      assignmentChanges = await updateEventAssignments(session.user.id, eventId, data.assignedUserIds);
-    }
+    // Update assignments
+    const assignmentChanges = await updateEventAssignments(session.user.id, eventId, validatedData.assignedUserIds);
 
     return {
       success: true,
@@ -67,11 +60,11 @@ export async function updateEventWithAssignmentsAction(
     };
   } catch (error) {
     console.error('Error updating event with assignments:', error);
-    throw new Error('Failed to update event');
+    throw new Error('Event konnte nicht aktualisiert werden');
   }
 }
 
-export async function createEventWithAssignmentsAction(data: CreateEventData & { assignedUserIds?: string[] }) {
+export async function createEventWithAssignmentsAction(data: { restaurant: string; date: Date; assignedUserIds: string[] }) {
   // Get current session
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -83,7 +76,7 @@ export async function createEventWithAssignmentsAction(data: CreateEventData & {
 
   // Check if user is admin
   if (!session.user.isAdmin) {
-    throw new Error('Only admins can create events');
+    throw new Error('Nur Administratoren können Events erstellen');
   }
 
   // Validate data
@@ -96,11 +89,8 @@ export async function createEventWithAssignmentsAction(data: CreateEventData & {
       date: validatedData.date,
     });
 
-    // Assign users if any were selected
-    let assignments: EventAssignment[] = [];
-    if (validatedData.assignedUserIds && validatedData.assignedUserIds.length > 0) {
-      assignments = await assignMultipleUsers(session.user.id, event.id, validatedData.assignedUserIds);
-    }
+    // Assign users
+    const assignments = await assignMultipleUsers(session.user.id, event.id, validatedData.assignedUserIds);
 
     return {
       success: true,
@@ -110,6 +100,6 @@ export async function createEventWithAssignmentsAction(data: CreateEventData & {
     };
   } catch (error) {
     console.error('Error creating event with assignments:', error);
-    throw new Error('Failed to create event');
+    throw new Error('Event konnte nicht erstellt werden');
   }
 }

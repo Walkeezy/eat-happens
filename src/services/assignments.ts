@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { eventAssignment, user } from '@/db/schema';
-import { and, eq, InferSelectModel, sql } from 'drizzle-orm';
+import { and, eq, inArray, InferSelectModel } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 // Inferred types
@@ -38,9 +38,13 @@ export async function getAllConfirmedUsers(): Promise<User[]> {
   const confirmedUsers = await db
     .select({
       id: user.id,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
+      emailVerified: user.emailVerified,
       image: user.image,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
       isAdmin: user.isAdmin,
       isConfirmed: user.isConfirmed,
     })
@@ -71,13 +75,9 @@ export async function updateEventAssignments(assignedBy: string, eventId: string
 
   // Remove users no longer assigned
   if (usersToRemove.length > 0) {
-    await db.delete(eventAssignment).where(
-      and(
-        eq(eventAssignment.eventId, eventId),
-        // Use IN clause with array of user IDs to remove
-        sql`${eventAssignment.userId} = ANY(${usersToRemove})`,
-      ),
-    );
+    await db
+      .delete(eventAssignment)
+      .where(and(eq(eventAssignment.eventId, eventId), inArray(eventAssignment.userId, usersToRemove)));
     totalChanges += usersToRemove.length;
   }
 
