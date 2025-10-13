@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth';
 import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import { createEvent, updateEvent } from '@/services/events';
+import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -53,6 +54,8 @@ export async function updateEventWithAssignmentsAction(
     // Update assignments
     const assignmentChanges = await updateEventAssignments(session.user.id, eventId, validatedData.assignedUserIds);
 
+    revalidatePath('/');
+
     return {
       success: true,
       event,
@@ -91,6 +94,8 @@ export async function createEventWithAssignmentsAction(data: { restaurant: strin
 
     // Assign users
     const assignments = await assignMultipleUsers(session.user.id, event.id, validatedData.assignedUserIds);
+
+    revalidatePath('/');
 
     return {
       success: true,

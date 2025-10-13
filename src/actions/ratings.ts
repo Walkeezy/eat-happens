@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth';
 import { isUserAssignedToEvent } from '@/services/assignments';
 import { upsertRating } from '@/services/ratings';
 import { InferInsertModel } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -38,6 +39,8 @@ export async function upsertRatingAction(data: CreateRatingData) {
 
   try {
     const rating = await upsertRating(session.user.id, validatedData);
+
+    revalidatePath('/');
 
     return { success: true, rating };
   } catch (error) {
