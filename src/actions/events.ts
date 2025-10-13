@@ -54,7 +54,7 @@ export async function updateEventWithAssignmentsAction(
     // Update assignments
     const assignmentChanges = await updateEventAssignments(session.user.id, eventId, validatedData.assignedUserIds);
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return {
       success: true,
@@ -95,7 +95,7 @@ export async function createEventWithAssignmentsAction(data: { restaurant: strin
     // Assign users
     const assignments = await assignMultipleUsers(session.user.id, event.id, validatedData.assignedUserIds);
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return {
       success: true,

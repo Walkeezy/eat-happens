@@ -40,7 +40,7 @@ export async function upsertRatingAction(data: CreateRatingData) {
   try {
     const rating = await upsertRating(session.user.id, validatedData);
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return { success: true, rating };
   } catch (error) {
