@@ -18,7 +18,7 @@ export const RankingTable = ({ events }: Props) => {
     },
     {
       accessorKey: 'averageRating',
-      header: 'Durchschnittsbewertung',
+      header: 'Bewertung',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <span className="font-bold">{row.original.averageRating!.toFixed(1)}</span>
