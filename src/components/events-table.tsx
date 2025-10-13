@@ -5,9 +5,8 @@ import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
 import { dayjs } from '@/lib/dayjs';
 import type { EventWithDetails, User } from '@/types/events';
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
+import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { SquarePen } from 'lucide-react';
-import { useState } from 'react';
 
 type Props = {
   events: EventWithDetails[];
@@ -17,8 +16,6 @@ type Props = {
 };
 
 export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
-
   const columns: ColumnDef<EventWithDetails>[] = [
     {
       accessorKey: 'restaurant',
@@ -73,12 +70,7 @@ export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) =>
   const table = useReactTable({
     data: events,
     columns,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
   });
 
   return <Table table={table} columns={columns} />;

@@ -1,5 +1,5 @@
+import { Menu } from '@/components/layout/menu';
 import { Logo } from '@/components/logo';
-import { UserDropdown } from '@/components/user-dropdown';
 import NextLink from 'next/link';
 import { FC, PropsWithChildren } from 'react';
 
@@ -14,7 +14,7 @@ export const AppLayout: FC<PropsWithChildren> = async ({ children }) => (
           <span className="truncate text-sm font-semibold">Eat Happens</span>
         </NextLink>
         <div className="ml-auto">
-          <UserDropdown />
+          <Menu />
         </div>
       </div>
     </header>
