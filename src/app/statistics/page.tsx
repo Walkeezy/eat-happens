@@ -1,7 +1,8 @@
 import { AppLayout } from '@/components/layout/app-layout';
+import { RatingsTimelineChart } from '@/components/ratings-timeline-chart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { getStatistics } from '@/services/statistics';
-import { BarChart, Calendar, Star, TrendingUp, Trophy, Users } from 'lucide-react';
+import { Calendar, LineChart, Star, ThumbsDown, ThumbsUp, TrendingUp, Trophy, Users } from 'lucide-react';
 
 export default async function StatisticsPage() {
   const stats = await getStatistics();
@@ -94,26 +95,91 @@ export default async function StatisticsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <BarChart className="size-5 text-blue-500" />
-              <CardTitle>Aktivster Bewerter</CardTitle>
+              <ThumbsUp className="size-5 text-green-500" />
+              <CardTitle>Positivster Bewerter</CardTitle>
             </div>
-            <CardDescription>Benutzer mit den meisten Bewertungen</CardDescription>
+            <CardDescription>Benutzer mit den höchsten Durchschnittsbewertungen (mind. 3 Bewertungen)</CardDescription>
           </CardHeader>
           <CardContent>
-            {stats.mostActiveUser ? (
+            {stats.mostPositiveUser ? (
               <div>
-                <div className="text-xl font-bold">{stats.mostActiveUser.name}</div>
-                <div className="mt-2">
-                  <span className="text-2xl font-bold text-blue-600">{stats.mostActiveUser.ratingCount}</span>
-                  <span className="ml-2 text-sm text-muted-foreground">Bewertungen</span>
+                <div className="text-xl font-bold">{stats.mostPositiveUser.name}</div>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-2xl font-bold text-green-600">
+                    {stats.mostPositiveUser.averageRating.toFixed(2)}
+                  </span>
+                  <Star className="size-5 fill-green-400 text-green-400" />
                 </div>
+                <p className="mt-1 text-xs text-muted-foreground">{stats.mostPositiveUser.ratingCount} Bewertungen</p>
               </div>
             ) : (
-              <p className="text-muted-foreground">Noch keine Bewertungen</p>
+              <p className="text-muted-foreground">Noch nicht genügend Bewertungen</p>
             )}
           </CardContent>
         </Card>
       </div>
+
+      <div className="mb-6 grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <ThumbsDown className="size-5 text-red-500" />
+              <CardTitle>Kritischster Bewerter</CardTitle>
+            </div>
+            <CardDescription>Benutzer mit den niedrigsten Durchschnittsbewertungen (mind. 3 Bewertungen)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.mostNegativeUser ? (
+              <div>
+                <div className="text-xl font-bold">{stats.mostNegativeUser.name}</div>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-2xl font-bold text-red-600">{stats.mostNegativeUser.averageRating.toFixed(2)}</span>
+                  <Star className="size-5 text-red-400" />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{stats.mostNegativeUser.ratingCount} Bewertungen</p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Noch nicht genügend Bewertungen</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {stats.worstRatedRestaurant && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-muted-foreground">Schlechteste Bewertung</CardTitle>
+              <CardDescription>Restaurant mit niedrigster Durchschnittsbewertung (mind. 3 Bewertungen)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">{stats.worstRatedRestaurant.restaurant}</div>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-2xl font-bold text-muted-foreground">
+                  {stats.worstRatedRestaurant.averageRating.toFixed(2)}
+                </span>
+                <Star className="size-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Ratings Timeline */}
+      {stats.ratingsTimeline.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <LineChart className="size-5 text-blue-500" />
+              <CardTitle>Bewertungsverlauf</CardTitle>
+            </div>
+            <CardDescription>Durchschnittsbewertung im Zeitverlauf</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full">
+              <RatingsTimelineChart data={stats.ratingsTimeline} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Rating Distribution */}
       <Card>
@@ -146,24 +212,6 @@ export default async function StatisticsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {stats.worstRatedRestaurant && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-muted-foreground">Schlechteste Bewertung</CardTitle>
-            <CardDescription>Restaurant mit niedrigster Durchschnittsbewertung (mind. 3 Bewertungen)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{stats.worstRatedRestaurant.restaurant}</div>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-2xl font-bold text-muted-foreground">
-                {stats.worstRatedRestaurant.averageRating.toFixed(2)}
-              </span>
-              <Star className="size-5 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </AppLayout>
   );
 }

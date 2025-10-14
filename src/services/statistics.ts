@@ -10,7 +10,9 @@ export type Statistics = {
   ratingDistribution: { score: number; count: number }[];
   topRatedRestaurant: { restaurant: string; averageRating: number } | null;
   worstRatedRestaurant: { restaurant: string; averageRating: number } | null;
-  mostActiveUser: { name: string; ratingCount: number } | null;
+  mostPositiveUser: { name: string; averageRating: number; ratingCount: number } | null;
+  mostNegativeUser: { name: string; averageRating: number; ratingCount: number } | null;
+  ratingsTimeline: { date: string; averageRating: number; count: number }[];
   eventsThisYear: number;
 };
 
@@ -71,20 +73,57 @@ export async function getStatistics(): Promise<Statistics> {
     .orderBy(sql`avg(${rating.score})`)
     .limit(1);
 
-  // Most active user
-  const mostActive = await db
+  // Most positive user (highest average rating, min 3 ratings)
+  const mostPositive = await db
     .select({
       userId: rating.userId,
       firstName: user.firstName,
       lastName: user.lastName,
       name: user.name,
+      averageRating: sql<number>`avg(${rating.score})`,
       ratingCount: count(),
     })
     .from(rating)
     .innerJoin(user, sql`${rating.userId} = ${user.id}`)
     .groupBy(rating.userId, user.firstName, user.lastName, user.name)
-    .orderBy(desc(count()))
+    .having(sql`count(*) >= 3`)
+    .orderBy(desc(sql`avg(${rating.score})`))
     .limit(1);
+
+  // Most negative user (lowest average rating, min 3 ratings)
+  const mostNegative = await db
+    .select({
+      userId: rating.userId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      name: user.name,
+      averageRating: sql<number>`avg(${rating.score})`,
+      ratingCount: count(),
+    })
+    .from(rating)
+    .innerJoin(user, sql`${rating.userId} = ${user.id}`)
+    .groupBy(rating.userId, user.firstName, user.lastName, user.name)
+    .having(sql`count(*) >= 3`)
+    .orderBy(sql`avg(${rating.score})`)
+    .limit(1);
+
+  // Ratings timeline (grouped by month)
+  const timelineResult = await db
+    .select({
+      date: sql<string>`DATE(${event.date})`,
+      averageRating: sql<number>`avg(${rating.score})`,
+      count: count(),
+    })
+    .from(rating)
+    .innerJoin(event, sql`${rating.eventId} = ${event.id}`)
+    .groupBy(sql`DATE(${event.date})`)
+    .orderBy(sql`DATE(${event.date})`);
+
+  const ratingsTimeline = timelineResult.map((r) => ({
+    date: r.date,
+    averageRating: Number(r.averageRating),
+    count: Number(r.count),
+  }));
 
   // Events this month
 
@@ -111,15 +150,27 @@ export async function getStatistics(): Promise<Statistics> {
           averageRating: Number(worstRated[0].averageRating),
         }
       : null,
-    mostActiveUser: mostActive[0]
+    mostPositiveUser: mostPositive[0]
       ? {
           name:
-            mostActive[0].firstName && mostActive[0].lastName
-              ? `${mostActive[0].firstName} ${mostActive[0].lastName}`
-              : (mostActive[0].name ?? 'Unbekannt'),
-          ratingCount: Number(mostActive[0].ratingCount),
+            mostPositive[0].firstName && mostPositive[0].lastName
+              ? `${mostPositive[0].firstName} ${mostPositive[0].lastName}`
+              : (mostPositive[0].name ?? 'Unbekannt'),
+          averageRating: Number(mostPositive[0].averageRating),
+          ratingCount: Number(mostPositive[0].ratingCount),
         }
       : null,
+    mostNegativeUser: mostNegative[0]
+      ? {
+          name:
+            mostNegative[0].firstName && mostNegative[0].lastName
+              ? `${mostNegative[0].firstName} ${mostNegative[0].lastName}`
+              : (mostNegative[0].name ?? 'Unbekannt'),
+          averageRating: Number(mostNegative[0].averageRating),
+          ratingCount: Number(mostNegative[0].ratingCount),
+        }
+      : null,
+    ratingsTimeline,
     eventsThisYear,
   };
 }
