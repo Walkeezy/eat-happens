@@ -41,9 +41,6 @@ export default function PendingConfirmationPage() {
 
   return (
     <UnauthenticatedLayout>
-      <div>
-        <div className="bg-red aspect-[420/242] w-10 outline outline-primary">testing custom theme</div>
-      </div>
       <Card className="mx-auto w-full max-w-md text-center">
         <CardHeader>
           <div className="mb-4 flex justify-center">
