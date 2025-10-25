@@ -2,6 +2,7 @@ import { EventCard } from '@/components/event-card';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
+import { dayjs } from '@/lib/dayjs';
 import { verifySession } from '@/lib/verify-session';
 import { getEvents } from '@/services/events';
 import { CalendarOff } from 'lucide-react';
@@ -10,7 +11,15 @@ export default async function HomePage() {
   const { session } = await verifySession();
 
   // Fetch events with ratings and assignments on the server
-  const events = await getEvents();
+  const allEvents = await getEvents();
+
+  // Filter to only show events that are on or before today (hide future events)
+  const today = dayjs().startOf('day');
+  const events = allEvents.filter((event) => {
+    const eventDate = dayjs(event.date).startOf('day');
+
+    return !eventDate.isAfter(today);
+  });
 
   // Separate events into unrated (assigned but not rated) and all others
   const unratedEvents = events.filter((event) => {
