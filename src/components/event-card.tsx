@@ -5,7 +5,6 @@ import { RatingDialog } from '@/components/rating-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
 import { dayjs } from '@/lib/dayjs';
-import { shouldHideRatings } from '@/lib/ratings-visibility';
 import type { EventWithDetails } from '@/types/events';
 import { CalendarIcon, Star } from 'lucide-react';
 import { FC } from 'react';
@@ -13,13 +12,13 @@ import { FC } from 'react';
 type Props = {
   event: EventWithDetails;
   currentUserId: string;
+  hideRatings: boolean;
 };
 
-export const EventCard: FC<Props> = ({ event, currentUserId }) => {
+export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
   const isUserAssigned = event.assignedUsers?.some((user) => user.id === currentUserId);
   const userRating = event.ratings?.find((rating) => rating.userId === currentUserId);
   const hasUnratedAssignment = isUserAssigned && !userRating;
-  const hideRatings = shouldHideRatings();
   const showAverageRating = !hideRatings && event.averageRating && event.averageRating > 0;
   const hasAssignedUsers = event.assignedUsers && event.assignedUsers.length > 0;
 

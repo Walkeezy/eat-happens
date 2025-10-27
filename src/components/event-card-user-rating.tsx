@@ -43,12 +43,12 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
             <StarRating score={userRating.score} />
           </div>
         ) : showCheckmark ? (
-          <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
+          <div className="mt-1 flex items-center gap-0.5 text-xs font-semibold text-green-600">
             <Check className="size-3" />
             <span>Bewertet</span>
           </div>
         ) : (
-          <div className="text-xs text-muted-foreground">Noch nicht bewertet</div>
+          <div className="text-xs font-semibold text-muted-foreground">Noch nicht bewertet</div>
         )}
       </div>
     </div>
