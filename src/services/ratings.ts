@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 type Rating = InferSelectModel<typeof rating>;
 type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score'>;
 
-export async function upsertRating(userId: string, data: CreateRatingData): Promise<Rating> {
+export async function saveRating(userId: string, data: CreateRatingData): Promise<Rating> {
   // Check if rating exists
   const [existingRating] = await db
     .select()
@@ -16,16 +16,8 @@ export async function upsertRating(userId: string, data: CreateRatingData): Prom
     .limit(1);
 
   if (existingRating) {
-    // Update existing rating
-    const [updatedRating] = await db
-      .update(rating)
-      .set({
-        score: data.score,
-      })
-      .where(and(eq(rating.userId, userId), eq(rating.eventId, data.eventId)))
-      .returning();
-
-    return updatedRating;
+    // Prevent editing of existing ratings
+    throw new Error('Du hast dieses Event bereits bewertet und kannst deine Bewertung nicht mehr ändern');
   }
 
   // Create new rating

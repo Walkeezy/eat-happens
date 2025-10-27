@@ -1,6 +1,6 @@
 'use client';
 
-import { upsertRatingAction } from '@/actions/ratings';
+import { saveRatingAction } from '@/actions/ratings';
 import { Button } from '@/components/shadcn/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormField, FormItem, FormMessage } from '@/components/shadcn/form';
@@ -47,7 +47,7 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
         score,
       };
 
-      await upsertRatingAction(ratingData);
+      await saveRatingAction(ratingData);
 
       setOpen(false);
       router.refresh();

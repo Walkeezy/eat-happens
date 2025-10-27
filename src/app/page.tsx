@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
 import { dayjs } from '@/lib/dayjs';
+import { shouldHideRatings } from '@/lib/ratings-visibility';
 import { verifySession } from '@/lib/verify-session';
 import { getEvents } from '@/services/events';
 import { CalendarOff } from 'lucide-react';
@@ -11,7 +12,8 @@ export default async function HomePage() {
   const { session } = await verifySession();
 
   // Fetch events with ratings and assignments on the server
-  const allEvents = await getEvents();
+  const allEvents = await getEvents(session.user.id);
+  const hideRatings = shouldHideRatings();
 
   // Filter to only show events that are on or before today (hide future events)
   const today = dayjs().startOf('day');
@@ -50,6 +52,11 @@ export default async function HomePage() {
         </Empty>
       ) : (
         <div className="space-y-8">
+          <p className="text-sm text-muted-foreground">
+            Bewertungen werden sichtbar am:{' '}
+            <strong className="font-semibold">{dayjs(process.env.RATINGS_REVEAL_DATE).format('D. MMMM YYYY')}</strong>
+          </p>
+
           {/* Events to Rate Section */}
           {unratedEvents.length > 0 && (
             <div>
@@ -59,7 +66,7 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {unratedEvents.map((event) => (
-                  <EventCard key={event.id} event={event} currentUserId={session.user.id} />
+                  <EventCard key={event.id} event={event} currentUserId={session.user.id} hideRatings={hideRatings} />
                 ))}
               </div>
             </div>
@@ -74,7 +81,7 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {otherEvents.map((event) => (
-                  <EventCard key={event.id} event={event} currentUserId={session.user.id} />
+                  <EventCard key={event.id} event={event} currentUserId={session.user.id} hideRatings={hideRatings} />
                 ))}
               </div>
             </div>

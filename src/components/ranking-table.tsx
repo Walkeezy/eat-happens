@@ -7,9 +7,10 @@ import { Star } from 'lucide-react';
 
 type Props = {
   events: EventWithDetails[];
+  hideRatings: boolean;
 };
 
-export const RankingTable = ({ events }: Props) => {
+export const RankingTable = ({ events, hideRatings }: Props) => {
   const columns: ColumnDef<EventWithDetails>[] = [
     {
       accessorKey: 'restaurant',
@@ -17,14 +18,17 @@ export const RankingTable = ({ events }: Props) => {
       cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
     },
     {
-      accessorKey: 'averageRating',
-      header: 'Bewertung',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <span className="font-bold">{row.original.averageRating!.toFixed(1)}</span>
-          <Star className="size-4 fill-yellow-400 text-yellow-400" />
-        </div>
-      ),
+      accessorKey: hideRatings ? 'totalRatings' : 'averageRating',
+      header: hideRatings ? 'Anzahl Bewertungen' : 'Bewertung',
+      cell: ({ row }) =>
+        hideRatings ? (
+          <div className="font-bold">{row.original.totalRatings ?? 0}</div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="font-bold">{row.original.averageRating!.toFixed(1)}</span>
+            <Star className="size-4 fill-yellow-400 text-yellow-400" />
+          </div>
+        ),
     },
   ];
 
