@@ -5,6 +5,7 @@ import { RatingDialog } from '@/components/rating-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
 import { dayjs } from '@/lib/dayjs';
+import { shouldHideRatings } from '@/lib/ratings-visibility';
 import type { EventWithDetails } from '@/types/events';
 import { CalendarIcon, Star } from 'lucide-react';
 import { FC } from 'react';
@@ -18,7 +19,8 @@ export const EventCard: FC<Props> = ({ event, currentUserId }) => {
   const isUserAssigned = event.assignedUsers?.some((user) => user.id === currentUserId);
   const userRating = event.ratings?.find((rating) => rating.userId === currentUserId);
   const hasUnratedAssignment = isUserAssigned && !userRating;
-  const showAverageRating = event.averageRating && event.averageRating > 0;
+  const hideRatings = shouldHideRatings();
+  const showAverageRating = !hideRatings && event.averageRating && event.averageRating > 0;
   const hasAssignedUsers = event.assignedUsers && event.assignedUsers.length > 0;
 
   return (
@@ -32,12 +34,12 @@ export const EventCard: FC<Props> = ({ event, currentUserId }) => {
               {dayjs(event.date).format('D. MMMM YYYY')}
             </CardDescription>
           </div>
-          {!hasUnratedAssignment && showAverageRating && (
+          {!hasUnratedAssignment && showAverageRating ? (
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold">{event.averageRating!.toFixed(1)}</span>
               <Star className="size-6 fill-yellow-400 text-yellow-400" />
             </div>
-          )}
+          ) : null}
         </div>
 
         {hasUnratedAssignment ? (
@@ -52,6 +54,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId }) => {
                   userRating={event.ratings?.find((rating) => rating.userId === user.id)}
                   isCurrentUser={user.id === currentUserId}
                   event={event}
+                  hideRatings={hideRatings}
                 />
               ))}
             </div>

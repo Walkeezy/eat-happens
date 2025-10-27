@@ -11,7 +11,7 @@ export default async function HomePage() {
   const { session } = await verifySession();
 
   // Fetch events with ratings and assignments on the server
-  const allEvents = await getEvents();
+  const allEvents = await getEvents(session.user.id);
 
   // Filter to only show events that are on or before today (hide future events)
   const today = dayjs().startOf('day');

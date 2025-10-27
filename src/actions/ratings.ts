@@ -3,7 +3,7 @@
 import { rating } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { isUserAssignedToEvent } from '@/services/assignments';
-import { upsertRating } from '@/services/ratings';
+import { saveRating } from '@/services/ratings';
 import { InferInsertModel } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
@@ -18,7 +18,7 @@ const createRatingSchema = z.object({
   score: z.number().min(1, 'Bewertung muss mindestens 1 sein').max(5, 'Bewertung darf höchstens 5 sein'),
 });
 
-export async function upsertRatingAction(data: CreateRatingData) {
+export async function saveRatingAction(data: CreateRatingData) {
   // Get current session
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -38,13 +38,17 @@ export async function upsertRatingAction(data: CreateRatingData) {
   }
 
   try {
-    const rating = await upsertRating(session.user.id, validatedData);
+    const rating = await saveRating(session.user.id, validatedData);
 
     revalidatePath('/', 'layout');
 
     return { success: true, rating };
   } catch (error) {
-    console.error('Error upserting rating:', error);
+    console.error('Error saving rating:', error);
+    // Re-throw the error from the service layer to preserve the message
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Bewertung konnte nicht gespeichert werden');
   }
 }
