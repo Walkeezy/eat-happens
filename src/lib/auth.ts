@@ -41,5 +41,9 @@ export const auth = betterAuth({
       }),
     },
   },
+  session: {
+    expiresIn: 60 * 60 * 24 * 60,
+    updateAge: 60 * 60 * 24,
+  },
   trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'],
 });
