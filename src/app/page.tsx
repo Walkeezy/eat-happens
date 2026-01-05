@@ -52,11 +52,6 @@ export default async function HomePage() {
         </Empty>
       ) : (
         <div className="space-y-8">
-          <p className="text-sm text-muted-foreground">
-            Bewertungen werden sichtbar am:{' '}
-            <strong className="font-semibold">{dayjs(process.env.RATINGS_REVEAL_DATE).format('D. MMMM YYYY')}</strong>
-          </p>
-
           {/* Events to Rate Section */}
           {unratedEvents.length > 0 && (
             <div>
