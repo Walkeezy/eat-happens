@@ -1,20 +1,13 @@
 'use server';
 
-import { rating } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { isUserAssignedToEvent } from '@/services/assignments';
 import { saveRating } from '@/services/ratings';
-import { InferInsertModel } from 'drizzle-orm';
+import type { CreateRatingData } from '@/types/events';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-
-// Inferred types
-type CreateRatingData = Pick<
-  InferInsertModel<typeof rating>,
-  'eventId' | 'foodScore' | 'ambienceScore' | 'pricePerformanceScore'
->;
 
 const scoreSchema = z.number().min(1, 'Bewertung muss mindestens 1 sein').max(5, 'Bewertung darf höchstens 5 sein');
 

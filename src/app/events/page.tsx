@@ -11,7 +11,7 @@ export default async function EventsPage() {
   const { user } = await verifySession();
 
   // Get events with assignments and users data server-side
-  const [events, users] = await Promise.all([getEvents(user.id), getAllConfirmedUsers()]);
+  const [events, users] = await Promise.all([getEvents(), getAllConfirmedUsers()]);
 
   return (
     <AppLayout>
@@ -28,7 +28,7 @@ export default async function EventsPage() {
           }
         />
       </div>
-      <EventsTable events={events} users={users} currentUserId={user.id} isAdmin={user.isAdmin} />
+      <EventsTable events={events} users={users} isAdmin={user.isAdmin} />
     </AppLayout>
   );
 }

@@ -45,7 +45,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
             {event.totalCost != null && (
               <CardDescription className="flex items-center gap-1 text-sm">
                 <Wallet className="size-3" />
-                CHF {event.totalCost.toFixed(2)} (Ø pro Persion: CHF{' '}
+                CHF {event.totalCost.toFixed(2)} (Ø pro Person: CHF{' '}
                 {(event.totalCost / event.assignedUsers!.length).toFixed(2)})
               </CardDescription>
             )}

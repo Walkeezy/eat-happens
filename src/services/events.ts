@@ -4,7 +4,7 @@ import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '
 import { desc, eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
-export async function getEvents(currentUserId?: string): Promise<EventWithDetails[]> {
+export async function getEvents(): Promise<EventWithDetails[]> {
   // Use Drizzle's optimized Queries API with relations
   const eventsWithDetails = await db.query.event.findMany({
     orderBy: [desc(event.date)],

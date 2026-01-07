@@ -1,5 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import { StarRating } from '@/components/star-rating';
+import { ratingCategories } from '@/lib/constants';
+import { getInitials } from '@/lib/user';
 import { EventWithDetails } from '@/types/events';
 import { Check, Star } from 'lucide-react';
 import { FC } from 'react';
@@ -11,22 +13,6 @@ type Props = {
   event: EventWithDetails;
   hideRatings: boolean;
 };
-
-const getInitials = (name: string | null) => {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase();
-};
-
-const ratingCategories = [
-  { key: 'foodScore', label: 'Essen' },
-  { key: 'ambienceScore', label: 'Ambiente' },
-  { key: 'pricePerformanceScore', label: 'Preis-Leistung' },
-] as const;
 
 export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser, hideRatings }) => {
   const userName = user.name || user.email;

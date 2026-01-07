@@ -5,6 +5,7 @@ import { Button } from '@/components/shadcn/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { StarVoting } from '@/components/star-voting';
+import { ratingCategories } from '@/lib/constants';
 import type { CreateRatingData, Event, Rating } from '@/types/events';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -29,12 +30,6 @@ type Props = {
   isAssigned?: boolean;
   trigger: ReactNode;
 };
-
-const ratingCategories = [
-  { name: 'foodScore', label: 'Essen' },
-  { name: 'ambienceScore', label: 'Ambiente/Service' },
-  { name: 'pricePerformanceScore', label: 'Preis-Leistung' },
-] as const;
 
 export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }) => {
   const router = useRouter();
@@ -77,15 +72,15 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {ratingCategories.map(({ name, label }) => (
+            {ratingCategories.map(({ key, label }) => (
               <FormField
-                key={name}
+                key={key}
                 control={form.control}
-                name={name}
+                name={key}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{label}</FormLabel>
-                    <StarVoting score={field.value} onScoreChange={(score) => form.setValue(name, score)} />
+                    <StarVoting score={field.value} onScoreChange={(score) => form.setValue(key, score)} />
                     <FormMessage />
                   </FormItem>
                 )}

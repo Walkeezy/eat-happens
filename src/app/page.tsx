@@ -12,7 +12,7 @@ export default async function HomePage() {
   const { session } = await verifySession();
 
   // Fetch events with ratings and assignments on the server
-  const allEvents = await getEvents(session.user.id);
+  const allEvents = await getEvents();
 
   // Filter to only show events that are on or before today (hide future events)
   const today = dayjs().startOf('day');
@@ -60,7 +60,12 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {unratedEvents.map((event) => (
-                  <EventCard key={event.id} event={event} currentUserId={session.user.id} hideRatings={shouldHideRatings(event.date)} />
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    currentUserId={session.user.id}
+                    hideRatings={shouldHideRatings(event.date)}
+                  />
                 ))}
               </div>
             </div>
@@ -75,7 +80,12 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
                 {otherEvents.map((event) => (
-                  <EventCard key={event.id} event={event} currentUserId={session.user.id} hideRatings={shouldHideRatings(event.date)} />
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    currentUserId={session.user.id}
+                    hideRatings={shouldHideRatings(event.date)}
+                  />
                 ))}
               </div>
             </div>

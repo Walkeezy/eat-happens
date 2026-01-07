@@ -8,14 +8,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-const createEventWithAssignmentsSchema = z.object({
-  restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
-  date: z.date(),
-  assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
-  totalCost: z.number().positive().optional(),
-});
-
-const updateEventWithAssignmentsSchema = z.object({
+const eventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.date(),
   assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
@@ -41,7 +34,7 @@ export async function updateEventWithAssignmentsAction(
   }
 
   // Validate data
-  const validatedData = updateEventWithAssignmentsSchema.parse(data);
+  const validatedData = eventWithAssignmentsSchema.parse(data);
 
   try {
     // Update the event first
@@ -70,7 +63,12 @@ export async function updateEventWithAssignmentsAction(
   }
 }
 
-export async function createEventWithAssignmentsAction(data: { restaurant: string; date: Date; assignedUserIds: string[]; totalCost?: number }) {
+export async function createEventWithAssignmentsAction(data: {
+  restaurant: string;
+  date: Date;
+  assignedUserIds: string[];
+  totalCost?: number;
+}) {
   // Get current session
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -86,7 +84,7 @@ export async function createEventWithAssignmentsAction(data: { restaurant: strin
   }
 
   // Validate data
-  const validatedData = createEventWithAssignmentsSchema.parse(data);
+  const validatedData = eventWithAssignmentsSchema.parse(data);
 
   try {
     // Create the event first

@@ -1,13 +1,9 @@
 'use client';
 
 import { Table } from '@/components/table';
+import { formatCurrency } from '@/lib/format';
 import type { EventCost } from '@/services/ratings';
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-
-export const formatCurrency = (value: number | null) => {
-  if (value === null) return '-';
-  return new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(value);
-};
 
 const columns: ColumnDef<EventCost>[] = [
   {

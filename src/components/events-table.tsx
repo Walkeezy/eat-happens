@@ -1,10 +1,10 @@
 'use client';
 
-import { formatCurrency } from '@/components/cost-table';
 import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
 import { dayjs } from '@/lib/dayjs';
+import { formatCurrency } from '@/lib/format';
 import type { EventWithDetails, User } from '@/types/events';
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { SquarePen } from 'lucide-react';
@@ -12,11 +12,10 @@ import { SquarePen } from 'lucide-react';
 type Props = {
   events: EventWithDetails[];
   users: User[];
-  currentUserId?: string;
   isAdmin?: boolean;
 };
 
-export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) => {
+export const EventsTable = ({ events, users, isAdmin }: Props) => {
   const columns: ColumnDef<EventWithDetails>[] = [
     {
       accessorKey: 'restaurant',
