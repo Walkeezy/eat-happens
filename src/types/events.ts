@@ -8,7 +8,7 @@ type EventAssignment = InferSelectModel<typeof eventAssignment>;
 export type Rating = InferSelectModel<typeof rating>;
 
 // Insert types
-export type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date'>;
+export type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date' | 'totalCost'>;
 export type UpdateEventData = Partial<CreateEventData>;
 export type CreateRatingData = Pick<
   InferInsertModel<typeof rating>,

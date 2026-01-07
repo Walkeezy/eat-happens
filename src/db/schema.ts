@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, pgTable, smallint, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { boolean, index, pgTable, real, smallint, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // Better-auth tables (generated schema)
 export const user = pgTable(
@@ -89,6 +89,7 @@ export const event = pgTable('event', {
   id: text('id').primaryKey(),
   date: timestamp('date').notNull(),
   restaurant: text('restaurant').notNull(),
+  totalCost: real('total_cost'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at')
     .notNull()

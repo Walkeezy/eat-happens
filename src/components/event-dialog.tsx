@@ -17,6 +17,7 @@ const eventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.string().min(1, 'Datum ist erforderlich'),
   users: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss ausgewählt werden'),
+  totalCost: z.string().optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -39,15 +40,18 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
       restaurant: event?.restaurant || '',
       date: event ? new Date(event.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       users: assignedUserIds,
+      totalCost: event?.totalCost?.toString() ?? '',
     },
   });
 
-  const onSubmit = async ({ restaurant, date, users }: EventFormData) => {
+  const onSubmit = async ({ restaurant, date, users, totalCost }: EventFormData) => {
     try {
+      const parsedCost = totalCost ? parseFloat(totalCost) : undefined;
       const eventData = {
         restaurant,
         date: new Date(date),
         assignedUserIds: users,
+        totalCost: parsedCost && parsedCost > 0 ? parsedCost : undefined,
       };
 
       if (mode === 'edit' && event) {
@@ -98,6 +102,20 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
                   <FormLabel>Dinner-Datum *</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="totalCost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gesamtkosten (CHF)</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" min="0" placeholder="z.B. 125.50" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

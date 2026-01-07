@@ -1,5 +1,6 @@
 'use client';
 
+import { formatCurrency } from '@/components/cost-table';
 import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
@@ -28,6 +29,11 @@ export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) =>
       cell: ({ row }) => dayjs(row.original.date).format('D. MMMM YYYY'),
     },
     {
+      accessorKey: 'totalCost',
+      header: 'Gesamtkosten',
+      cell: ({ row }) => formatCurrency(row.original.totalCost),
+    },
+    {
       accessorKey: 'assignedUsers',
       header: 'Gäste',
       cell: ({ row }) => {
@@ -35,11 +41,11 @@ export const EventsTable = ({ events, users, currentUserId, isAdmin }: Props) =>
         if (!assignedUsers || assignedUsers.length === 0) {
           return <div className="font-medium">-</div>;
         }
-        const firstNames = assignedUsers
-          .map((user) => user.firstName)
-          .filter((name) => name !== null)
+        const initials = assignedUsers
+          .map((user) => user.firstName?.[0])
+          .filter(Boolean)
           .join(', ');
-        return <div className="font-medium">{firstNames || '-'}</div>;
+        return <div className="font-medium">{initials || '-'}</div>;
       },
     },
     {

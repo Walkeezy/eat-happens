@@ -12,17 +12,19 @@ const createEventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.date(),
   assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
+  totalCost: z.number().positive().optional(),
 });
 
 const updateEventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: z.date(),
   assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
+  totalCost: z.number().positive().optional(),
 });
 
 export async function updateEventWithAssignmentsAction(
   eventId: string,
-  data: { restaurant: string; date: Date; assignedUserIds: string[] },
+  data: { restaurant: string; date: Date; assignedUserIds: string[]; totalCost?: number },
 ) {
   // Get current session
   const session = await auth.api.getSession({
@@ -46,6 +48,7 @@ export async function updateEventWithAssignmentsAction(
     const event = await updateEvent(eventId, {
       restaurant: validatedData.restaurant,
       date: validatedData.date,
+      totalCost: validatedData.totalCost,
     });
     if (!event) {
       throw new Error('Event nicht gefunden');
@@ -67,7 +70,7 @@ export async function updateEventWithAssignmentsAction(
   }
 }
 
-export async function createEventWithAssignmentsAction(data: { restaurant: string; date: Date; assignedUserIds: string[] }) {
+export async function createEventWithAssignmentsAction(data: { restaurant: string; date: Date; assignedUserIds: string[]; totalCost?: number }) {
   // Get current session
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -90,6 +93,7 @@ export async function createEventWithAssignmentsAction(data: { restaurant: strin
     const event = await createEvent({
       restaurant: validatedData.restaurant,
       date: validatedData.date,
+      totalCost: validatedData.totalCost,
     });
 
     // Assign users

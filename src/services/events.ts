@@ -82,6 +82,7 @@ export async function createEvent(data: CreateEventData): Promise<Event> {
       id: eventId,
       restaurant: data.restaurant,
       date: data.date,
+      totalCost: data.totalCost,
     })
     .returning();
 

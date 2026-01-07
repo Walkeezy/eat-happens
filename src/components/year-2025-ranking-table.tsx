@@ -7,13 +7,15 @@ import { Star } from 'lucide-react';
 
 const columns: ColumnDef<Event2025Ranking>[] = [
   {
+    accessorKey: 'rank',
+    cell: ({ row }) => <span className="text-center font-medium">{row.index + 1}</span>,
+  },
+  {
     accessorKey: 'restaurant',
-    header: 'Restaurant',
-    cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
+    cell: ({ row }) => <div className="max-w-35 truncate font-medium">{row.original.restaurant}</div>,
   },
   {
     accessorKey: 'averageLegacyRating',
-    header: 'Bewertung',
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <span className="font-bold">{row.original.averageLegacyRating?.toFixed(1) ?? '-'}</span>

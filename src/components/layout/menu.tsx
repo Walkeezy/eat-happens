@@ -11,7 +11,7 @@ import {
 } from '@/components/shadcn/dropdown-menu';
 import { authClient } from '@/lib/auth-client';
 import { getInitials } from '@/lib/user';
-import { CalendarDays, Ellipsis, LogOut, Trophy } from 'lucide-react';
+import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -56,9 +56,9 @@ export function Menu() {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <NextLink href="/ranking" className="w-full cursor-pointer">
-            <Trophy className="mr-2 h-4 w-4" />
-            Rangliste
+          <NextLink href="/statistics" className="w-full cursor-pointer">
+            <ChartNoAxesCombined className="mr-2 h-4 w-4" />
+            Statistiken
           </NextLink>
         </DropdownMenuItem>
         {user.isAdmin && (

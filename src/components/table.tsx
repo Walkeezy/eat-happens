@@ -8,23 +8,25 @@ interface TableProps<TData> {
   columns: ColumnDef<TData, any>[];
 }
 
-export function Table<TData>({ table }: TableProps<TData>) {
+export function Table<TData>({ table, columns }: TableProps<TData>) {
+  const hasHeaders = columns.some((col) => 'header' in col && col.header);
+
   return (
     <div className="rounded-md border bg-background">
       <ShadcnTable>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
+        {hasHeaders && (
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+        )}
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (

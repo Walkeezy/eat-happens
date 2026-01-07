@@ -6,7 +6,7 @@ import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
 import { dayjs } from '@/lib/dayjs';
 import type { EventWithDetails } from '@/types/events';
-import { CalendarIcon, Star } from 'lucide-react';
+import { CalendarIcon, Star, Wallet } from 'lucide-react';
 import { FC } from 'react';
 
 type Props = {
@@ -42,6 +42,13 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
               <CalendarIcon className="size-3" />
               {dayjs(event.date).format('D. MMMM YYYY')}
             </CardDescription>
+            {event.totalCost != null && (
+              <CardDescription className="flex items-center gap-1 text-sm">
+                <Wallet className="size-3" />
+                CHF {event.totalCost.toFixed(2)} (Ø pro Persion: CHF{' '}
+                {(event.totalCost / event.assignedUsers!.length).toFixed(2)})
+              </CardDescription>
+            )}
           </div>
           {!hasUnratedAssignment && showAverageRating ? (
             <div className="flex items-center gap-2">

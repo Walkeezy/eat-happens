@@ -1,7 +1,7 @@
 import { db } from '@/db';
-import { event, rating } from '@/db/schema';
+import { event, eventAssignment, rating } from '@/db/schema';
 import { dayjs } from '@/lib/dayjs';
-import { and, avg, count, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, avg, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 export type Event2025Ranking = {
@@ -63,4 +63,41 @@ export async function get2025Ratings(): Promise<Event2025Ranking[]> {
     averageLegacyRating: r.averageLegacyRating ? Number(r.averageLegacyRating) : null,
     totalRatings: Number(r.totalRatings),
   }));
+}
+
+export type EventCost = {
+  id: string;
+  restaurant: string;
+  totalCost: number | null;
+  attendeeCount: number;
+  costPerPerson: number | null;
+};
+
+export async function getAllEventCosts(): Promise<EventCost[]> {
+  const results = await db
+    .select({
+      id: event.id,
+      restaurant: event.restaurant,
+      totalCost: event.totalCost,
+      attendeeCount: count(eventAssignment.id),
+    })
+    .from(event)
+    .leftJoin(eventAssignment, eq(event.id, eventAssignment.eventId))
+    .groupBy(event.id, event.restaurant, event.totalCost)
+    .orderBy(
+      sql`CASE WHEN ${event.totalCost} IS NULL THEN 1 ELSE 0 END`,
+      desc(sql`${event.totalCost} / NULLIF(${count(eventAssignment.id)}, 0)`),
+    );
+
+  return results.map((r) => {
+    const attendeeCount = Number(r.attendeeCount);
+
+    return {
+      id: r.id,
+      restaurant: r.restaurant,
+      totalCost: r.totalCost,
+      attendeeCount,
+      costPerPerson: r.totalCost && attendeeCount > 0 ? r.totalCost / attendeeCount : null,
+    };
+  });
 }
