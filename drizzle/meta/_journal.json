@@ -5,15 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1760098780505,
-      "tag": "0000_outstanding_stranger",
+      "when": 1767784577047,
+      "tag": "0000_tiresome_rafael_vega",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1760099456689,
-      "tag": "0001_fat_adam_warlock",
+      "when": 1767870000000,
+      "tag": "0001_rename_score_to_legacy",
       "breakpoints": true
     }
   ]

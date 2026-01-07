@@ -106,7 +106,10 @@ export const rating = pgTable(
     eventId: text('event_id')
       .notNull()
       .references(() => event.id, { onDelete: 'cascade' }),
-    score: smallint('score').notNull(),
+    legacyScore: smallint('legacy_score'),
+    foodScore: smallint('food_score'),
+    ambienceScore: smallint('ambience_score'),
+    pricePerformanceScore: smallint('price_performance_score'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
       .notNull()

@@ -1,21 +1,11 @@
-/**
- * Determines whether ratings should be hidden based on the RATINGS_REVEAL_DATE environment variable.
- * @returns true if ratings should be hidden, false if they should be visible
- */
-export function shouldHideRatings(): boolean {
-  const revealDate = process.env.RATINGS_REVEAL_DATE;
-
-  // If no reveal date is set, show ratings (default behavior)
-  if (!revealDate) {
-    return false;
-  }
-
+export function shouldHideRatings(eventDate: Date | string): boolean {
   try {
-    const revealDateTime = new Date(revealDate);
-    const now = new Date();
+    const eventDateTime = new Date(eventDate);
+    const eventYear = eventDateTime.getFullYear();
+    const currentYear = new Date().getFullYear();
 
-    // Hide ratings if current time is before reveal date
-    return now < revealDateTime;
+    // Hide ratings if event is in the current year
+    return eventYear === currentYear;
   } catch {
     // If date parsing fails, show ratings as fallback
     return false;

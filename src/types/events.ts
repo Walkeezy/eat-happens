@@ -10,7 +10,10 @@ export type Rating = InferSelectModel<typeof rating>;
 // Insert types
 export type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date'>;
 export type UpdateEventData = Partial<CreateEventData>;
-export type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score'>;
+export type CreateRatingData = Pick<
+  InferInsertModel<typeof rating>,
+  'eventId' | 'foodScore' | 'ambienceScore' | 'pricePerformanceScore'
+>;
 
 // Complex type for joined/computed data
 export type EventWithDetails = Event & {
@@ -23,7 +26,10 @@ export type EventWithDetails = Event & {
       image?: string | null;
     };
   })[];
-  averageRating?: number;
+  averageLegacyRating?: number;
+  averageFoodRating?: number;
+  averageAmbienceRating?: number;
+  averagePricePerformanceRating?: number;
   totalRatings?: number;
   assignments?: EventAssignment[];
   assignedUsers?: {

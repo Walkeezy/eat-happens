@@ -11,11 +11,18 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 // Inferred types
-type CreateRatingData = Pick<InferInsertModel<typeof rating>, 'eventId' | 'score'>;
+type CreateRatingData = Pick<
+  InferInsertModel<typeof rating>,
+  'eventId' | 'foodScore' | 'ambienceScore' | 'pricePerformanceScore'
+>;
+
+const scoreSchema = z.number().min(1, 'Bewertung muss mindestens 1 sein').max(5, 'Bewertung darf höchstens 5 sein');
 
 const createRatingSchema = z.object({
   eventId: z.string().min(1, 'Event-ID ist erforderlich'),
-  score: z.number().min(1, 'Bewertung muss mindestens 1 sein').max(5, 'Bewertung darf höchstens 5 sein'),
+  foodScore: scoreSchema,
+  ambienceScore: scoreSchema,
+  pricePerformanceScore: scoreSchema,
 });
 
 export async function saveRatingAction(data: CreateRatingData) {

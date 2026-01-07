@@ -1,6 +1,5 @@
 import { db } from '@/db';
 import { event } from '@/db/schema';
-import { shouldHideRatings } from '@/lib/ratings-visibility';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
 import { desc, eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -23,22 +22,36 @@ export async function getEvents(currentUserId?: string): Promise<EventWithDetail
     },
   });
 
-  const hideRatings = shouldHideRatings();
+  // Helper to calculate average for a specific score field
+  type RatingScores = {
+    legacyScore: number | null;
+    foodScore: number | null;
+    ambienceScore: number | null;
+    pricePerformanceScore: number | null;
+  };
+  const calculateAverage = (ratings: RatingScores[], field: keyof RatingScores) => {
+    const validRatings = ratings.filter((r) => r[field] !== null && r[field] !== undefined);
+    if (validRatings.length === 0) {
+      return undefined;
+    }
+
+    return validRatings.reduce((sum, r) => sum + (r[field] ?? 0), 0) / validRatings.length;
+  };
 
   // Transform to match the expected interface and calculate averages
   return eventsWithDetails.map((evt) => {
     const ratings = evt.ratings || [];
     const assignments = evt.assignments || [];
 
-    const averageRating =
-      hideRatings || ratings.length === 0 ? 0 : ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length;
+    const averageLegacyRating = calculateAverage(ratings, 'legacyScore');
+    const averageFoodRating = calculateAverage(ratings, 'foodScore');
+    const averageAmbienceRating = calculateAverage(ratings, 'ambienceScore');
+    const averagePricePerformanceRating = calculateAverage(ratings, 'pricePerformanceScore');
 
     return {
       ...evt,
       ratings: ratings.map((r) => ({
         ...r,
-        // Hide score for other users when ratings are hidden, but show current user's own rating
-        score: hideRatings && r.userId !== currentUserId ? 0 : r.score,
         user: r.user ? { ...r.user, image: r.user.image } : undefined,
       })),
       assignments: assignments.map((a) => ({
@@ -51,7 +64,10 @@ export async function getEvents(currentUserId?: string): Promise<EventWithDetail
           image: a.user.image ?? undefined,
         }))
         .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
-      averageRating,
+      averageLegacyRating,
+      averageFoodRating,
+      averageAmbienceRating,
+      averagePricePerformanceRating,
       totalRatings: ratings.length,
     };
   });

@@ -11,7 +11,7 @@ export const StarVoting: FC<Props> = ({ score, onScoreChange }) => {
   const [hoveredStar, setHoveredStar] = useState(0);
 
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-2 rounded-md bg-gray-50">
       {Array.from({ length: 5 }, (_, i) => i + 1).map((star) => (
         <button
           key={star}
