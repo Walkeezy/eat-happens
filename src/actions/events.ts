@@ -1,11 +1,9 @@
 'use server';
 
-import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/verify-session';
 import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import { createEvent, updateEvent } from '@/services/events';
 import { revalidatePath } from 'next/cache';
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 const eventWithAssignmentsSchema = z.object({
@@ -19,25 +17,10 @@ export async function updateEventWithAssignmentsAction(
   eventId: string,
   data: { restaurant: string; date: Date; assignedUserIds: string[]; totalCost?: number },
 ) {
-  // Get current session
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    redirect('/login');
-  }
-
-  // Check if user is admin
-  if (!session.user.isAdmin) {
-    throw new Error('Nur Administratoren können Events aktualisieren');
-  }
-
-  // Validate data
+  const { user } = await requireAdmin();
   const validatedData = eventWithAssignmentsSchema.parse(data);
 
   try {
-    // Update the event first
     const event = await updateEvent(eventId, {
       restaurant: validatedData.restaurant,
       date: validatedData.date,
@@ -47,8 +30,7 @@ export async function updateEventWithAssignmentsAction(
       throw new Error('Event nicht gefunden');
     }
 
-    // Update assignments
-    const assignmentChanges = await updateEventAssignments(session.user.id, eventId, validatedData.assignedUserIds);
+    const assignmentChanges = await updateEventAssignments(user.id, eventId, validatedData.assignedUserIds);
 
     revalidatePath('/', 'layout');
 
@@ -69,33 +51,17 @@ export async function createEventWithAssignmentsAction(data: {
   assignedUserIds: string[];
   totalCost?: number;
 }) {
-  // Get current session
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    redirect('/login');
-  }
-
-  // Check if user is admin
-  if (!session.user.isAdmin) {
-    throw new Error('Nur Administratoren können Events erstellen');
-  }
-
-  // Validate data
+  const { user } = await requireAdmin();
   const validatedData = eventWithAssignmentsSchema.parse(data);
 
   try {
-    // Create the event first
     const event = await createEvent({
       restaurant: validatedData.restaurant,
       date: validatedData.date,
       totalCost: validatedData.totalCost,
     });
 
-    // Assign users
-    const assignments = await assignMultipleUsers(session.user.id, event.id, validatedData.assignedUserIds);
+    const assignments = await assignMultipleUsers(user.id, event.id, validatedData.assignedUserIds);
 
     revalidatePath('/', 'layout');
 

@@ -20,3 +20,13 @@ export const verifySession = cache(async () => {
 
   return { session, user };
 });
+
+export const requireAdmin = async () => {
+  const { session, user } = await verifySession();
+
+  if (!user.isAdmin) {
+    throw new Error('Nur Administratoren können diese Aktion ausführen');
+  }
+
+  return { session, user };
+};

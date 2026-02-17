@@ -83,6 +83,7 @@ export async function getAllEventCosts(): Promise<EventCost[]> {
     })
     .from(event)
     .leftJoin(eventAssignment, eq(event.id, eventAssignment.eventId))
+    .where(lte(event.date, dayjs().startOf('day').toDate()))
     .groupBy(event.id, event.restaurant, event.totalCost)
     .orderBy(
       sql`CASE WHEN ${event.totalCost} IS NULL THEN 1 ELSE 0 END`,

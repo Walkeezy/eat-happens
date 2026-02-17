@@ -39,23 +39,9 @@ export async function assignMultipleUsers(
 }
 
 export async function getAllConfirmedUsers(): Promise<User[]> {
-  const confirmedUsers = await db
-    .select({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      image: user.image,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      isAdmin: user.isAdmin,
-      isConfirmed: user.isConfirmed,
-    })
-    .from(user)
-    .where(eq(user.isConfirmed, true));
-
-  return confirmedUsers as User[];
+  return db.query.user.findMany({
+    where: eq(user.isConfirmed, true),
+  });
 }
 
 async function getCurrentAssignments(eventId: string): Promise<string[]> {

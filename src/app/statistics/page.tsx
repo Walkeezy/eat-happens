@@ -6,8 +6,7 @@ import { get2025Ratings, getAllEventCosts } from '@/services/ratings';
 
 export default async function StatisticsPage() {
   await verifySession();
-  const ratings = await get2025Ratings();
-  const costs = await getAllEventCosts();
+  const [ratings, costs] = await Promise.all([get2025Ratings(), getAllEventCosts()]);
 
   return (
     <AppLayout>
