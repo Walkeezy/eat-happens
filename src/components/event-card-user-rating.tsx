@@ -10,7 +10,6 @@ type Props = {
   user: NonNullable<EventWithDetails['assignedUsers']>[number];
   userRating: NonNullable<EventWithDetails['ratings']>[number] | undefined;
   isCurrentUser: boolean;
-  event: EventWithDetails;
   hideRatings: boolean;
 };
 
@@ -52,7 +51,7 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
           isMultiCategory ? (
             <div className="mt-1 space-y-0.5">
               {ratingCategories.map(({ key, label }) => (
-                <div key={key} className="grid grid-cols-[90px_auto] items-center gap-1.5">
+                <div key={key} className="grid grid-cols-[110px_auto] items-center gap-1.5">
                   <span className="text-xs text-muted-foreground">{label}:</span>
                   <StarRating score={userRating[key] ?? 0} />
                 </div>

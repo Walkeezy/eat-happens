@@ -6,22 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { StarVoting } from '@/components/star-voting';
 import { ratingCategories } from '@/lib/constants';
+import { ratingSchema, type RatingFormData } from '@/lib/schemas';
 import type { CreateRatingData, Event, Rating } from '@/types/events';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { FC, ReactNode, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const scoreSchema = z.number().min(1, 'Bitte gib eine Bewertung ab').max(5, 'Bewertung kann nicht mehr als 5 Sterne haben');
-
-const ratingSchema = z.object({
-  foodScore: scoreSchema,
-  ambienceScore: scoreSchema,
-  pricePerformanceScore: scoreSchema,
-});
-
-type RatingFormData = z.infer<typeof ratingSchema>;
 
 type Props = {
   mode: 'create' | 'edit';

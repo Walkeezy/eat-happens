@@ -10,19 +10,8 @@ import { CalendarOff } from 'lucide-react';
 
 export default async function HomePage() {
   const { session } = await verifySession();
+  const events = await getEvents({ upToDate: dayjs().startOf('day').toDate() });
 
-  // Fetch events with ratings and assignments on the server
-  const allEvents = await getEvents();
-
-  // Filter to only show events that are on or before today (hide future events)
-  const today = dayjs().startOf('day');
-  const events = allEvents.filter((event) => {
-    const eventDate = dayjs(event.date).startOf('day');
-
-    return !eventDate.isAfter(today);
-  });
-
-  // Separate events into unrated (assigned but not rated) and all others
   const unratedEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
     const userRating = event.ratings?.find((rating) => rating.userId === session.user.id);
@@ -73,21 +62,35 @@ export default async function HomePage() {
 
           {/* All Other Events Section */}
           {otherEvents.length > 0 && (
-            <div>
-              <div className="mb-4 flex items-center gap-2">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold">{unratedEvents.length > 0 ? 'Alle anderen Events' : 'Alle Events'}</h2>
                 <Badge variant="outline">{unratedEvents.length > 0 ? otherEvents.length : events.length}</Badge>
               </div>
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {otherEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    currentUserId={session.user.id}
-                    hideRatings={shouldHideRatings(event.date)}
-                  />
+              {Object.entries(
+                otherEvents.reduce<Record<string, typeof otherEvents>>((acc, event) => {
+                  const year = dayjs(event.date).year().toString();
+                  (acc[year] ??= []).push(event);
+
+                  return acc;
+                }, {}),
+              )
+                .sort(([a], [b]) => Number(b) - Number(a))
+                .map(([year, yearEvents]) => (
+                  <div key={year}>
+                    <h3 className="mb-3 text-sm font-medium text-muted-foreground">{year}</h3>
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+                      {yearEvents.map((event) => (
+                        <EventCard
+                          key={event.id}
+                          event={event}
+                          currentUserId={session.user.id}
+                          hideRatings={shouldHideRatings(event.date)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
-              </div>
             </div>
           )}
         </div>

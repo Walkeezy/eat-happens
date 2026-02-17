@@ -1,12 +1,33 @@
 import { db } from '@/db';
 import { event } from '@/db/schema';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, lte, type SQL } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
-export async function getEvents(): Promise<EventWithDetails[]> {
-  // Use Drizzle's optimized Queries API with relations
+type RatingScores = {
+  legacyScore: number | null;
+  foodScore: number | null;
+  ambienceScore: number | null;
+  pricePerformanceScore: number | null;
+};
+
+const calculateAverage = (ratings: RatingScores[], field: keyof RatingScores) => {
+  const validRatings = ratings.filter((r) => r[field] !== null && r[field] !== undefined);
+  if (validRatings.length === 0) {
+    return undefined;
+  }
+
+  return validRatings.reduce((sum, r) => sum + (r[field] ?? 0), 0) / validRatings.length;
+};
+
+type GetEventsOptions = {
+  upToDate?: Date;
+};
+
+export async function getEvents(options?: GetEventsOptions): Promise<EventWithDetails[]> {
+  const where: SQL | undefined = options?.upToDate ? lte(event.date, options.upToDate) : undefined;
   const eventsWithDetails = await db.query.event.findMany({
+    where,
     orderBy: [desc(event.date)],
     with: {
       ratings: {
@@ -22,23 +43,6 @@ export async function getEvents(): Promise<EventWithDetails[]> {
     },
   });
 
-  // Helper to calculate average for a specific score field
-  type RatingScores = {
-    legacyScore: number | null;
-    foodScore: number | null;
-    ambienceScore: number | null;
-    pricePerformanceScore: number | null;
-  };
-  const calculateAverage = (ratings: RatingScores[], field: keyof RatingScores) => {
-    const validRatings = ratings.filter((r) => r[field] !== null && r[field] !== undefined);
-    if (validRatings.length === 0) {
-      return undefined;
-    }
-
-    return validRatings.reduce((sum, r) => sum + (r[field] ?? 0), 0) / validRatings.length;
-  };
-
-  // Transform to match the expected interface and calculate averages
   return eventsWithDetails.map((evt) => {
     const ratings = evt.ratings || [];
     const assignments = evt.assignments || [];
