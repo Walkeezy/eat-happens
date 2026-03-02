@@ -46,19 +46,19 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@smartive/eslint-config": "^7.0.0",
-    "@smartive/prettier-config": "^3.1.2",
-    "@tailwindcss/postcss": "^4.0.0",
-    "@types/node": "^25.2.0",
+    "@smartive/eslint-config": "7.0.1",
+    "@smartive/prettier-config": "3.1.2",
+    "@tailwindcss/postcss": "4.1.18",
+    "@types/node": "25.2.3",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
-    "drizzle-kit": "^0.31.5",
+    "drizzle-kit": "0.31.9",
     "eslint": "^9.19.0",
     "eslint-config-next": "^16.0.1",
-    "knip": "^5.30.5",
+    "knip": "5.83.1",
     "prettier": "^3.0.3",
-    "prettier-plugin-tailwindcss": "^0.7.0",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5.2.2"
+    "prettier-plugin-tailwindcss": "0.7.2",
+    "tailwindcss": "4.1.18",
+    "typescript": "5.9.3"
   }
 }
