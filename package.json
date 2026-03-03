@@ -6,6 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "vitest run --reporter=dot",
     "check:unused": "knip",
     "type-check": "tsc --noEmit",
     "lint": "next typegen && eslint src --ext .ts,.tsx && npm run type-check && npm run check:unused",
@@ -33,7 +36,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.18",
     "drizzle-orm": "^0.45.1",
-    "lucide-react": "^0.564.0",
+    "lucide-react": "^0.575.0",
     "nanoid": "^5.1.6",
     "next": "^16.1.1",
     "postcss": "^8.5.3",
@@ -48,17 +51,18 @@
   "devDependencies": {
     "@smartive/eslint-config": "7.0.1",
     "@smartive/prettier-config": "3.1.2",
-    "@tailwindcss/postcss": "4.1.18",
-    "@types/node": "25.2.3",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "25.3.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "0.31.9",
     "eslint": "10.0.2",
     "eslint-config-next": "16.1.6",
-    "knip": "5.83.1",
+    "knip": "5.85.0",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.7.2",
-    "tailwindcss": "4.1.18",
-    "typescript": "5.9.3"
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "vitest": "^4.0.18"
   }
 }
