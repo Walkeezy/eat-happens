@@ -58,7 +58,7 @@
     "drizzle-kit": "0.31.9",
     "eslint": "9.39.3",
     "eslint-config-next": "16.1.6",
-    "knip": "5.83.1",
+    "knip": "5.85.0",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.7.2",
     "tailwindcss": "4.2.1",
