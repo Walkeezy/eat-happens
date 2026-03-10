@@ -2,7 +2,10 @@ import { db } from '@/db';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 
+const appBaseURL = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+
 export const auth = betterAuth({
+  baseURL: appBaseURL,
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
@@ -45,5 +48,5 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 60, // 60 days
     updateAge: 60 * 60 * 24, // 1 day
   },
-  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'],
+  trustedOrigins: [appBaseURL],
 });
