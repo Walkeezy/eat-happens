@@ -1,3 +1,4 @@
+import { getSessionCookie } from 'better-auth/cookies';
 import { NextRequest, NextResponse } from 'next/server';
 
 const PUBLIC_ROUTES = ['/login', '/api/auth', '/pending-confirmation'];
@@ -10,8 +11,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionCookie = request.cookies.get('better-auth.session_token');
-  if (!sessionCookie?.value) {
+  const sessionCookie = getSessionCookie(request);
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
