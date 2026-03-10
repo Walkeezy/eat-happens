@@ -7,10 +7,18 @@ import { authClient } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const handleGoogleSignIn = async () => {
-    await authClient.signIn.social({
-      provider: 'google',
-      callbackURL: '/',
-    });
+    try {
+      const result = await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+
+      if (result?.error) {
+        console.error('Google sign-in failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Unexpected error during Google sign-in:', error);
+    }
   };
 
   return (
