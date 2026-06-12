@@ -2,13 +2,13 @@ import { EventDialog } from '@/components/event-dialog';
 import { EventsTable } from '@/components/events-table';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/shadcn/button';
-import { verifySession } from '@/lib/verify-session';
+import { requireAdminPage } from '@/lib/verify-session';
 import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
 import { CalendarPlus } from 'lucide-react';
 
 export default async function EventsPage() {
-  const { user } = await verifySession();
+  const { user } = await requireAdminPage();
 
   // Get events with assignments and users data server-side
   const [events, users] = await Promise.all([getEvents(), getAllConfirmedUsers()]);

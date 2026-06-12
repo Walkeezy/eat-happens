@@ -44,6 +44,7 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
           .map((user) => user.firstName?.[0])
           .filter(Boolean)
           .join(', ');
+
         return <div className="font-medium">{initials || '-'}</div>;
       },
     },
@@ -52,6 +53,7 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
       header: 'Aktionen',
       cell: ({ row }) => {
         const event = row.original;
+
         return (
           isAdmin && (
             <EventDialog

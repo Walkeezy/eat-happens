@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { FC, ReactNode, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 const eventSchema = z.object({
@@ -37,7 +38,7 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      restaurant: event?.restaurant || '',
+      restaurant: event?.restaurant ?? '',
       date: event ? new Date(event.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       users: assignedUserIds,
       totalCost: event?.totalCost?.toString() ?? '',
@@ -60,6 +61,7 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
         await createEventWithAssignmentsAction(eventData);
       }
 
+      toast.success(mode === 'edit' ? 'Event wurde aktualisiert' : 'Event wurde erstellt');
       form.reset();
       setOpen(false);
       router.refresh();

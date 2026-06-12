@@ -11,7 +11,7 @@ import {
 } from '@/components/shadcn/dropdown-menu';
 import { authClient } from '@/lib/auth-client';
 import { getInitials } from '@/lib/user';
-import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut } from 'lucide-react';
+import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut, Users } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -34,7 +34,7 @@ export function Menu() {
     return null;
   }
 
-  const user = session.user as typeof session.user & { isAdmin: boolean };
+  const { user } = session;
 
   return (
     <DropdownMenu>
@@ -46,7 +46,7 @@ export function Menu() {
       <DropdownMenuContent align="end" className="w-56">
         <div className="flex items-center gap-2 p-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.image || ''} alt={user.name || user.email || ''} />
+            <AvatarImage src={user.image ?? ''} alt={user.name ?? user.email ?? ''} />
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
@@ -67,6 +67,12 @@ export function Menu() {
               <NextLink href="/events" className="w-full cursor-pointer">
                 <CalendarDays className="mr-2 h-4 w-4" />
                 Events verwalten
+              </NextLink>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <NextLink href="/users" className="w-full cursor-pointer">
+                <Users className="mr-2 h-4 w-4" />
+                Benutzer verwalten
               </NextLink>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

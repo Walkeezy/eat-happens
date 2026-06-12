@@ -12,7 +12,7 @@ export const verifySession = cache(async () => {
     redirect('/login');
   }
 
-  const user = session.user as typeof session.user & { isConfirmed: boolean };
+  const { user } = session;
 
   if (!user.isConfirmed) {
     redirect('/pending-confirmation');
@@ -26,6 +26,17 @@ export const requireAdmin = async () => {
 
   if (!user.isAdmin) {
     throw new Error('Nur Administratoren können diese Aktion ausführen');
+  }
+
+  return { session, user };
+};
+
+/** Page-level admin guard: redirects non-admins instead of throwing. */
+export const requireAdminPage = async () => {
+  const { session, user } = await verifySession();
+
+  if (!user.isAdmin) {
+    redirect('/');
   }
 
   return { session, user };

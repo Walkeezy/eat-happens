@@ -12,7 +12,7 @@ export default function PendingConfirmationPage() {
   const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
 
-  const user = session?.user ? (session.user as typeof session.user & { isConfirmed: boolean }) : undefined;
+  const user = session?.user;
 
   useEffect(() => {
     if (!isPending) {

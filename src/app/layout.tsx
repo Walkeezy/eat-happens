@@ -1,4 +1,5 @@
 import { notoSans } from '@/app/fonts';
+import { Toaster } from '@/components/shadcn/sonner';
 import '@/styles/globals.css';
 import { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
@@ -24,7 +25,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="de" className={`${notoSans.variable} bg-muted text-foreground antialiased`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }
