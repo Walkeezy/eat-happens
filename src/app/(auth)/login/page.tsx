@@ -4,6 +4,7 @@ import { UnauthenticatedLayout } from '@/components/layout/unauthenticated-layou
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const handleGoogleSignIn = async () => {
@@ -14,10 +15,10 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        console.error('Google sign-in failed:', result.error);
+        toast.error('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
       }
-    } catch (error) {
-      console.error('Unexpected error during Google sign-in:', error);
+    } catch {
+      toast.error('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
     }
   };
 

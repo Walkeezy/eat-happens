@@ -3,7 +3,7 @@ import { Logo } from '@/components/logo';
 import NextLink from 'next/link';
 import { FC, PropsWithChildren } from 'react';
 
-export const AppLayout: FC<PropsWithChildren> = async ({ children }) => (
+export const AppLayout: FC<PropsWithChildren> = ({ children }) => (
   <>
     <header className="fixed top-0 right-0 left-0 z-50 flex h-14 shrink-0 items-center gap-2 border-b bg-background">
       <div className="container mx-auto flex items-center gap-2 px-5">

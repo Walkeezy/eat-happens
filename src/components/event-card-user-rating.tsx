@@ -14,7 +14,7 @@ type Props = {
 };
 
 export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser, hideRatings }) => {
-  const userName = user.name || user.email;
+  const userName = user.name ?? user.email;
   const userInitials = getInitials(user.name);
 
   // Check if this is a multi-category rating (new system) or legacy rating
@@ -34,7 +34,7 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
   return (
     <div className="flex space-x-2 rounded-lg bg-gray-50 p-2">
       <Avatar className="size-8">
-        <AvatarImage src={user.image || undefined} alt={userName} />
+        <AvatarImage src={user.image ?? undefined} alt={userName} />
         <AvatarFallback className="bg-primary/50 text-xs text-primary-foreground">{userInitials}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">

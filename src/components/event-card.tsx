@@ -42,7 +42,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
               <CalendarIcon className="size-3" />
               {dayjs(event.date).format('D. MMMM YYYY')}
             </CardDescription>
-            {event.totalCost != null && (
+            {event.totalCost !== null && (
               <CardDescription className="flex items-center gap-1 text-sm">
                 <Wallet className="size-3" />
                 CHF {event.totalCost.toFixed(2)}
@@ -52,7 +52,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
           </div>
           {!hasUnratedAssignment && showAverageRating ? (
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{averageRating!.toFixed(1)}</span>
+              <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
               <Star className="size-6 fill-yellow-400 text-yellow-400" />
             </div>
           ) : null}

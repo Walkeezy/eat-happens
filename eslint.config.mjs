@@ -4,7 +4,7 @@ import { config as smartiveConfig } from '@smartive/eslint-config';
 const config = [
   ...smartiveConfig('nextjs'),
   {
-    ignores: ['src/components/**'],
+    ignores: ['src/components/shadcn/**'],
   },
   {
     rules: {

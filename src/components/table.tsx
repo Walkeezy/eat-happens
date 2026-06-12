@@ -5,7 +5,7 @@ import { ColumnDef, Table as ReactTable, flexRender } from '@tanstack/react-tabl
 
 interface TableProps<TData> {
   table: ReactTable<TData>;
-  columns: ColumnDef<TData, any>[];
+  columns: ColumnDef<TData, unknown>[];
 }
 
 export function Table<TData>({ table, columns }: TableProps<TData>) {

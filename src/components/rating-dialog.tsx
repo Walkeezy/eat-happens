@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { FC, ReactNode, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 type Props = {
   mode: 'create' | 'edit';
@@ -28,9 +29,9 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
   const form = useForm<RatingFormData>({
     resolver: zodResolver(ratingSchema),
     defaultValues: {
-      foodScore: existingRating?.foodScore || 0,
-      ambienceScore: existingRating?.ambienceScore || 0,
-      pricePerformanceScore: existingRating?.pricePerformanceScore || 0,
+      foodScore: existingRating?.foodScore ?? 0,
+      ambienceScore: existingRating?.ambienceScore ?? 0,
+      pricePerformanceScore: existingRating?.pricePerformanceScore ?? 0,
     },
   });
 
@@ -43,6 +44,7 @@ export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }
 
       await saveRatingAction(ratingData);
 
+      toast.success('Bewertung wurde gespeichert');
       setOpen(false);
       router.refresh();
     } catch (error) {
