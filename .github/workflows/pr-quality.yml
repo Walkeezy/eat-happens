@@ -27,10 +27,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Lint, typecheck, and unused exports check
+      - name: Lint, format check, typecheck, and unused exports check
         run: npm run lint
 
       - name: Test

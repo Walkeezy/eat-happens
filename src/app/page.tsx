@@ -1,3 +1,4 @@
+import { CalendarOff } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Badge } from '@/components/shadcn/badge';
@@ -6,7 +7,6 @@ import { dayjs } from '@/lib/dayjs';
 import { shouldHideRatings } from '@/lib/ratings-visibility';
 import { verifySession } from '@/lib/verify-session';
 import { getEvents } from '@/services/events';
-import { CalendarOff } from 'lucide-react';
 
 export default async function HomePage() {
   const { session } = await verifySession();
@@ -70,7 +70,10 @@ export default async function HomePage() {
               {Object.entries(
                 otherEvents.reduce<Record<string, typeof otherEvents>>((acc, event) => {
                   const year = dayjs(event.date).year().toString();
-                  (acc[year] ??= []).push(event);
+                  if (!acc[year]) {
+                    acc[year] = [];
+                  }
+                  acc[year].push(event);
 
                   return acc;
                 }, {}),
