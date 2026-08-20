@@ -1,10 +1,10 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { requireAdmin } from '@/lib/verify-session';
 import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import { createEvent, updateEvent } from '@/services/events';
-import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 
 const eventWithAssignmentsSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),

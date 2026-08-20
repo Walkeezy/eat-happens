@@ -1,9 +1,9 @@
 'use server';
 
-import { requireAdmin } from '@/lib/verify-session';
-import { setUserConfirmed } from '@/services/users';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { requireAdmin } from '@/lib/verify-session';
+import { setUserConfirmed } from '@/services/users';
 
 const setUserConfirmedSchema = z.object({
   userId: z.string().min(1),

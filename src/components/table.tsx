@@ -1,7 +1,7 @@
 'use client';
 
+import { type ColumnDef, flexRender, type Table as ReactTable } from '@tanstack/react-table';
 import { Table as ShadcnTable, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/shadcn/table';
-import { ColumnDef, Table as ReactTable, flexRender } from '@tanstack/react-table';
 
 interface TableProps<TData> {
   table: ReactTable<TData>;

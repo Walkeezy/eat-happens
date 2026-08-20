@@ -1,7 +1,7 @@
+import NextLink from 'next/link';
+import type { FC, PropsWithChildren } from 'react';
 import { Menu } from '@/components/layout/menu';
 import { Logo } from '@/components/logo';
-import NextLink from 'next/link';
-import { FC, PropsWithChildren } from 'react';
 
 export const AppLayout: FC<PropsWithChildren> = ({ children }) => (
   <>

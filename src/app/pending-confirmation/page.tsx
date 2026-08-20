@@ -1,12 +1,12 @@
 'use client';
 
+import { Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { UnauthenticatedLayout } from '@/components/layout/unauthenticated-layout';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { authClient } from '@/lib/auth-client';
-import { Clock } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function PendingConfirmationPage() {
   const { data: session, isPending } = authClient.useSession();

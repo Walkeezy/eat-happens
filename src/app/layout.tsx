@@ -1,8 +1,8 @@
 import { notoSans } from '@/app/fonts';
 import { Toaster } from '@/components/shadcn/sonner';
 import '@/styles/globals.css';
-import { Metadata, Viewport } from 'next';
-import { ReactNode } from 'react';
+import type { Metadata, Viewport } from 'next';
+import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'Eat Happens',

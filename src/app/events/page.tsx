@@ -1,3 +1,4 @@
+import { CalendarPlus } from 'lucide-react';
 import { EventDialog } from '@/components/event-dialog';
 import { EventsTable } from '@/components/events-table';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -5,7 +6,6 @@ import { Button } from '@/components/shadcn/button';
 import { requireAdminPage } from '@/lib/verify-session';
 import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
-import { CalendarPlus } from 'lucide-react';
 
 export default async function EventsPage() {
   const { user } = await requireAdminPage();

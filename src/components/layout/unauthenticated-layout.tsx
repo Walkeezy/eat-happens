@@ -1,5 +1,5 @@
+import type { FC, PropsWithChildren } from 'react';
 import { Logo } from '@/components/logo';
-import { FC, PropsWithChildren } from 'react';
 
 export const UnauthenticatedLayout: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">

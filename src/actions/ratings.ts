@@ -1,11 +1,11 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createRatingSchema } from '@/lib/schemas';
 import { verifySession } from '@/lib/verify-session';
 import { isUserAssignedToEvent } from '@/services/assignments';
 import { saveRating } from '@/services/ratings';
 import type { CreateRatingData } from '@/types/events';
-import { revalidatePath } from 'next/cache';
 
 export async function saveRatingAction(data: CreateRatingData) {
   const { session } = await verifySession();
