@@ -1,13 +1,13 @@
 'use client';
 
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { SquarePen } from 'lucide-react';
 import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
 import { dayjs } from '@/lib/dayjs';
 import { formatCurrency } from '@/lib/format';
 import type { EventWithDetails, User } from '@/types/events';
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { SquarePen } from 'lucide-react';
 
 type Props = {
   events: EventWithDetails[];

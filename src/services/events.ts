@@ -1,8 +1,8 @@
+import { desc, eq, lte, type SQL } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { event } from '@/db/schema';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
-import { desc, eq, lte, type SQL } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 
 type RatingScores = {
   legacyScore: number | null;

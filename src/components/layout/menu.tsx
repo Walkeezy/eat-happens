@@ -1,5 +1,8 @@
 'use client';
 
+import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut, Users } from 'lucide-react';
+import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -11,9 +14,6 @@ import {
 } from '@/components/shadcn/dropdown-menu';
 import { authClient } from '@/lib/auth-client';
 import { getInitials } from '@/lib/user';
-import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut, Users } from 'lucide-react';
-import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export function Menu() {
   const { data: session } = authClient.useSession();
@@ -79,7 +79,7 @@ export function Menu() {
           </>
         )}
         <DropdownMenuItem asChild>
-          <button onClick={handleLogout} className="w-full cursor-pointer">
+          <button type="button" onClick={handleLogout} className="w-full cursor-pointer">
             <LogOut className="mr-2 h-4 w-4" />
             Abmelden
           </button>

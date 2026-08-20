@@ -1,5 +1,5 @@
-import type { event, eventAssignment, rating, user } from '@/db/schema';
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import type { event, eventAssignment, rating, user } from '@/db/schema';
 
 // Basic types from schema
 export type Event = InferSelectModel<typeof event>;

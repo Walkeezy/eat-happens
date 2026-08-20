@@ -1,6 +1,6 @@
-import { cn } from '@/lib/shadcn-utils';
 import { Star } from 'lucide-react';
-import { FC, useState } from 'react';
+import { type FC, useState } from 'react';
+import { cn } from '@/lib/shadcn-utils';
 
 type Props = {
   score: number;

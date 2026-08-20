@@ -1,7 +1,7 @@
+import { asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import type { User } from '@/types/events';
-import { asc, eq } from 'drizzle-orm';
 
 export async function getAllUsers(): Promise<User[]> {
   return db.query.user.findMany({

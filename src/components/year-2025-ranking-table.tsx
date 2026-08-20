@@ -1,9 +1,9 @@
 'use client';
 
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { Star } from 'lucide-react';
 import { Table } from '@/components/table';
 import type { Event2025Ranking } from '@/services/ratings';
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Star } from 'lucide-react';
 
 const columns: ColumnDef<Event2025Ranking>[] = [
   {

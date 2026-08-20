@@ -57,8 +57,8 @@ New users sign in with Google and must be confirmed by an admin (via `/users`) b
 | `npm run dev`         | Start the development server                 |
 | `npm run build`       | Production build                             |
 | `npm run test`        | Run unit tests (Vitest)                      |
-| `npm run lint`        | ESLint, type check, and unused exports check |
-| `npm run format`      | Format all files with Prettier               |
+| `npm run lint`        | Biome lint/format check, type check, and unused exports check |
+| `npm run format`      | Format all files with Biome                  |
 | `npm run db:generate` | Generate a migration from schema changes     |
 | `npm run db:migrate`  | Apply pending migrations                     |
 | `npm run db:studio`   | Open Drizzle Studio                          |

@@ -1,7 +1,7 @@
+import { and, eq, type InferSelectModel, inArray } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { eventAssignment, user } from '@/db/schema';
-import { and, eq, inArray, InferSelectModel } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 
 // Inferred types
 type EventAssignment = InferSelectModel<typeof eventAssignment>;

@@ -1,5 +1,10 @@
 'use client';
 
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { UserCheck, UserX } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
 import { setUserConfirmedAction } from '@/actions/users';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import { Badge } from '@/components/shadcn/badge';
@@ -8,11 +13,6 @@ import { Table } from '@/components/table';
 import { dayjs } from '@/lib/dayjs';
 import { getInitials } from '@/lib/user';
 import type { User } from '@/types/events';
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { UserCheck, UserX } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
-import { toast } from 'sonner';
 
 type Props = {
   users: User[];

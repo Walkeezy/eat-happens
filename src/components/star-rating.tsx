@@ -1,5 +1,5 @@
 import { StarIcon } from 'lucide-react';
-import { FC } from 'react';
+import type { FC } from 'react';
 
 type Props = {
   score: number;
@@ -10,6 +10,7 @@ export const StarRating: FC<Props> = ({ score }) => {
     <div className="flex items-center space-x-1">
       {Array.from({ length: 5 }, (_, i) => (
         <StarIcon
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length, never-reordered list of 5 stars
           key={i}
           className={`h-3 w-3 ${i < score ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/50'}`}
         />

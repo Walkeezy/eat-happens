@@ -1,6 +1,6 @@
 'use client';
 
-import { CSSProperties, ComponentProps } from 'react';
+import { ComponentProps, CSSProperties } from 'react';
 import { Toaster as Sonner } from 'sonner';
 
 const Toaster = ({ ...props }: ComponentProps<typeof Sonner>) => (

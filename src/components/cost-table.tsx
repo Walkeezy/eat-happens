@@ -1,9 +1,9 @@
 'use client';
 
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
 import type { EventCost } from '@/services/ratings';
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 
 const columns: ColumnDef<EventCost>[] = [
   {

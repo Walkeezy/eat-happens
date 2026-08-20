@@ -1,10 +1,10 @@
+import { Check, Star } from 'lucide-react';
+import type { FC } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import { StarRating } from '@/components/star-rating';
 import { ratingCategories } from '@/lib/constants';
 import { getInitials } from '@/lib/user';
-import { EventWithDetails } from '@/types/events';
-import { Check, Star } from 'lucide-react';
-import { FC } from 'react';
+import type { EventWithDetails } from '@/types/events';
 
 type Props = {
   user: NonNullable<EventWithDetails['assignedUsers']>[number];

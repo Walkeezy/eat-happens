@@ -1,18 +1,18 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { type FC, type ReactNode, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { saveRatingAction } from '@/actions/ratings';
 import { Button } from '@/components/shadcn/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { StarVoting } from '@/components/star-voting';
 import { ratingCategories } from '@/lib/constants';
-import { ratingSchema, type RatingFormData } from '@/lib/schemas';
+import { type RatingFormData, ratingSchema } from '@/lib/schemas';
 import type { CreateRatingData, Event, Rating } from '@/types/events';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { FC, ReactNode, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 type Props = {
   mode: 'create' | 'edit';

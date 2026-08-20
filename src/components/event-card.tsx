@@ -1,13 +1,13 @@
 'use client';
 
+import { CalendarIcon, Star, Wallet } from 'lucide-react';
+import type { FC } from 'react';
 import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { RatingDialog } from '@/components/rating-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
 import { dayjs } from '@/lib/dayjs';
 import type { EventWithDetails } from '@/types/events';
-import { CalendarIcon, Star, Wallet } from 'lucide-react';
-import { FC } from 'react';
 
 type Props = {
   event: EventWithDetails;
@@ -30,7 +30,8 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
       : event.averageLegacyRating;
 
   const showAverageRating = !hideRatings && averageRating !== undefined && averageRating > 0;
-  const hasAssignedUsers = event.assignedUsers && event.assignedUsers.length > 0;
+  const assignedUsers = event.assignedUsers ?? [];
+  const hasAssignedUsers = assignedUsers.length > 0;
 
   return (
     <Card>
@@ -46,7 +47,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
               <CardDescription className="flex items-center gap-1 text-sm">
                 <Wallet className="size-3" />
                 CHF {event.totalCost.toFixed(2)}
-                {hasAssignedUsers && ` (Ø CHF ${(event.totalCost / event.assignedUsers!.length).toFixed(2)})`}
+                {hasAssignedUsers && ` (Ø CHF ${(event.totalCost / assignedUsers.length).toFixed(2)})`}
               </CardDescription>
             )}
           </div>
@@ -63,7 +64,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
         ) : (
           hasAssignedUsers && (
             <div className="flex flex-col gap-2">
-              {event.assignedUsers!.map((user) => (
+              {assignedUsers.map((user) => (
                 <EventCardUserRating
                   key={user.id}
                   user={user}

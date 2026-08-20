@@ -1,10 +1,10 @@
 'use client';
 
+import { toast } from 'sonner';
 import { UnauthenticatedLayout } from '@/components/layout/unauthenticated-layout';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { authClient } from '@/lib/auth-client';
-import { toast } from 'sonner';
 
 export default function LoginPage() {
   const handleGoogleSignIn = async () => {
