@@ -44,11 +44,18 @@ A restaurant rating app for a group of friends who dine together monthly. Rate r
    npm run db:push
    ```
 
-   **Existing database (including production):** apply pending migrations:
+   **Existing database:** apply pending migrations:
 
    ```bash
    npm run db:migrate
    ```
+
+   Production migrates itself: `npm run vercel-build` runs `db:migrate:deploy` before `next build`, so
+   every production deploy applies pending migrations before the new code goes live. Preview deploys
+   skip it (`VERCEL_ENV` / `DEPLOY_ENV` other than `production`) because they share the production
+   `DATABASE_URL` and must not migrate it from an unmerged branch. The deploy build needs
+   `DATABASE_URL` in its environment; without it the build fails rather than shipping code against an
+   outdated schema.
 
 4. Start the dev server:
 
@@ -69,5 +76,6 @@ New users sign in with Google and must be confirmed by an admin (via `/users`) b
 | `npm run format`      | Format all files with Biome                  |
 | `npm run db:generate` | Generate a migration from schema changes     |
 | `npm run db:migrate`  | Apply pending migrations (existing databases) |
+| `npm run db:migrate:deploy` | Apply pending migrations from a deploy build (production only) |
 | `npm run db:push`     | Sync schema to a new local database          |
 | `npm run db:studio`   | Open Drizzle Studio                          |

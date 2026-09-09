@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "npm run db:migrate:deploy && next build",
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -15,6 +16,7 @@
     "lint": "next typegen && biome ci . && npm run type-check && npm run check:unused",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:deploy": "node scripts/deploy-migrate.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },

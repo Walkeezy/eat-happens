@@ -1,2 +1,2 @@
 ALTER TABLE "event"
-ADD COLUMN "total_cost" real;
+ADD COLUMN IF NOT EXISTS "total_cost" real;
