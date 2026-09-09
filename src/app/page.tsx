@@ -10,7 +10,7 @@ import { getEvents } from '@/services/events';
 
 export default async function HomePage() {
   const { session } = await verifySession();
-  const events = await getEvents({ upToDate: todayCalendarDate() });
+  const events = await getEvents({ upToDate: todayCalendarDate(), currentUserId: session.user.id });
 
   const unratedEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
