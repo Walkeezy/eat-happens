@@ -1,8 +1,9 @@
 import { and, eq, type InferSelectModel, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { type DbClient, db } from '@/db';
+import { db } from '@/db';
 import { eventAssignment, user } from '@/db/schema';
 
+// Inferred types
 type EventAssignment = InferSelectModel<typeof eventAssignment>;
 type User = InferSelectModel<typeof user>;
 
@@ -20,10 +21,9 @@ export async function assignMultipleUsers(
   assignedBy: string,
   eventId: string,
   userIds: string[],
-  client: DbClient = db,
 ): Promise<EventAssignment[]> {
   if (userIds.length === 0) {
-    throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
+    throw new Error('At least one user must be assigned to the event');
   }
 
   const assignments = userIds.map((userId) => ({
@@ -33,7 +33,9 @@ export async function assignMultipleUsers(
     assignedBy,
   }));
 
-  return client.insert(eventAssignment).values(assignments).returning();
+  const newAssignments = await db.insert(eventAssignment).values(assignments).returning();
+
+  return newAssignments as EventAssignment[];
 }
 
 export async function getAllConfirmedUsers(): Promise<User[]> {
@@ -42,8 +44,8 @@ export async function getAllConfirmedUsers(): Promise<User[]> {
   });
 }
 
-async function getCurrentAssignments(eventId: string, client: DbClient): Promise<string[]> {
-  const assignments = await client
+async function getCurrentAssignments(eventId: string): Promise<string[]> {
+  const assignments = await db
     .select({ userId: eventAssignment.userId })
     .from(eventAssignment)
     .where(eq(eventAssignment.eventId, eventId));
@@ -51,32 +53,34 @@ async function getCurrentAssignments(eventId: string, client: DbClient): Promise
   return assignments.map((a) => a.userId);
 }
 
-export async function updateEventAssignments(
-  assignedBy: string,
-  eventId: string,
-  newUserIds: string[],
-  client: DbClient = db,
-): Promise<number> {
-  if (newUserIds.length === 0) {
-    throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
-  }
+export async function updateEventAssignments(assignedBy: string, eventId: string, newUserIds: string[]): Promise<number> {
+  // Get current assignments
+  const currentUserIds = await getCurrentAssignments(eventId);
 
-  const currentUserIds = await getCurrentAssignments(eventId, client);
-
+  // Determine which users to add and remove
   const usersToAdd = newUserIds.filter((id) => !currentUserIds.includes(id));
   const usersToRemove = currentUserIds.filter((id) => !newUserIds.includes(id));
 
   let totalChanges = 0;
 
+  // Remove users no longer assigned
   if (usersToRemove.length > 0) {
-    await client
+    await db
       .delete(eventAssignment)
       .where(and(eq(eventAssignment.eventId, eventId), inArray(eventAssignment.userId, usersToRemove)));
     totalChanges += usersToRemove.length;
   }
 
+  // Add new users
   if (usersToAdd.length > 0) {
-    await assignMultipleUsers(assignedBy, eventId, usersToAdd, client);
+    const newAssignments = usersToAdd.map((userId) => ({
+      id: nanoid(),
+      userId,
+      eventId,
+      assignedBy,
+    }));
+
+    await db.insert(eventAssignment).values(newAssignments);
     totalChanges += usersToAdd.length;
   }
 

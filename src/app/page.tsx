@@ -3,14 +3,14 @@ import { EventCard } from '@/components/event-card';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
-import { calendarYear, todayCalendarDate } from '@/lib/calendar-date';
+import { dayjs } from '@/lib/dayjs';
 import { shouldHideRatings } from '@/lib/ratings-visibility';
 import { verifySession } from '@/lib/verify-session';
 import { getEvents } from '@/services/events';
 
 export default async function HomePage() {
   const { session } = await verifySession();
-  const events = await getEvents({ upToDate: todayCalendarDate() });
+  const events = await getEvents({ upToDate: dayjs().startOf('day').toDate() });
 
   const unratedEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
@@ -69,7 +69,7 @@ export default async function HomePage() {
               </div>
               {Object.entries(
                 otherEvents.reduce<Record<string, typeof otherEvents>>((acc, event) => {
-                  const year = calendarYear(event.date).toString();
+                  const year = dayjs(event.date).year().toString();
                   if (!acc[year]) {
                     acc[year] = [];
                   }

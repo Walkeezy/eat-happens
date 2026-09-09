@@ -5,7 +5,7 @@ import { SquarePen } from 'lucide-react';
 import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
-import { displayCalendarDate } from '@/lib/calendar-date';
+import { dayjs } from '@/lib/dayjs';
 import { formatCurrency } from '@/lib/format';
 import type { EventWithDetails, User } from '@/types/events';
 
@@ -25,7 +25,7 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
     {
       accessorKey: 'date',
       header: 'Datum',
-      cell: ({ row }) => displayCalendarDate(row.original.date),
+      cell: ({ row }) => dayjs(row.original.date).format('D. MMMM YYYY'),
     },
     {
       accessorKey: 'totalCost',

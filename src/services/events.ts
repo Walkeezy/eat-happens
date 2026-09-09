@@ -1,9 +1,7 @@
 import { desc, eq, lte, type SQL } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { type DbClient, db } from '@/db';
+import { db } from '@/db';
 import { event } from '@/db/schema';
-import type { EventWithAssignmentsData } from '@/lib/schemas';
-import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
 
 type RatingScores = {
@@ -23,7 +21,7 @@ const calculateAverage = (ratings: RatingScores[], field: keyof RatingScores) =>
 };
 
 type GetEventsOptions = {
-  upToDate?: string;
+  upToDate?: Date;
 };
 
 export async function getEvents(options?: GetEventsOptions): Promise<EventWithDetails[]> {
@@ -56,6 +54,14 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
 
     return {
       ...evt,
+      ratings: ratings.map((r) => ({
+        ...r,
+        user: r.user ? { ...r.user, image: r.user.image } : undefined,
+      })),
+      assignments: assignments.map((a) => ({
+        ...a,
+        user: { ...a.user, image: a.user.image ?? undefined },
+      })),
       assignedUsers: assignments
         .map((a) => ({
           ...a.user,
@@ -71,11 +77,13 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
   });
 }
 
-async function createEvent(data: CreateEventData, client: DbClient): Promise<Event> {
-  const [newEvent] = await client
+export async function createEvent(data: CreateEventData): Promise<Event> {
+  const eventId = nanoid();
+
+  const [newEvent] = await db
     .insert(event)
     .values({
-      id: nanoid(),
+      id: eventId,
       restaurant: data.restaurant,
       date: data.date,
       totalCost: data.totalCost,
@@ -85,44 +93,12 @@ async function createEvent(data: CreateEventData, client: DbClient): Promise<Eve
   return newEvent;
 }
 
-async function updateEvent(eventId: string, data: UpdateEventData, client: DbClient): Promise<Event | null> {
-  const [updatedEvent] = await client
-    .update(event)
-    .set({
-      restaurant: data.restaurant,
-      date: data.date,
-      totalCost: data.totalCost,
-    })
-    .where(eq(event.id, eventId))
-    .returning();
+export async function updateEvent(eventId: string, data: UpdateEventData): Promise<Event | null> {
+  const [updatedEvent] = await db.update(event).set(data).where(eq(event.id, eventId)).returning();
 
-  return updatedEvent ?? null;
-}
+  if (!updatedEvent) {
+    return null;
+  }
 
-export async function createEventWithAssignments(assignedBy: string, data: EventWithAssignmentsData) {
-  return db.transaction(async (tx) => {
-    const created = await createEvent(data, tx);
-    const assignments = await assignMultipleUsers(assignedBy, created.id, data.assignedUserIds, tx);
-
-    return {
-      event: created,
-      assignments,
-    };
-  });
-}
-
-export async function updateEventWithAssignments(assignedBy: string, eventId: string, data: EventWithAssignmentsData) {
-  return db.transaction(async (tx) => {
-    const updated = await updateEvent(eventId, data, tx);
-    if (!updated) {
-      throw new Error('Event nicht gefunden');
-    }
-
-    const assignmentChanges = await updateEventAssignments(assignedBy, eventId, data.assignedUserIds, tx);
-
-    return {
-      event: updated,
-      assignmentChanges,
-    };
-  });
+  return updatedEvent;
 }

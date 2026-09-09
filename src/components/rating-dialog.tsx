@@ -12,23 +12,26 @@ import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/
 import { StarVoting } from '@/components/star-voting';
 import { ratingCategories } from '@/lib/constants';
 import { type RatingFormData, ratingSchema } from '@/lib/schemas';
-import type { CreateRatingData, Event } from '@/types/events';
+import type { CreateRatingData, Event, Rating } from '@/types/events';
 
 type Props = {
+  mode: 'create' | 'edit';
   event: Event;
+  existingRating?: Rating;
+  isAssigned?: boolean;
   trigger: ReactNode;
 };
 
-export const RatingDialog: FC<Props> = ({ event, trigger }) => {
+export const RatingDialog: FC<Props> = ({ mode, event, existingRating, trigger }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const form = useForm<RatingFormData>({
     resolver: zodResolver(ratingSchema),
     defaultValues: {
-      foodScore: 0,
-      ambienceScore: 0,
-      pricePerformanceScore: 0,
+      foodScore: existingRating?.foodScore ?? 0,
+      ambienceScore: existingRating?.ambienceScore ?? 0,
+      pricePerformanceScore: existingRating?.pricePerformanceScore ?? 0,
     },
   });
 
@@ -57,7 +60,7 @@ export const RatingDialog: FC<Props> = ({ event, trigger }) => {
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Dieses Dinner bewerten</DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Dieses Dinner bewerten' : 'Deine Bewertung aktualisieren'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -80,7 +83,11 @@ export const RatingDialog: FC<Props> = ({ event, trigger }) => {
 
             <div className="flex justify-center pt-2">
               <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
-                {form.formState.isSubmitting ? 'Speichere...' : 'Bewertung abgeben'}
+                {form.formState.isSubmitting
+                  ? 'Speichere...'
+                  : mode === 'edit'
+                    ? 'Bewertung aktualisieren'
+                    : 'Bewertung abgeben'}
               </Button>
             </div>
           </form>
