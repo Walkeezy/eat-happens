@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { calendarYear, todayCalendarDate } from './calendar-date';
 import { applyRatingsVisibility } from './ratings-visibility';
-import { buildRevealHighlights, buildYearStatistics, type StatisticsEvent, type StatisticsPerson } from './statistics';
+import {
+  buildRevealHighlights,
+  buildYearStatistics,
+  hasYearStatisticsData,
+  type StatisticsEvent,
+  type StatisticsPerson,
+} from './statistics';
 
 const names: Record<string, string> = {
   anna: 'Anna',
@@ -15,6 +21,14 @@ const person = (id: string, createdOn = '2024-01-01'): StatisticsPerson => ({
   id,
   name: names[id] ?? id,
   createdOn,
+});
+
+const legacyRating = (userId: string, score: number) => ({
+  userId,
+  legacyScore: score,
+  foodScore: null,
+  ambienceScore: null,
+  pricePerformanceScore: null,
 });
 
 const categoryRating = (userId: string, food: number, ambience: number, price: number) => ({
@@ -73,13 +87,13 @@ describe('buildYearStatistics', () => {
     expect(stats.pickerBias).toBeUndefined();
     expect(stats.disagreement).toBeUndefined();
     expect(stats.groupTop5).toBeUndefined();
-    expect(stats.personalTop5.map((row) => row.restaurant)).toEqual(['Kronenhalle', 'Kantine']);
+    expect(stats.personalTop5?.map((row) => row.restaurant)).toEqual(['Kronenhalle', 'Kantine']);
     expect(stats.pickCounts).toEqual([
       { userId: 'anna', name: 'Anna', pickCount: 1 },
       { userId: 'ben', name: 'Ben', pickCount: 1 },
     ]);
-    expect(stats.yearTotals.mostExpensive?.restaurant).toBe('Kronenhalle');
-    expect(stats.attendance.find((row) => row.userId === 'chris')).toBeUndefined();
+    expect(stats.yearTotals?.mostExpensive?.restaurant).toBe('Kronenhalle');
+    expect(stats.attendance?.find((row) => row.userId === 'chris')).toBeUndefined();
   });
 
   it('builds closed-year rankings, cost vs price, people, and picker bias', () => {
@@ -91,7 +105,7 @@ describe('buildYearStatistics', () => {
     });
 
     expect(stats.overallRanking?.map((row) => row.restaurant)).toEqual(['Kronenhalle', 'Kantine']);
-    expect(stats.categoryRankings?.food[0]?.restaurant).toBe('Kronenhalle');
+    expect(stats.categoryRankings?.food?.[0]?.restaurant).toBe('Kronenhalle');
     expect(stats.costVsPricePerformance?.expensiveAndGood?.restaurant).toBe('Kronenhalle');
     expect(stats.costVsPricePerformance?.cheapAndDisappointing?.restaurant).toBe('Kantine');
     expect(stats.raters?.[0]?.userId).toBe('ben');
@@ -107,23 +121,51 @@ describe('buildYearStatistics', () => {
     expect(stats.overallRanking?.map((row) => row.ratingCount)).toEqual([2, 2]);
   });
 
-  it('stays well-formed with no events at all', () => {
+  it('omits every section when there are no events at all', () => {
     const stats = buildYearStatistics({ isClosed: true, events: [], people: [], currentUserId: 'anna' });
 
-    expect(stats.costs).toEqual([]);
-    expect(stats.yearTotals).toEqual({
-      totalSpend: null,
-      averageCostPerPerson: null,
-      mostExpensive: null,
-      leastExpensive: null,
-    });
-    expect(stats.attendance).toEqual([]);
-    expect(stats.completion).toEqual([]);
-    expect(stats.pickCounts).toEqual([]);
-    expect(stats.personalTop5).toEqual([]);
-    expect(stats.overallRanking).toEqual([]);
-    expect(stats.groupTop5).toEqual([]);
+    expect(stats).toEqual({ isClosed: true });
+    expect(hasYearStatisticsData(stats)).toBe(false);
     expect(buildRevealHighlights(stats)).toEqual([]);
+  });
+
+  it('keeps the sections that have data while the empty ones stay hidden', () => {
+    const stats = buildYearStatistics({
+      isClosed: true,
+      events: [dinner({ id: 'legacy', restaurant: 'Beiz', totalCost: null, ratings: [legacyRating('anna', 4)] })],
+      people,
+      currentUserId: 'anna',
+    });
+
+    // A legacy rating carries an overall score but no categories, and nobody entered a cost.
+    expect(hasYearStatisticsData(stats)).toBe(true);
+    expect(stats.overallRanking).toHaveLength(1);
+    expect(stats.categoryRankings).toBeUndefined();
+    expect(stats.costs).toBeUndefined();
+    expect(stats.yearTotals).toBeUndefined();
+    expect(stats.costVsPricePerformance).toBeUndefined();
+    expect(stats.disagreement).toBeUndefined();
+    expect(stats.pickCounts).toBeUndefined();
+    expect(stats.pickerBias).toBeUndefined();
+  });
+
+  it('hides a single category that nobody rated', () => {
+    const stats = buildYearStatistics({
+      isClosed: true,
+      events: [
+        dinner({
+          id: 'no-ambience',
+          restaurant: 'Ohne Ambiente',
+          ratings: [{ userId: 'anna', legacyScore: null, foodScore: 4, ambienceScore: null, pricePerformanceScore: 3 }],
+        }),
+      ],
+      people,
+      currentUserId: 'anna',
+    });
+
+    expect(stats.categoryRankings?.food).toHaveLength(1);
+    expect(stats.categoryRankings?.pricePerformance).toHaveLength(1);
+    expect(stats.categoryRankings?.ambience).toBeUndefined();
   });
 
   it('breaks personal top 5 ties by restaurant name', () => {
@@ -133,7 +175,7 @@ describe('buildYearStatistics', () => {
     ];
     const stats = buildYearStatistics({ isClosed: false, events: tied, people, currentUserId: 'anna' });
 
-    expect(stats.personalTop5.map((row) => row.restaurant)).toEqual(['Alpha', 'Zorro']);
+    expect(stats.personalTop5?.map((row) => row.restaurant)).toEqual(['Alpha', 'Zorro']);
   });
 
   it('counts a rater who is no longer a confirmed member', () => {
@@ -174,14 +216,14 @@ describe('cost handling', () => {
       dinner({ id: 'fine', restaurant: 'Gut', totalCost: '60' }),
     ];
     const stats = buildYearStatistics({ isClosed: false, events, people, currentUserId: 'anna' });
-    const byId = new Map(stats.costs.map((row) => [row.id, row]));
+    const byId = new Map((stats.costs ?? []).map((row) => [row.id, row]));
 
     expect(byId.get('nobody')?.costPerPerson).toBeNull();
     expect(byId.get('junk')?.costPerPerson).toBeNull();
     expect(byId.get('fine')?.costPerPerson).toBe(30);
     // 'junk' is not a finite amount, so it must not poison the yearly total
-    expect(stats.yearTotals.totalSpend).toBe(140);
-    expect(stats.yearTotals.averageCostPerPerson).toBe(30);
+    expect(stats.yearTotals?.totalSpend).toBe(140);
+    expect(stats.yearTotals?.averageCostPerPerson).toBe(30);
   });
 
   it('splits an odd number of dinners around the median and skips the median itself', () => {
@@ -223,9 +265,9 @@ describe('attendance eligibility', () => {
       currentUserId: 'anna',
     });
 
-    expect(stats.attendance.find((row) => row.userId === 'anna')).toMatchObject({ attended: 2, eligible: 2, rate: 1 });
-    expect(stats.attendance.find((row) => row.userId === 'ben')).toMatchObject({ attended: 1, eligible: 1, rate: 1 });
-    expect(stats.attendance.find((row) => row.userId === 'chris')).toBeUndefined();
+    expect(stats.attendance?.find((row) => row.userId === 'anna')).toMatchObject({ attended: 2, eligible: 2, rate: 1 });
+    expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 1, eligible: 1, rate: 1 });
+    expect(stats.attendance?.find((row) => row.userId === 'chris')).toBeUndefined();
   });
 });
 
@@ -258,7 +300,7 @@ describe('ratings visibility feeds the open year', () => {
     expect(stats.disagreement).toBeUndefined();
     expect(stats.groupTop5).toBeUndefined();
     // Ben's participation is still visible - only his scores are withheld
-    expect(stats.completion.find((row) => row.userId === 'ben')).toMatchObject({ assigned: 1, rated: 1, open: 0 });
+    expect(stats.completion?.find((row) => row.userId === 'ben')).toMatchObject({ assigned: 1, rated: 1, open: 0 });
     expect(buildRevealHighlights(stats)).toEqual([]);
   });
 });

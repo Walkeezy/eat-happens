@@ -16,6 +16,7 @@ import { YearChips } from '@/components/statistics/year-chips';
 import { YearTotalsSection } from '@/components/statistics/year-totals';
 import { YearRankingTable } from '@/components/year-ranking-table';
 import { resolveStatisticsYear } from '@/lib/calendar-date';
+import { hasYearStatisticsData, type RankedRestaurant, type YearStatistics } from '@/lib/statistics';
 import { verifySession } from '@/lib/verify-session';
 import { getEventYears, getYearStatistics } from '@/services/statistics';
 
@@ -23,12 +24,37 @@ type Props = {
   searchParams: Promise<{ year?: string }>;
 };
 
+type RankingSection = {
+  title: string;
+  events: RankedRestaurant[];
+};
+
+/** Only the rankings that someone actually rated. */
+function rankingSections(stats: YearStatistics, year: number): RankingSection[] {
+  return [
+    { title: 'Bestes Essen', events: stats.categoryRankings?.food },
+    { title: 'Bestes Ambiente', events: stats.categoryRankings?.ambience },
+    { title: 'Beste Preis-Leistung', events: stats.categoryRankings?.pricePerformance },
+    { title: `Rangliste ${year}`, events: stats.overallRanking },
+  ].filter((section): section is RankingSection => section.events !== undefined);
+}
+
+function topListsTitle(stats: YearStatistics): string {
+  if (stats.personalTop5 && stats.groupTop5) {
+    return 'Deine Top 5 vs. Gruppe';
+  }
+
+  return stats.groupTop5 ? 'Gruppe Top 5' : 'Deine Top 5';
+}
+
 export default async function StatisticsPage({ searchParams }: Props) {
   const { session } = await verifySession();
   const { year: yearParam } = await searchParams;
   const years = await getEventYears();
   const year = resolveStatisticsYear(yearParam, years);
   const stats = await getYearStatistics(year, session.user.id);
+  const rankings = rankingSections(stats, year);
+  const hasTopLists = stats.personalTop5 !== undefined || stats.groupTop5 !== undefined;
 
   return (
     <AppLayout>
@@ -45,69 +71,75 @@ export default async function StatisticsPage({ searchParams }: Props) {
         {stats.isClosed ? null : <p className="text-sm text-muted-foreground">Die Gruppen-Rangliste gibt’s ab 1. Januar.</p>}
       </div>
 
-      <div className="space-y-10">
-        {stats.isClosed && stats.categoryRankings ? (
-          <>
-            {[
-              { title: 'Bestes Essen', events: stats.categoryRankings.food },
-              { title: 'Bestes Ambiente', events: stats.categoryRankings.ambience },
-              { title: 'Beste Preis-Leistung', events: stats.categoryRankings.pricePerformance },
-              { title: `Rangliste ${year}`, events: stats.overallRanking ?? [] },
-            ].map(({ title, events: rankedEvents }) => (
-              <StatisticsSection key={title} title={title}>
-                <YearRankingTable events={rankedEvents} />
-              </StatisticsSection>
-            ))}
-            {stats.costVsPricePerformance ? (
-              <StatisticsSection title="Kosten vs. Preis-Leistung">
-                <CostVsPriceSection
-                  rows={stats.costVsPricePerformance.rows}
-                  expensiveAndGood={stats.costVsPricePerformance.expensiveAndGood}
-                  cheapAndDisappointing={stats.costVsPricePerformance.cheapAndDisappointing}
-                />
-              </StatisticsSection>
-            ) : null}
-          </>
-        ) : null}
+      {hasYearStatisticsData(stats) ? (
+        <div className="space-y-10">
+          {rankings.map(({ title, events: rankedEvents }) => (
+            <StatisticsSection key={title} title={title}>
+              <YearRankingTable events={rankedEvents} />
+            </StatisticsSection>
+          ))}
 
-        <StatisticsSection title="Kosten">
-          <YearTotalsSection totals={stats.yearTotals} costs={stats.costs} />
-        </StatisticsSection>
+          {stats.costVsPricePerformance ? (
+            <StatisticsSection title="Kosten vs. Preis-Leistung">
+              <CostVsPriceSection
+                rows={stats.costVsPricePerformance.rows}
+                expensiveAndGood={stats.costVsPricePerformance.expensiveAndGood}
+                cheapAndDisappointing={stats.costVsPricePerformance.cheapAndDisappointing}
+              />
+            </StatisticsSection>
+          ) : null}
 
-        {stats.raters ? (
-          <StatisticsSection title="Grosszügig vs. streng">
-            <RatersTable rows={stats.raters} />
-          </StatisticsSection>
-        ) : null}
+          {stats.yearTotals && stats.costs ? (
+            <StatisticsSection title="Kosten">
+              <YearTotalsSection totals={stats.yearTotals} costs={stats.costs} />
+            </StatisticsSection>
+          ) : null}
 
-        <StatisticsSection title="Teilnahme">
-          <AttendanceTable rows={stats.attendance} />
-        </StatisticsSection>
+          {stats.raters ? (
+            <StatisticsSection title="Grosszügig vs. streng">
+              <RatersTable rows={stats.raters} />
+            </StatisticsSection>
+          ) : null}
 
-        <StatisticsSection title="Offene Bewertungen">
-          <CompletionTable rows={stats.completion} />
-        </StatisticsSection>
+          {stats.attendance ? (
+            <StatisticsSection title="Teilnahme">
+              <AttendanceTable rows={stats.attendance} />
+            </StatisticsSection>
+          ) : null}
 
-        {stats.pickerBias && stats.pickerBias.length > 0 ? (
-          <StatisticsSection title="Picker vs. Rater">
-            <PickerBiasTable rows={stats.pickerBias} />
-          </StatisticsSection>
-        ) : (
-          <StatisticsSection title="Restaurant-Auswahl">
-            <PickCountsTable rows={stats.pickCounts} />
-          </StatisticsSection>
-        )}
+          {stats.completion ? (
+            <StatisticsSection title="Offene Bewertungen">
+              <CompletionTable rows={stats.completion} />
+            </StatisticsSection>
+          ) : null}
 
-        {stats.disagreement ? (
-          <StatisticsSection title="Umstrittenste Dinner">
-            <DisagreementTable rows={stats.disagreement} />
-          </StatisticsSection>
-        ) : null}
+          {stats.pickerBias ? (
+            <StatisticsSection title="Picker vs. Rater">
+              <PickerBiasTable rows={stats.pickerBias} />
+            </StatisticsSection>
+          ) : null}
 
-        <StatisticsSection title={stats.groupTop5 ? 'Deine Top 5 vs. Gruppe' : 'Deine Top 5'}>
-          <TopLists personal={stats.personalTop5} group={stats.groupTop5} />
-        </StatisticsSection>
-      </div>
+          {!stats.pickerBias && stats.pickCounts ? (
+            <StatisticsSection title="Restaurant-Auswahl">
+              <PickCountsTable rows={stats.pickCounts} />
+            </StatisticsSection>
+          ) : null}
+
+          {stats.disagreement ? (
+            <StatisticsSection title="Umstrittenste Dinner">
+              <DisagreementTable rows={stats.disagreement} />
+            </StatisticsSection>
+          ) : null}
+
+          {hasTopLists ? (
+            <StatisticsSection title={topListsTitle(stats)}>
+              <TopLists personal={stats.personalTop5} group={stats.groupTop5} />
+            </StatisticsSection>
+          ) : null}
+        </div>
+      ) : (
+        <p className="text-muted-foreground">Für {year} gibt es noch keine Daten.</p>
+      )}
     </AppLayout>
   );
 }

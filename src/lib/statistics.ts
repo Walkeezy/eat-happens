@@ -20,6 +20,9 @@ const MIN_PICKS_FOR_AWARD = 2;
 /** How many entries the "most controversial" list shows. */
 const DISAGREEMENT_LIMIT = 5;
 
+/** How many entries the personal and group top lists show. */
+const TOP_LIST_LIMIT = 5;
+
 export type StatisticsRating = RatingScores & {
   userId: string;
   raterName?: string | null;
@@ -126,19 +129,23 @@ type RevealHighlight = {
   detail: string;
 };
 
+/**
+ * Every section is optional and stays undefined whenever there is nothing to show for the year,
+ * so the statistics pages can hide it instead of rendering an empty table or a row of dashes.
+ */
 export type YearStatistics = {
   isClosed: boolean;
-  costs: EventCostRow[];
-  yearTotals: YearTotals;
-  attendance: AttendanceStat[];
-  completion: CompletionStat[];
-  pickCounts: PickCountStat[];
-  personalTop5: TopRestaurant[];
+  costs?: EventCostRow[];
+  yearTotals?: YearTotals;
+  attendance?: AttendanceStat[];
+  completion?: CompletionStat[];
+  pickCounts?: PickCountStat[];
+  personalTop5?: TopRestaurant[];
   overallRanking?: RankedRestaurant[];
   categoryRankings?: {
-    food: RankedRestaurant[];
-    ambience: RankedRestaurant[];
-    pricePerformance: RankedRestaurant[];
+    food?: RankedRestaurant[];
+    ambience?: RankedRestaurant[];
+    pricePerformance?: RankedRestaurant[];
   };
   costVsPricePerformance?: {
     rows: CostVsPriceRow[];
@@ -150,6 +157,11 @@ export type YearStatistics = {
   disagreement?: DisagreementStat[];
   groupTop5?: TopRestaurant[];
 };
+
+/** Drops a section that ended up without a single row. */
+function nonEmpty<T>(rows: T[]): T[] | undefined {
+  return rows.length > 0 ? rows : undefined;
+}
 
 function compareRanked(a: RankedRestaurant, b: RankedRestaurant) {
   return b.average - a.average || b.ratingCount - a.ratingCount || a.restaurant.localeCompare(b.restaurant);
@@ -233,14 +245,18 @@ function buildCosts(events: StatisticsEvent[]): EventCostRow[] {
     });
 }
 
-function buildYearTotals(costs: EventCostRow[]): YearTotals {
+function buildYearTotals(costs: EventCostRow[]): YearTotals | undefined {
   const priced = costs.filter((row): row is EventCostRow & { costPerPerson: number } => row.costPerPerson !== null);
   const spendValues = costs
     .map((row) => (row.totalCost === null ? null : Number(row.totalCost)))
     .filter((value): value is number => value !== null && Number.isFinite(value));
 
+  if (spendValues.length === 0) {
+    return undefined;
+  }
+
   return {
-    totalSpend: spendValues.length > 0 ? spendValues.reduce((sum, value) => sum + value, 0) : null,
+    totalSpend: spendValues.reduce((sum, value) => sum + value, 0),
     averageCostPerPerson: mean(priced.map((row) => row.costPerPerson)) ?? null,
     mostExpensive: priced[0] ?? null,
     leastExpensive: priced.length > 0 ? priced[priced.length - 1] : null,
@@ -265,6 +281,10 @@ function buildCostVsPrice(events: StatisticsEvent[]) {
     })
     .filter((row): row is CostVsPriceRow => row !== null)
     .sort((a, b) => b.pricePerformance - a.pricePerformance || a.costPerPerson - b.costPerPerson);
+
+  if (rows.length === 0) {
+    return undefined;
+  }
 
   const costMedian = median(rows.map((row) => row.costPerPerson));
   const expensive = costMedian === undefined ? [] : rows.filter((row) => row.costPerPerson > costMedian);
@@ -318,7 +338,7 @@ export function buildYearStatistics(input: {
     })
     .filter((row): row is TopRestaurant => row !== null)
     .sort((a, b) => b.score - a.score || a.restaurant.localeCompare(b.restaurant))
-    .slice(0, 5);
+    .slice(0, TOP_LIST_LIMIT);
 
   const attendance: AttendanceStat[] = people
     .map((person) => {
@@ -371,14 +391,16 @@ export function buildYearStatistics(input: {
     .map(([userId, pickCount]) => ({ userId, name: nameOf(userId), pickCount }))
     .sort((a, b) => b.pickCount - a.pickCount || a.name.localeCompare(b.name));
 
+  const yearTotals = buildYearTotals(costs);
   const base: YearStatistics = {
     isClosed,
-    costs,
-    yearTotals: buildYearTotals(costs),
-    attendance,
-    completion,
-    pickCounts,
-    personalTop5,
+    // The cost table is nothing but dashes until at least one dinner has a recorded cost.
+    costs: yearTotals ? costs : undefined,
+    yearTotals,
+    attendance: nonEmpty(attendance),
+    completion: nonEmpty(completion),
+    pickCounts: nonEmpty(pickCounts),
+    personalTop5: nonEmpty(personalTop5),
   };
 
   if (!isClosed) {
@@ -405,67 +427,84 @@ export function buildYearStatistics(input: {
     ];
   });
 
+  const categoryRankings = {
+    food: nonEmpty(rankedByCategory(events, 'foodScore')),
+    ambience: nonEmpty(rankedByCategory(events, 'ambienceScore')),
+    pricePerformance: nonEmpty(rankedByCategory(events, 'pricePerformanceScore')),
+  };
+
+  const raters: RaterStat[] = [...new Set(events.flatMap((event) => event.ratings.map((rating) => rating.userId)))]
+    .map((userId) => {
+      const scores = events.flatMap((event) => {
+        const rating = event.ratings.find((item) => item.userId === userId);
+        if (!rating) {
+          return [];
+        }
+        const overall = ratingOverall(rating);
+        return overall === null ? [] : [overall];
+      });
+      const averageGiven = mean(scores);
+      if (averageGiven === undefined) {
+        return null;
+      }
+
+      return {
+        userId,
+        name: nameOf(userId),
+        averageGiven,
+        ratingCount: scores.length,
+      };
+    })
+    .filter((row): row is RaterStat => row !== null)
+    .sort((a, b) => b.averageGiven - a.averageGiven || a.name.localeCompare(b.name));
+
+  const disagreement: DisagreementStat[] = events
+    .map((event) => {
+      const range = scoreRange(event.ratings);
+      if (!range) {
+        return null;
+      }
+
+      return {
+        id: event.id,
+        restaurant: event.restaurant,
+        ...range,
+        ratingCount: event.ratings.filter((rating) => ratingOverall(rating) !== null).length,
+      };
+    })
+    .filter((row): row is DisagreementStat => row !== null)
+    .sort((a, b) => b.spread - a.spread || a.restaurant.localeCompare(b.restaurant))
+    .slice(0, DISAGREEMENT_LIMIT);
+
+  const pickerBias: PickerBiasStat[] = computePickerBias(pickerPicks).map((row) => ({
+    ...row,
+    userId: row.pickerId,
+    name: nameOf(row.pickerId),
+  }));
+
+  const groupTop5: TopRestaurant[] = overallRanking.slice(0, TOP_LIST_LIMIT).map((row) => ({
+    id: row.id,
+    restaurant: row.restaurant,
+    score: row.average,
+  }));
+
   return {
     ...base,
-    overallRanking,
-    categoryRankings: {
-      food: rankedByCategory(events, 'foodScore'),
-      ambience: rankedByCategory(events, 'ambienceScore'),
-      pricePerformance: rankedByCategory(events, 'pricePerformanceScore'),
-    },
+    overallRanking: nonEmpty(overallRanking),
+    categoryRankings: Object.values(categoryRankings).some((ranking) => ranking !== undefined)
+      ? categoryRankings
+      : undefined,
     costVsPricePerformance: buildCostVsPrice(events),
-    raters: [...new Set(events.flatMap((event) => event.ratings.map((rating) => rating.userId)))]
-      .map((userId) => {
-        const scores = events.flatMap((event) => {
-          const rating = event.ratings.find((item) => item.userId === userId);
-          if (!rating) {
-            return [];
-          }
-          const overall = ratingOverall(rating);
-          return overall === null ? [] : [overall];
-        });
-        const averageGiven = mean(scores);
-        if (averageGiven === undefined) {
-          return null;
-        }
-
-        return {
-          userId,
-          name: nameOf(userId),
-          averageGiven,
-          ratingCount: scores.length,
-        };
-      })
-      .filter((row): row is RaterStat => row !== null)
-      .sort((a, b) => b.averageGiven - a.averageGiven || a.name.localeCompare(b.name)),
-    pickerBias: computePickerBias(pickerPicks).map((row) => ({
-      ...row,
-      userId: row.pickerId,
-      name: nameOf(row.pickerId),
-    })),
-    disagreement: events
-      .map((event) => {
-        const range = scoreRange(event.ratings);
-        if (!range) {
-          return null;
-        }
-
-        return {
-          id: event.id,
-          restaurant: event.restaurant,
-          ...range,
-          ratingCount: event.ratings.filter((rating) => ratingOverall(rating) !== null).length,
-        };
-      })
-      .filter((row): row is DisagreementStat => row !== null)
-      .sort((a, b) => b.spread - a.spread || a.restaurant.localeCompare(b.restaurant))
-      .slice(0, DISAGREEMENT_LIMIT),
-    groupTop5: overallRanking.slice(0, 5).map((row) => ({
-      id: row.id,
-      restaurant: row.restaurant,
-      score: row.average,
-    })),
+    raters: nonEmpty(raters),
+    pickerBias: nonEmpty(pickerBias),
+    disagreement: nonEmpty(disagreement),
+    groupTop5: nonEmpty(groupTop5),
   };
+}
+
+/** Whether the year has anything at all to show, so the pages can fall back to an empty state. */
+export function hasYearStatisticsData(stats: YearStatistics): boolean {
+  return Object.entries(stats).some(([section, value]) => section !== 'isClosed' && value !== undefined);
 }
 
 export function buildRevealHighlights(stats: YearStatistics): RevealHighlight[] {
@@ -497,7 +536,7 @@ export function buildRevealHighlights(stats: YearStatistics): RevealHighlight[] 
     });
   }
 
-  if (stats.yearTotals.mostExpensive) {
+  if (stats.yearTotals?.mostExpensive) {
     highlights.push({
       key: 'expensive',
       title: 'Teuerster Abend',
@@ -532,14 +571,14 @@ export function categoryWinnerHighlights(stats: YearStatistics): RevealHighlight
     return [];
   }
 
-  const winners: Array<{ key: string; title: string; ranking: RankedRestaurant[] }> = [
+  const winners: Array<{ key: string; title: string; ranking?: RankedRestaurant[] }> = [
     { key: 'food', title: 'Bestes Essen', ranking: stats.categoryRankings.food },
     { key: 'ambience', title: 'Bestes Ambiente', ranking: stats.categoryRankings.ambience },
     { key: 'price', title: 'Beste Preis-Leistung', ranking: stats.categoryRankings.pricePerformance },
   ];
 
   return winners.flatMap(({ key, title, ranking }) => {
-    const winner = ranking[0];
+    const winner = ranking?.[0];
     if (!winner) {
       return [];
     }
