@@ -109,4 +109,8 @@ describe('resolveStatisticsYear', () => {
     expect(resolveStatisticsYear('nope', [2026], '2026-09-09')).toBe(2025);
     expect(resolveStatisticsYear('2025abc', [2025], '2026-09-09')).toBe(2025);
   });
+
+  it('rejects a well-formed past year that has no events', () => {
+    expect(resolveStatisticsYear('1999', [2025, 2026], '2026-09-09')).toBe(2025);
+  });
 });

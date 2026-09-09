@@ -1,6 +1,7 @@
 'use client';
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useMemo } from 'react';
 import { Table } from '@/components/table';
 import { cn } from '@/lib/shadcn-utils';
 import type { AttendanceStat, CompletionStat, PickCountStat, PickerBiasStat, RaterStat } from '@/lib/statistics';
@@ -73,7 +74,7 @@ export function PickCountsTable({ rows }: { rows: PickCountStat[] }) {
   return <StatTable rows={rows} columns={pickCountColumns} />;
 }
 
-const pickerBiasColumns: ColumnDef<PickerBiasStat>[] = [
+const createPickerBiasColumns = (highlightDelta: number | undefined): ColumnDef<PickerBiasStat>[] => [
   { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
   { accessorKey: 'pickCount', header: 'Auswählen', cell: ({ row }) => row.original.pickCount },
   {
@@ -89,13 +90,8 @@ const pickerBiasColumns: ColumnDef<PickerBiasStat>[] = [
   {
     accessorKey: 'delta',
     header: 'Δ',
-    cell: ({ row, table }) => {
-      const deltas = table
-        .getRowModel()
-        .rows.map((item) => item.original.delta)
-        .filter((delta): delta is number => delta !== undefined);
-      const maxDelta = deltas.length > 0 ? Math.max(...deltas) : undefined;
-      const isMax = maxDelta !== undefined && row.original.delta === maxDelta && maxDelta > 0;
+    cell: ({ row }) => {
+      const isMax = highlightDelta !== undefined && row.original.delta === highlightDelta;
 
       return <span className={cn('font-bold', isMax && 'text-primary')}>{formatDelta(row.original.delta)}</span>;
     },
@@ -103,5 +99,12 @@ const pickerBiasColumns: ColumnDef<PickerBiasStat>[] = [
 ];
 
 export function PickerBiasTable({ rows }: { rows: PickerBiasStat[] }) {
-  return <StatTable rows={rows} columns={pickerBiasColumns} />;
+  const columns = useMemo(() => {
+    const deltas = rows.map((row) => row.delta).filter((delta): delta is number => delta !== undefined);
+    const maxDelta = deltas.length > 0 ? Math.max(...deltas) : undefined;
+
+    return createPickerBiasColumns(maxDelta !== undefined && maxDelta > 0 ? maxDelta : undefined);
+  }, [rows]);
+
+  return <StatTable rows={rows} columns={columns} />;
 }

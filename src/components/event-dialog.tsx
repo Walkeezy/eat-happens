@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
+import { Select } from '@/components/shadcn/select';
 import { todayCalendarDate } from '@/lib/calendar-date';
 import { calendarDateSchema, optionalTotalCostInputSchema, parseOptionalTotalCost } from '@/lib/schemas';
 import { displayName } from '@/lib/user';
@@ -136,17 +137,14 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
                 <FormItem>
                   <FormLabel>Ausgewählt von</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
-                    >
+                    <Select {...field}>
                       <option value="">Unbekannt</option>
                       {users.map((user) => (
                         <option key={user.id} value={user.id}>
                           {displayName(user)}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -21,18 +21,22 @@ export default async function HomePage() {
   const lastDinnerNeedsRating =
     lastAssignedEvent !== undefined && !lastAssignedEvent.ratings?.some((rating) => rating.userId === session.user.id);
 
+  // The most recent unrated dinner is promoted into RateLastDinnerBanner, so it must not
+  // also appear in the grid below - otherwise the same dinner shows up twice in a row.
+  const isPromotedToBanner = (eventId: string) => lastDinnerNeedsRating && eventId === lastAssignedEvent?.id;
+
   const unratedEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
     const userRating = event.ratings?.find((rating) => rating.userId === session.user.id);
 
-    return isUserAssigned && !userRating;
+    return isUserAssigned && !userRating && !isPromotedToBanner(event.id);
   });
 
   const otherEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
     const userRating = event.ratings?.find((rating) => rating.userId === session.user.id);
 
-    return !isUserAssigned || userRating;
+    return (!isUserAssigned || userRating) && !isPromotedToBanner(event.id);
   });
 
   return (

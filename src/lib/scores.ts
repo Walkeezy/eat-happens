@@ -1,4 +1,4 @@
-type RatingScores = {
+export type RatingScores = {
   legacyScore: number | null;
   foodScore: number | null;
   ambienceScore: number | null;
@@ -6,6 +6,7 @@ type RatingScores = {
 };
 
 export type CategoryScoreKey = 'foodScore' | 'ambienceScore' | 'pricePerformanceScore';
+type ScoreKey = 'legacyScore' | CategoryScoreKey;
 
 export function mean(values: number[]): number | undefined {
   if (values.length === 0) {
@@ -46,7 +47,7 @@ export function eventOverall(ratings: RatingScores[]): number | undefined {
   return mean(ratings.map(ratingOverall).filter((score): score is number => score !== null));
 }
 
-export function categoryAverage(ratings: RatingScores[], field: CategoryScoreKey): number | undefined {
+export function scoreAverage(ratings: RatingScores[], field: ScoreKey): number | undefined {
   return mean(ratings.map((rating) => rating[field]).filter((score): score is number => score !== null));
 }
 

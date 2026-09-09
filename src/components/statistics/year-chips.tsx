@@ -6,7 +6,9 @@ export function YearChips({ years, selectedYear }: { years: number[]; selectedYe
     <div className="flex flex-wrap gap-2">
       {years.map((year) => (
         <Button key={year} variant={year === selectedYear ? 'default' : 'outline'} size="sm" asChild>
-          <NextLink href={`/statistics?year=${year}`}>{year}</NextLink>
+          <NextLink href={`/statistics?year=${year}`} aria-current={year === selectedYear ? 'page' : undefined}>
+            {year}
+          </NextLink>
         </Button>
       ))}
     </div>

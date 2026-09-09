@@ -1,21 +1,28 @@
 import { formatCurrency } from './format';
 import {
   type CategoryScoreKey,
-  categoryAverage,
   computePickerBias,
   eventOverall,
   mean,
   median,
+  type RatingScores,
   ratingOverall,
+  scoreAverage,
   scoreRange,
 } from './scores';
 
-export type StatisticsRating = {
+/**
+ * A picker needs at least this many picks before they can win the "Bester Picker" award.
+ * Without it a single lucky 5.0 outranks a whole year of consistently good choices.
+ */
+const MIN_PICKS_FOR_AWARD = 2;
+
+/** How many entries the "most controversial" list shows. */
+const DISAGREEMENT_LIMIT = 5;
+
+export type StatisticsRating = RatingScores & {
   userId: string;
-  legacyScore: number | null;
-  foodScore: number | null;
-  ambienceScore: number | null;
-  pricePerformanceScore: number | null;
+  raterName?: string | null;
 };
 
 export type StatisticsEvent = {
@@ -164,7 +171,7 @@ function costPerPerson(totalCost: string | null, attendeeCount: number): number 
 function rankedByCategory(events: StatisticsEvent[], field: CategoryScoreKey): RankedRestaurant[] {
   return events
     .map((event) => {
-      const average = categoryAverage(event.ratings, field);
+      const average = scoreAverage(event.ratings, field);
       if (average === undefined) {
         return null;
       }
@@ -244,7 +251,7 @@ function buildCostVsPrice(events: StatisticsEvent[]) {
   const rows: CostVsPriceRow[] = events
     .map((event) => {
       const perPerson = costPerPerson(event.totalCost, event.assignedUserIds.length);
-      const pricePerformance = categoryAverage(event.ratings, 'pricePerformanceScore');
+      const pricePerformance = scoreAverage(event.ratings, 'pricePerformanceScore');
       if (perPerson === null || pricePerformance === undefined) {
         return null;
       }
@@ -286,6 +293,11 @@ export function buildYearStatistics(input: {
     if (event.pickedByUserId && event.pickerName && !names.has(event.pickedByUserId)) {
       names.set(event.pickedByUserId, event.pickerName);
     }
+    for (const rating of event.ratings) {
+      if (rating.raterName && !names.has(rating.userId)) {
+        names.set(rating.userId, rating.raterName);
+      }
+    }
   }
 
   const nameOf = (userId: string) => names.get(userId) ?? 'Unbekannt';
@@ -305,7 +317,7 @@ export function buildYearStatistics(input: {
       return { id: event.id, restaurant: event.restaurant, score };
     })
     .filter((row): row is TopRestaurant => row !== null)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score || a.restaurant.localeCompare(b.restaurant))
     .slice(0, 5);
 
   const attendance: AttendanceStat[] = people
@@ -402,10 +414,10 @@ export function buildYearStatistics(input: {
       pricePerformance: rankedByCategory(events, 'pricePerformanceScore'),
     },
     costVsPricePerformance: buildCostVsPrice(events),
-    raters: people
-      .map((person) => {
+    raters: [...new Set(events.flatMap((event) => event.ratings.map((rating) => rating.userId)))]
+      .map((userId) => {
         const scores = events.flatMap((event) => {
-          const rating = event.ratings.find((item) => item.userId === person.id);
+          const rating = event.ratings.find((item) => item.userId === userId);
           if (!rating) {
             return [];
           }
@@ -418,8 +430,8 @@ export function buildYearStatistics(input: {
         }
 
         return {
-          userId: person.id,
-          name: person.name,
+          userId,
+          name: nameOf(userId),
           averageGiven,
           ratingCount: scores.length,
         };
@@ -446,7 +458,8 @@ export function buildYearStatistics(input: {
         };
       })
       .filter((row): row is DisagreementStat => row !== null)
-      .sort((a, b) => b.spread - a.spread || a.restaurant.localeCompare(b.restaurant)),
+      .sort((a, b) => b.spread - a.spread || a.restaurant.localeCompare(b.restaurant))
+      .slice(0, DISAGREEMENT_LIMIT),
     groupTop5: overallRanking.slice(0, 5).map((row) => ({
       id: row.id,
       restaurant: row.restaurant,
@@ -464,7 +477,7 @@ export function buildRevealHighlights(stats: YearStatistics): RevealHighlight[] 
   const winner = stats.overallRanking?.[0];
   const flop = stats.overallRanking?.at(-1);
   const controversial = stats.disagreement?.[0];
-  const bestPicker = stats.pickerBias?.[0];
+  const bestPicker = stats.pickerBias?.find((row) => row.pickCount >= MIN_PICKS_FOR_AWARD) ?? stats.pickerBias?.[0];
 
   if (winner) {
     highlights.push({

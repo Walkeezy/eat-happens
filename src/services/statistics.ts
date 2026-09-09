@@ -1,4 +1,4 @@
-import { and, gte, lte } from 'drizzle-orm';
+import { and, gte, lte, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { event } from '@/db/schema';
 import {
@@ -16,8 +16,8 @@ import { getAllConfirmedUsers } from '@/services/assignments';
 
 export async function getEventYears(): Promise<number[]> {
   const today = todayCalendarDate();
-  const rows = await db.select({ date: event.date }).from(event);
-  const years = new Set(rows.map((row) => calendarYear(row.date)));
+  const rows = await db.selectDistinct({ year: sql<number>`extract(year from ${event.date})::int` }).from(event);
+  const years = new Set(rows.map((row) => row.year));
   years.add(calendarYear(today));
   years.add(previousCalendarYearRange(today).year);
 
@@ -34,7 +34,11 @@ export async function getYearStatistics(year: number, currentUserId: string): Pr
     db.query.event.findMany({
       where: and(gte(event.date, start), lte(event.date, until)),
       with: {
-        ratings: true,
+        ratings: {
+          with: {
+            user: true,
+          },
+        },
         assignments: true,
         pickedByUser: true,
       },
@@ -57,6 +61,7 @@ export async function getYearStatistics(year: number, currentUserId: string): Pr
           assignedUserIds: item.assignments.map((assignment) => assignment.userId),
           ratings: item.ratings.map((rating) => ({
             userId: rating.userId,
+            raterName: rating.user ? displayName(rating.user) : null,
             legacyScore: rating.legacyScore,
             foodScore: rating.foodScore,
             ambienceScore: rating.ambienceScore,

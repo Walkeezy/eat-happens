@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { categoryAverage, computePickerBias, eventOverall, mean, median, ratingOverall, scoreRange } from './scores';
+import { computePickerBias, eventOverall, mean, median, ratingOverall, scoreAverage, scoreRange } from './scores';
 
 const categoryRating = (food: number, ambience: number, price: number) => ({
   legacyScore: null,
@@ -48,13 +48,13 @@ describe('ratingOverall', () => {
   });
 });
 
-describe('eventOverall and categoryAverage', () => {
+describe('eventOverall and scoreAverage', () => {
   it('averages per-rating overalls, mixing legacy and category scores', () => {
     expect(eventOverall([categoryRating(5, 5, 5), legacyRating(1)])).toBe(3);
   });
 
   it('ignores missing category scores', () => {
-    expect(categoryAverage([categoryRating(5, 1, 1), legacyRating(4)], 'foodScore')).toBe(5);
+    expect(scoreAverage([categoryRating(5, 1, 1), legacyRating(4)], 'foodScore')).toBe(5);
   });
 });
 
