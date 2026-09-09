@@ -17,5 +17,6 @@ describe('shouldHideRatings', () => {
 
   it('shows ratings for invalid dates as fallback', () => {
     expect(shouldHideRatings('not-a-date')).toBe(false);
+    expect(shouldHideRatings('2026-02-31')).toBe(false);
   });
 });

@@ -12,11 +12,13 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
+import { todayCalendarDate } from '@/lib/calendar-date';
+import { calendarDateSchema, parseOptionalTotalCost } from '@/lib/schemas';
 import type { Event, User } from '@/types/events';
 
 const eventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
-  date: z.string().min(1, 'Datum ist erforderlich'),
+  date: calendarDateSchema,
   users: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss ausgewählt werden'),
   totalCost: z.string().optional(),
 });
@@ -39,7 +41,7 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
     resolver: zodResolver(eventSchema),
     defaultValues: {
       restaurant: event?.restaurant ?? '',
-      date: event ? new Date(event.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: event?.date ?? todayCalendarDate(),
       users: assignedUserIds,
       totalCost: event?.totalCost?.toString() ?? '',
     },
@@ -47,12 +49,11 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
 
   const onSubmit = async ({ restaurant, date, users, totalCost }: EventFormData) => {
     try {
-      const parsedCost = totalCost ? parseFloat(totalCost) : undefined;
       const eventData = {
         restaurant,
-        date: new Date(date),
+        date,
         assignedUserIds: users,
-        totalCost: parsedCost && parsedCost > 0 ? parsedCost : undefined,
+        totalCost: parseOptionalTotalCost(totalCost),
       };
 
       if (mode === 'edit' && event) {

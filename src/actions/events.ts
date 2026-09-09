@@ -1,36 +1,16 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
+import { type EventWithAssignmentsData, eventWithAssignmentsSchema } from '@/lib/schemas';
 import { requireAdmin } from '@/lib/verify-session';
-import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
-import { createEvent, updateEvent } from '@/services/events';
+import { createEventWithAssignments, updateEventWithAssignments } from '@/services/events';
 
-const eventWithAssignmentsSchema = z.object({
-  restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
-  date: z.date(),
-  assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
-  totalCost: z.number().positive().optional(),
-});
-
-export async function updateEventWithAssignmentsAction(
-  eventId: string,
-  data: { restaurant: string; date: Date; assignedUserIds: string[]; totalCost?: number },
-) {
+export async function updateEventWithAssignmentsAction(eventId: string, data: EventWithAssignmentsData) {
   const { user } = await requireAdmin();
   const validatedData = eventWithAssignmentsSchema.parse(data);
 
   try {
-    const event = await updateEvent(eventId, {
-      restaurant: validatedData.restaurant,
-      date: validatedData.date,
-      totalCost: validatedData.totalCost,
-    });
-    if (!event) {
-      throw new Error('Event nicht gefunden');
-    }
-
-    const assignmentChanges = await updateEventAssignments(user.id, eventId, validatedData.assignedUserIds);
+    const { event, assignmentChanges } = await updateEventWithAssignments(user.id, eventId, validatedData);
 
     revalidatePath('/', 'layout');
 
@@ -45,23 +25,12 @@ export async function updateEventWithAssignmentsAction(
   }
 }
 
-export async function createEventWithAssignmentsAction(data: {
-  restaurant: string;
-  date: Date;
-  assignedUserIds: string[];
-  totalCost?: number;
-}) {
+export async function createEventWithAssignmentsAction(data: EventWithAssignmentsData) {
   const { user } = await requireAdmin();
   const validatedData = eventWithAssignmentsSchema.parse(data);
 
   try {
-    const event = await createEvent({
-      restaurant: validatedData.restaurant,
-      date: validatedData.date,
-      totalCost: validatedData.totalCost,
-    });
-
-    const assignments = await assignMultipleUsers(user.id, event.id, validatedData.assignedUserIds);
+    const { event, assignments } = await createEventWithAssignments(user.id, validatedData);
 
     revalidatePath('/', 'layout');
 
