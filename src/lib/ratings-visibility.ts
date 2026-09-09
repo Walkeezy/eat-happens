@@ -1,13 +1,9 @@
-export function shouldHideRatings(eventDate: Date | string): boolean {
-  try {
-    const eventDateTime = new Date(eventDate);
-    const eventYear = eventDateTime.getFullYear();
-    const currentYear = new Date().getFullYear();
+import { calendarYear, isValidCalendarDate, todayCalendarDate } from './calendar-date';
 
-    // Hide ratings if event is in the current year
-    return eventYear === currentYear;
-  } catch {
-    // If date parsing fails, show ratings as fallback
+export function shouldHideRatings(eventDate: string): boolean {
+  if (!isValidCalendarDate(eventDate)) {
     return false;
   }
+
+  return calendarYear(eventDate) === calendarYear(todayCalendarDate());
 }

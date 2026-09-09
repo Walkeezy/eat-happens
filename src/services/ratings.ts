@@ -2,7 +2,7 @@ import { and, avg, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { event, eventAssignment, rating } from '@/db/schema';
-import { dayjs } from '@/lib/dayjs';
+import { todayCalendarDate } from '@/lib/calendar-date';
 
 export type Event2025Ranking = {
   id: string;
@@ -42,9 +42,6 @@ export async function saveRating(
 }
 
 export async function get2025Ratings(): Promise<Event2025Ranking[]> {
-  const startOf2025 = dayjs('2025-01-01').startOf('day').toDate();
-  const endOf2025 = dayjs('2025-12-31').endOf('day').toDate();
-
   const results = await db
     .select({
       id: event.id,
@@ -54,7 +51,7 @@ export async function get2025Ratings(): Promise<Event2025Ranking[]> {
     })
     .from(event)
     .leftJoin(rating, eq(event.id, rating.eventId))
-    .where(and(gte(event.date, startOf2025), lte(event.date, endOf2025)))
+    .where(and(gte(event.date, '2025-01-01'), lte(event.date, '2025-12-31')))
     .groupBy(event.id, event.restaurant)
     .orderBy(desc(avg(rating.legacyScore)), desc(count(rating.id)));
 
@@ -83,7 +80,7 @@ export async function getAllEventCosts(): Promise<EventCost[]> {
     })
     .from(event)
     .leftJoin(eventAssignment, eq(event.id, eventAssignment.eventId))
-    .where(lte(event.date, dayjs().startOf('day').toDate()))
+    .where(lte(event.date, todayCalendarDate()))
     .groupBy(event.id, event.restaurant, event.totalCost)
     .orderBy(
       sql`CASE WHEN ${event.totalCost} IS NULL THEN 1 ELSE 0 END`,
