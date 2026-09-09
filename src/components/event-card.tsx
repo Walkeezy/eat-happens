@@ -7,6 +7,7 @@ import { RatingDialog } from '@/components/rating-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
 import { displayCalendarDate } from '@/lib/calendar-date';
+import { formatCurrency } from '@/lib/format';
 import type { EventWithDetails } from '@/types/events';
 
 type Props = {
@@ -46,8 +47,8 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
             {event.totalCost !== null && (
               <CardDescription className="flex items-center gap-1 text-sm">
                 <Wallet className="size-3" />
-                CHF {event.totalCost.toFixed(2)}
-                {hasAssignedUsers && ` (Ø CHF ${(event.totalCost / assignedUsers.length).toFixed(2)})`}
+                {formatCurrency(event.totalCost)}
+                {hasAssignedUsers && ` (Ø ${formatCurrency(Number(event.totalCost) / assignedUsers.length)})`}
               </CardDescription>
             )}
           </div>

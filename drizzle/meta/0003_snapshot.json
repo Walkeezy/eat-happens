@@ -183,7 +183,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "event_total_cost_positive": {
+          "name": "event_total_cost_positive",
+          "value": "\"event\".\"total_cost\" IS NULL OR \"event\".\"total_cost\" > 0"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.event_assignment": {

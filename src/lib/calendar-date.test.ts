@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { calendarYear, displayCalendarDate, isValidCalendarDate, todayCalendarDate } from './calendar-date';
+import {
+  calendarYear,
+  displayCalendarDate,
+  isValidCalendarDate,
+  previousCalendarYearRange,
+  todayCalendarDate,
+} from './calendar-date';
 
 describe('todayCalendarDate', () => {
   it('returns local today as YYYY-MM-DD', () => {
@@ -31,5 +37,20 @@ describe('calendarYear', () => {
     expect(calendarYear('2025-06-01')).toBe(2025);
     expect(calendarYear('2026-01-01')).toBe(2026);
     expect(calendarYear('2026-12-31')).toBe(2026);
+  });
+});
+
+describe('previousCalendarYearRange', () => {
+  it('returns Jan 1 through Dec 31 of the previous calendar year', () => {
+    expect(previousCalendarYearRange('2026-09-09')).toEqual({
+      year: 2025,
+      start: '2025-01-01',
+      end: '2025-12-31',
+    });
+    expect(previousCalendarYearRange('2026-01-01')).toEqual({
+      year: 2025,
+      start: '2025-01-01',
+      end: '2025-12-31',
+    });
   });
 });

@@ -16,17 +16,32 @@ export async function isUserAssignedToEvent(userId: string, eventId: string): Pr
   return assignment !== undefined;
 }
 
+async function assertConfirmedUsers(userIds: string[], client: DbClient): Promise<void> {
+  const uniqueIds = [...new Set(userIds)];
+  const confirmed = await client
+    .select({ id: user.id })
+    .from(user)
+    .where(and(inArray(user.id, uniqueIds), eq(user.isConfirmed, true)));
+
+  if (confirmed.length !== uniqueIds.length) {
+    throw new Error('Nur bestätigte Benutzer können zugewiesen werden');
+  }
+}
+
 export async function assignMultipleUsers(
   assignedBy: string,
   eventId: string,
   userIds: string[],
   client: DbClient = db,
 ): Promise<EventAssignment[]> {
-  if (userIds.length === 0) {
+  const uniqueIds = [...new Set(userIds)];
+  if (uniqueIds.length === 0) {
     throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
   }
 
-  const assignments = userIds.map((userId) => ({
+  await assertConfirmedUsers(uniqueIds, client);
+
+  const assignments = uniqueIds.map((userId) => ({
     id: nanoid(),
     userId,
     eventId,
@@ -57,14 +72,17 @@ export async function updateEventAssignments(
   newUserIds: string[],
   client: DbClient = db,
 ): Promise<number> {
-  if (newUserIds.length === 0) {
+  const uniqueIds = [...new Set(newUserIds)];
+  if (uniqueIds.length === 0) {
     throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
   }
 
+  await assertConfirmedUsers(uniqueIds, client);
+
   const currentUserIds = await getCurrentAssignments(eventId, client);
 
-  const usersToAdd = newUserIds.filter((id) => !currentUserIds.includes(id));
-  const usersToRemove = currentUserIds.filter((id) => !newUserIds.includes(id));
+  const usersToAdd = uniqueIds.filter((id) => !currentUserIds.includes(id));
+  const usersToRemove = currentUserIds.filter((id) => !uniqueIds.includes(id));
 
   let totalChanges = 0;
 

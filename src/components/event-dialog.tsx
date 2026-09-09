@@ -13,14 +13,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
 import { todayCalendarDate } from '@/lib/calendar-date';
-import { calendarDateSchema, parseOptionalTotalCost } from '@/lib/schemas';
+import { calendarDateSchema, optionalTotalCostInputSchema, parseOptionalTotalCost } from '@/lib/schemas';
 import type { Event, User } from '@/types/events';
 
 const eventSchema = z.object({
   restaurant: z.string().min(1, 'Restaurant-Name ist erforderlich'),
   date: calendarDateSchema,
   users: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss ausgewählt werden'),
-  totalCost: z.string().optional(),
+  totalCost: optionalTotalCostInputSchema,
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -43,7 +43,7 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
       restaurant: event?.restaurant ?? '',
       date: event?.date ?? todayCalendarDate(),
       users: assignedUserIds,
-      totalCost: event?.totalCost?.toString() ?? '',
+      totalCost: event?.totalCost ?? '',
     },
   });
 

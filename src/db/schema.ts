@@ -85,17 +85,21 @@ export const verification = pgTable(
 );
 
 // App-specific tables
-export const event = pgTable('event', {
-  id: text('id').primaryKey(),
-  date: date('date', { mode: 'string' }).notNull(),
-  restaurant: text('restaurant').notNull(),
-  totalCost: numeric('total_cost', { precision: 10, scale: 2, mode: 'number' }),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at')
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-});
+export const event = pgTable(
+  'event',
+  {
+    id: text('id').primaryKey(),
+    date: date('date', { mode: 'string' }).notNull(),
+    restaurant: text('restaurant').notNull(),
+    totalCost: numeric('total_cost', { precision: 10, scale: 2, mode: 'string' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [check('event_total_cost_positive', sql`${table.totalCost} IS NULL OR ${table.totalCost} > 0`)],
+);
 
 export const rating = pgTable(
   'rating',
