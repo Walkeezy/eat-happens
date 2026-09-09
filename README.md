@@ -36,7 +36,15 @@ A restaurant rating app for a group of friends who dine together monthly. Rate r
    | `GOOGLE_CLIENT_ID`     | Google OAuth client ID                               |
    | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret                           |
 
-3. Apply database migrations:
+3. Set up the database:
+
+   **New local database:** sync the current schema. Historical migrations `0000`–`0002` cannot be replayed on an empty database:
+
+   ```bash
+   npm run db:push
+   ```
+
+   **Existing database (including production):** apply pending migrations:
 
    ```bash
    npm run db:migrate
@@ -60,5 +68,6 @@ New users sign in with Google and must be confirmed by an admin (via `/users`) b
 | `npm run lint`        | Biome lint/format check, type check, and unused exports check |
 | `npm run format`      | Format all files with Biome                  |
 | `npm run db:generate` | Generate a migration from schema changes     |
-| `npm run db:migrate`  | Apply pending migrations                     |
+| `npm run db:migrate`  | Apply pending migrations (existing databases) |
+| `npm run db:push`     | Sync schema to a new local database          |
 | `npm run db:studio`   | Open Drizzle Studio                          |

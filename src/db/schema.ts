@@ -1,5 +1,5 @@
-import { relations } from 'drizzle-orm';
-import { boolean, index, pgTable, real, smallint, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { boolean, check, date, index, numeric, pgTable, smallint, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // Better-auth tables (generated schema)
 export const user = pgTable(
@@ -85,17 +85,21 @@ export const verification = pgTable(
 );
 
 // App-specific tables
-export const event = pgTable('event', {
-  id: text('id').primaryKey(),
-  date: timestamp('date').notNull(),
-  restaurant: text('restaurant').notNull(),
-  totalCost: real('total_cost'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at')
-    .notNull()
-    .defaultNow()
-    .$onUpdate(() => new Date()),
-});
+export const event = pgTable(
+  'event',
+  {
+    id: text('id').primaryKey(),
+    date: date('date', { mode: 'string' }).notNull(),
+    restaurant: text('restaurant').notNull(),
+    totalCost: numeric('total_cost', { precision: 10, scale: 2, mode: 'string' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at')
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [check('event_total_cost_positive', sql`${table.totalCost} IS NULL OR ${table.totalCost} > 0`)],
+);
 
 export const rating = pgTable(
   'rating',
@@ -120,6 +124,13 @@ export const rating = pgTable(
   (table) => [
     unique('rating_user_event_idx').on(table.userId, table.eventId),
     index('rating_event_id_idx').on(table.eventId),
+    check('rating_legacy_score_range', sql`${table.legacyScore} IS NULL OR (${table.legacyScore} BETWEEN 1 AND 5)`),
+    check('rating_food_score_range', sql`${table.foodScore} IS NULL OR (${table.foodScore} BETWEEN 1 AND 5)`),
+    check('rating_ambience_score_range', sql`${table.ambienceScore} IS NULL OR (${table.ambienceScore} BETWEEN 1 AND 5)`),
+    check(
+      'rating_price_performance_score_range',
+      sql`${table.pricePerformanceScore} IS NULL OR (${table.pricePerformanceScore} BETWEEN 1 AND 5)`,
+    ),
   ],
 );
 
@@ -140,7 +151,7 @@ export const eventAssignment = pgTable(
       .$onUpdate(() => new Date()),
     assignedBy: text('assigned_by')
       .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
+      .references(() => user.id, { onDelete: 'restrict' }),
   },
   (table) => [
     unique('event_assignment_user_event_idx').on(table.userId, table.eventId),
@@ -152,8 +163,8 @@ export const eventAssignment = pgTable(
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
   ratings: many(rating),
-  assignments: many(eventAssignment),
-  assignedBy: many(eventAssignment),
+  assignments: many(eventAssignment, { relationName: 'assignedUser' }),
+  assignedBy: many(eventAssignment, { relationName: 'assignedByUser' }),
 }));
 
 export const eventRelations = relations(event, ({ many }) => ({
@@ -180,9 +191,11 @@ export const eventAssignmentRelations = relations(eventAssignment, ({ one }) => 
   user: one(user, {
     fields: [eventAssignment.userId],
     references: [user.id],
+    relationName: 'assignedUser',
   }),
   assignedByUser: one(user, {
     fields: [eventAssignment.assignedBy],
     references: [user.id],
+    relationName: 'assignedByUser',
   }),
 }));

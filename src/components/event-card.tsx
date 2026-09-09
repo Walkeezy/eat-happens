@@ -6,7 +6,8 @@ import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { RatingDialog } from '@/components/rating-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
-import { dayjs } from '@/lib/dayjs';
+import { displayCalendarDate } from '@/lib/calendar-date';
+import { formatCurrency } from '@/lib/format';
 import type { EventWithDetails } from '@/types/events';
 
 type Props = {
@@ -41,13 +42,13 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
             <CardTitle className="text-base font-bold">{event.restaurant}</CardTitle>
             <CardDescription className="flex items-center gap-1 text-sm">
               <CalendarIcon className="size-3" />
-              {dayjs(event.date).format('D. MMMM YYYY')}
+              {displayCalendarDate(event.date)}
             </CardDescription>
             {event.totalCost !== null && (
               <CardDescription className="flex items-center gap-1 text-sm">
                 <Wallet className="size-3" />
-                CHF {event.totalCost.toFixed(2)}
-                {hasAssignedUsers && ` (Ø CHF ${(event.totalCost / assignedUsers.length).toFixed(2)})`}
+                {formatCurrency(event.totalCost)}
+                {hasAssignedUsers && ` (Ø ${formatCurrency(Number(event.totalCost) / assignedUsers.length)})`}
               </CardDescription>
             )}
           </div>
@@ -60,7 +61,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
         </div>
 
         {hasUnratedAssignment ? (
-          <RatingDialog mode="create" event={event} trigger={<Button>Jetzt bewerten</Button>} />
+          <RatingDialog event={event} trigger={<Button>Jetzt bewerten</Button>} />
         ) : (
           hasAssignedUsers && (
             <div className="flex flex-col gap-2">

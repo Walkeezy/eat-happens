@@ -7,10 +7,10 @@ describe('formatCurrency', () => {
     expect(formatCurrency(null)).toBe('-');
   });
 
-  it('formats numbers as CHF currency', () => {
-    const value = 1234.5;
-    const expected = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(value);
+  it('formats numbers and decimal strings as CHF currency', () => {
+    const expected = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(1234.5);
 
-    expect(formatCurrency(value)).toBe(expected);
+    expect(formatCurrency(1234.5)).toBe(expected);
+    expect(formatCurrency('1234.50')).toBe(expected);
   });
 });

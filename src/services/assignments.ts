@@ -1,9 +1,8 @@
 import { and, eq, type InferSelectModel, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { db } from '@/db';
+import { type DbClient, db } from '@/db';
 import { eventAssignment, user } from '@/db/schema';
 
-// Inferred types
 type EventAssignment = InferSelectModel<typeof eventAssignment>;
 type User = InferSelectModel<typeof user>;
 
@@ -17,25 +16,39 @@ export async function isUserAssignedToEvent(userId: string, eventId: string): Pr
   return assignment !== undefined;
 }
 
+async function assertConfirmedUsers(userIds: string[], client: DbClient): Promise<void> {
+  const uniqueIds = [...new Set(userIds)];
+  const confirmed = await client
+    .select({ id: user.id })
+    .from(user)
+    .where(and(inArray(user.id, uniqueIds), eq(user.isConfirmed, true)));
+
+  if (confirmed.length !== uniqueIds.length) {
+    throw new Error('Nur bestätigte Benutzer können zugewiesen werden');
+  }
+}
+
 export async function assignMultipleUsers(
   assignedBy: string,
   eventId: string,
   userIds: string[],
+  client: DbClient = db,
 ): Promise<EventAssignment[]> {
-  if (userIds.length === 0) {
-    throw new Error('At least one user must be assigned to the event');
+  const uniqueIds = [...new Set(userIds)];
+  if (uniqueIds.length === 0) {
+    throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
   }
 
-  const assignments = userIds.map((userId) => ({
+  await assertConfirmedUsers(uniqueIds, client);
+
+  const assignments = uniqueIds.map((userId) => ({
     id: nanoid(),
     userId,
     eventId,
     assignedBy,
   }));
 
-  const newAssignments = await db.insert(eventAssignment).values(assignments).returning();
-
-  return newAssignments as EventAssignment[];
+  return client.insert(eventAssignment).values(assignments).returning();
 }
 
 export async function getAllConfirmedUsers(): Promise<User[]> {
@@ -44,8 +57,8 @@ export async function getAllConfirmedUsers(): Promise<User[]> {
   });
 }
 
-async function getCurrentAssignments(eventId: string): Promise<string[]> {
-  const assignments = await db
+async function getCurrentAssignments(eventId: string, client: DbClient): Promise<string[]> {
+  const assignments = await client
     .select({ userId: eventAssignment.userId })
     .from(eventAssignment)
     .where(eq(eventAssignment.eventId, eventId));
@@ -53,34 +66,35 @@ async function getCurrentAssignments(eventId: string): Promise<string[]> {
   return assignments.map((a) => a.userId);
 }
 
-export async function updateEventAssignments(assignedBy: string, eventId: string, newUserIds: string[]): Promise<number> {
-  // Get current assignments
-  const currentUserIds = await getCurrentAssignments(eventId);
+export async function updateEventAssignments(
+  assignedBy: string,
+  eventId: string,
+  newUserIds: string[],
+  client: DbClient = db,
+): Promise<number> {
+  const uniqueIds = [...new Set(newUserIds)];
+  if (uniqueIds.length === 0) {
+    throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
+  }
 
-  // Determine which users to add and remove
-  const usersToAdd = newUserIds.filter((id) => !currentUserIds.includes(id));
-  const usersToRemove = currentUserIds.filter((id) => !newUserIds.includes(id));
+  await assertConfirmedUsers(uniqueIds, client);
+
+  const currentUserIds = await getCurrentAssignments(eventId, client);
+
+  const usersToAdd = uniqueIds.filter((id) => !currentUserIds.includes(id));
+  const usersToRemove = currentUserIds.filter((id) => !uniqueIds.includes(id));
 
   let totalChanges = 0;
 
-  // Remove users no longer assigned
   if (usersToRemove.length > 0) {
-    await db
+    await client
       .delete(eventAssignment)
       .where(and(eq(eventAssignment.eventId, eventId), inArray(eventAssignment.userId, usersToRemove)));
     totalChanges += usersToRemove.length;
   }
 
-  // Add new users
   if (usersToAdd.length > 0) {
-    const newAssignments = usersToAdd.map((userId) => ({
-      id: nanoid(),
-      userId,
-      eventId,
-      assignedBy,
-    }));
-
-    await db.insert(eventAssignment).values(newAssignments);
+    await assignMultipleUsers(assignedBy, eventId, usersToAdd, client);
     totalChanges += usersToAdd.length;
   }
 

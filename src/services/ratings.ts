@@ -2,9 +2,9 @@ import { and, avg, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { event, eventAssignment, rating } from '@/db/schema';
-import { dayjs } from '@/lib/dayjs';
+import { previousCalendarYearRange, todayCalendarDate } from '@/lib/calendar-date';
 
-export type Event2025Ranking = {
+export type EventYearRanking = {
   id: string;
   restaurant: string;
   averageLegacyRating: number | null;
@@ -41,10 +41,8 @@ export async function saveRating(
   return newRating;
 }
 
-export async function get2025Ratings(): Promise<Event2025Ranking[]> {
-  const startOf2025 = dayjs('2025-01-01').startOf('day').toDate();
-  const endOf2025 = dayjs('2025-12-31').endOf('day').toDate();
-
+export async function getPreviousYearRatings(): Promise<EventYearRanking[]> {
+  const { start, end } = previousCalendarYearRange();
   const results = await db
     .select({
       id: event.id,
@@ -54,7 +52,7 @@ export async function get2025Ratings(): Promise<Event2025Ranking[]> {
     })
     .from(event)
     .leftJoin(rating, eq(event.id, rating.eventId))
-    .where(and(gte(event.date, startOf2025), lte(event.date, endOf2025)))
+    .where(and(gte(event.date, start), lte(event.date, end)))
     .groupBy(event.id, event.restaurant)
     .orderBy(desc(avg(rating.legacyScore)), desc(count(rating.id)));
 
@@ -68,7 +66,7 @@ export async function get2025Ratings(): Promise<Event2025Ranking[]> {
 export type EventCost = {
   id: string;
   restaurant: string;
-  totalCost: number | null;
+  totalCost: string | null;
   attendeeCount: number;
   costPerPerson: number | null;
 };
@@ -83,7 +81,7 @@ export async function getAllEventCosts(): Promise<EventCost[]> {
     })
     .from(event)
     .leftJoin(eventAssignment, eq(event.id, eventAssignment.eventId))
-    .where(lte(event.date, dayjs().startOf('day').toDate()))
+    .where(lte(event.date, todayCalendarDate()))
     .groupBy(event.id, event.restaurant, event.totalCost)
     .orderBy(
       sql`CASE WHEN ${event.totalCost} IS NULL THEN 1 ELSE 0 END`,
@@ -92,13 +90,14 @@ export async function getAllEventCosts(): Promise<EventCost[]> {
 
   return results.map((r) => {
     const attendeeCount = Number(r.attendeeCount);
+    const totalCost = r.totalCost === null ? null : Number(r.totalCost);
 
     return {
       id: r.id,
       restaurant: r.restaurant,
       totalCost: r.totalCost,
       attendeeCount,
-      costPerPerson: r.totalCost && attendeeCount > 0 ? r.totalCost / attendeeCount : null,
+      costPerPerson: totalCost && attendeeCount > 0 ? totalCost / attendeeCount : null,
     };
   });
 }

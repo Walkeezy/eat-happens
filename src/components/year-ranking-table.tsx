@@ -3,9 +3,9 @@
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Star } from 'lucide-react';
 import { Table } from '@/components/table';
-import type { Event2025Ranking } from '@/services/ratings';
+import type { EventYearRanking } from '@/services/ratings';
 
-const columns: ColumnDef<Event2025Ranking>[] = [
+const columns: ColumnDef<EventYearRanking>[] = [
   {
     accessorKey: 'rank',
     cell: ({ row }) => <span className="text-center font-medium">{row.index + 1}</span>,
@@ -25,7 +25,7 @@ const columns: ColumnDef<Event2025Ranking>[] = [
   },
 ];
 
-export const Year2025RankingTable = ({ events }: { events: Event2025Ranking[] }) => {
+export const YearRankingTable = ({ events }: { events: EventYearRanking[] }) => {
   const table = useReactTable({
     data: events,
     columns,

@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,9 +30,6 @@ jobs:
       - name: Lint, format check, typecheck, and unused exports check
         run: npm run lint
 
-      - name: Test
-        run: npm run test:ci
-
       - name: Build
         run: npm run build
         env:
@@ -42,3 +39,21 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           GOOGLE_CLIENT_ID: ci-dummy
           GOOGLE_CLIENT_SECRET: ci-dummy
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm run test:ci
