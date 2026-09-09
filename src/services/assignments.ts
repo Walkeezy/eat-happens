@@ -16,7 +16,11 @@ export async function isUserAssignedToEvent(userId: string, eventId: string): Pr
   return assignment !== undefined;
 }
 
-async function assertConfirmedUsers(userIds: string[], client: DbClient): Promise<void> {
+export async function assertConfirmedUsers(
+  userIds: string[],
+  client: DbClient,
+  message = 'Nur bestätigte Benutzer können zugewiesen werden',
+): Promise<void> {
   const uniqueIds = [...new Set(userIds)];
   const confirmed = await client
     .select({ id: user.id })
@@ -24,7 +28,7 @@ async function assertConfirmedUsers(userIds: string[], client: DbClient): Promis
     .where(and(inArray(user.id, uniqueIds), eq(user.isConfirmed, true)));
 
   if (confirmed.length !== uniqueIds.length) {
-    throw new Error('Nur bestätigte Benutzer können zugewiesen werden');
+    throw new Error(message);
   }
 }
 

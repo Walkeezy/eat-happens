@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarIcon, Star, Wallet } from 'lucide-react';
+import { CalendarIcon, Star, UserRound, Wallet } from 'lucide-react';
 import type { FC } from 'react';
 import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { RatingDialog } from '@/components/rating-dialog';
@@ -8,6 +8,7 @@ import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
 import { displayCalendarDate } from '@/lib/calendar-date';
 import { formatCurrency } from '@/lib/format';
+import { displayName } from '@/lib/user';
 import type { EventWithDetails } from '@/types/events';
 
 type Props = {
@@ -49,6 +50,12 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
                 <Wallet className="size-3" />
                 {formatCurrency(event.totalCost)}
                 {hasAssignedUsers && ` (Ø ${formatCurrency(Number(event.totalCost) / assignedUsers.length)})`}
+              </CardDescription>
+            )}
+            {event.pickedByUser && (
+              <CardDescription className="flex items-center gap-1 text-sm">
+                <UserRound className="size-3" />
+                Ausgewählt von {displayName(event.pickedByUser)}
               </CardDescription>
             )}
           </div>

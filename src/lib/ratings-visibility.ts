@@ -1,4 +1,5 @@
 import { calendarYear, isValidCalendarDate, todayCalendarDate } from './calendar-date';
+import type { RatingScores } from './scores';
 
 function calendarDateFromEventDate(eventDate: string): string | null {
   if (isValidCalendarDate(eventDate)) {
@@ -22,15 +23,9 @@ export function shouldHideRatings(eventDate: string): boolean {
   return calendarYear(calendarDate) === calendarYear(todayCalendarDate());
 }
 
-type RatingScores = {
-  userId: string;
-  legacyScore: number | null;
-  foodScore: number | null;
-  ambienceScore: number | null;
-  pricePerformanceScore: number | null;
-};
+type IdentifiedRating = RatingScores & { userId: string };
 
-type EventRatingsVisibility<TRating extends RatingScores> = {
+type EventRatingsVisibility<TRating extends IdentifiedRating> = {
   date: string;
   ratings?: TRating[];
   averageLegacyRating?: number;
@@ -39,7 +34,7 @@ type EventRatingsVisibility<TRating extends RatingScores> = {
   averagePricePerformanceRating?: number;
 };
 
-export function applyRatingsVisibility<TRating extends RatingScores, TEvent extends EventRatingsVisibility<TRating>>(
+export function applyRatingsVisibility<TRating extends IdentifiedRating, TEvent extends EventRatingsVisibility<TRating>>(
   event: TEvent,
   currentUserId?: string,
 ): TEvent {

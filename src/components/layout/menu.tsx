@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut, Users } from 'lucide-react';
+import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut, Trophy, Users } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu';
 import { authClient } from '@/lib/auth-client';
+import { previousCalendarYearRange } from '@/lib/calendar-date';
 import { getInitials } from '@/lib/user';
 
 export function Menu() {
@@ -59,6 +60,12 @@ export function Menu() {
           <NextLink href="/statistics" className="w-full cursor-pointer">
             <ChartNoAxesCombined className="mr-2 h-4 w-4" />
             Statistiken
+          </NextLink>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <NextLink href={`/jahresrueckblick/${previousCalendarYearRange().year}`} className="w-full cursor-pointer">
+            <Trophy className="mr-2 h-4 w-4" />
+            Jahresrückblick
           </NextLink>
         </DropdownMenuItem>
         {user.isAdmin && (

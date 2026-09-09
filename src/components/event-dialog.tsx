@@ -12,8 +12,10 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/shadcn/form';
 import { Input } from '@/components/shadcn/input';
+import { Select } from '@/components/shadcn/select';
 import { todayCalendarDate } from '@/lib/calendar-date';
 import { calendarDateSchema, optionalTotalCostInputSchema, parseOptionalTotalCost } from '@/lib/schemas';
+import { displayName } from '@/lib/user';
 import type { Event, User } from '@/types/events';
 
 const eventSchema = z.object({
@@ -21,6 +23,7 @@ const eventSchema = z.object({
   date: calendarDateSchema,
   users: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss ausgewählt werden'),
   totalCost: optionalTotalCostInputSchema,
+  pickedByUserId: z.string(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -44,16 +47,18 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
       date: event?.date ?? todayCalendarDate(),
       users: assignedUserIds,
       totalCost: event?.totalCost ?? '',
+      pickedByUserId: event?.pickedByUserId ?? '',
     },
   });
 
-  const onSubmit = async ({ restaurant, date, users, totalCost }: EventFormData) => {
+  const onSubmit = async ({ restaurant, date, users, totalCost, pickedByUserId }: EventFormData) => {
     try {
       const eventData = {
         restaurant,
         date,
         assignedUserIds: users,
         totalCost: parseOptionalTotalCost(totalCost),
+        pickedByUserId: pickedByUserId === '' ? null : pickedByUserId,
       };
 
       if (mode === 'edit' && event) {
@@ -119,6 +124,27 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
                   <FormLabel>Gesamtkosten (CHF)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" min="0" placeholder="z.B. 125.50" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pickedByUserId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ausgewählt von</FormLabel>
+                  <FormControl>
+                    <Select {...field}>
+                      <option value="">Unbekannt</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {displayName(user)}
+                        </option>
+                      ))}
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

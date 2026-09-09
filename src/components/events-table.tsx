@@ -7,6 +7,7 @@ import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
 import { displayCalendarDate } from '@/lib/calendar-date';
 import { formatCurrency } from '@/lib/format';
+import { displayName } from '@/lib/user';
 import type { EventWithDetails, User } from '@/types/events';
 
 type Props = {
@@ -31,6 +32,11 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
       accessorKey: 'totalCost',
       header: 'Gesamtkosten',
       cell: ({ row }) => formatCurrency(row.original.totalCost),
+    },
+    {
+      accessorKey: 'pickedByUser',
+      header: 'Auswahl',
+      cell: ({ row }) => (row.original.pickedByUser ? displayName(row.original.pickedByUser) : '-'),
     },
     {
       accessorKey: 'assignedUsers',

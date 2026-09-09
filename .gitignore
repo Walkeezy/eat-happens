@@ -10,3 +10,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .env.local
+.vercel
+.env*
+
+# TypeScript incremental build info
+*.tsbuildinfo

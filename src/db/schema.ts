@@ -92,13 +92,17 @@ export const event = pgTable(
     date: date('date', { mode: 'string' }).notNull(),
     restaurant: text('restaurant').notNull(),
     totalCost: numeric('total_cost', { precision: 10, scale: 2, mode: 'string' }),
+    pickedByUserId: text('picked_by_user_id').references(() => user.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at')
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (table) => [check('event_total_cost_positive', sql`${table.totalCost} IS NULL OR ${table.totalCost} > 0`)],
+  (table) => [
+    check('event_total_cost_positive', sql`${table.totalCost} IS NULL OR ${table.totalCost} > 0`),
+    index('event_picked_by_user_id_idx').on(table.pickedByUserId),
+  ],
 );
 
 export const rating = pgTable(
@@ -165,11 +169,17 @@ export const userRelations = relations(user, ({ many }) => ({
   ratings: many(rating),
   assignments: many(eventAssignment, { relationName: 'assignedUser' }),
   assignedBy: many(eventAssignment, { relationName: 'assignedByUser' }),
+  pickedEvents: many(event, { relationName: 'pickedByUser' }),
 }));
 
-export const eventRelations = relations(event, ({ many }) => ({
+export const eventRelations = relations(event, ({ many, one }) => ({
   ratings: many(rating),
   assignments: many(eventAssignment),
+  pickedByUser: one(user, {
+    fields: [event.pickedByUserId],
+    references: [user.id],
+    relationName: 'pickedByUser',
+  }),
 }));
 
 export const ratingRelations = relations(rating, ({ one }) => ({

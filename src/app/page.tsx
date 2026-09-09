@@ -1,29 +1,42 @@
 import { CalendarOff } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
+import { JahresrueckblickBanner } from '@/components/jahresrueckblick-banner';
 import { AppLayout } from '@/components/layout/app-layout';
+import { RateLastDinnerBanner } from '@/components/rate-last-dinner-banner';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
-import { calendarYear, todayCalendarDate } from '@/lib/calendar-date';
+import { calendarYear, isJanuary, previousCalendarYearRange, todayCalendarDate } from '@/lib/calendar-date';
 import { shouldHideRatings } from '@/lib/ratings-visibility';
 import { verifySession } from '@/lib/verify-session';
 import { getEvents } from '@/services/events';
 
 export default async function HomePage() {
   const { session } = await verifySession();
-  const events = await getEvents({ upToDate: todayCalendarDate(), currentUserId: session.user.id });
+  const today = todayCalendarDate();
+  const events = await getEvents({ upToDate: today, currentUserId: session.user.id });
+  const previousYear = previousCalendarYearRange(today).year;
+  const showRevealBanner = isJanuary(today) && events.some((event) => calendarYear(event.date) === previousYear);
+
+  const lastAssignedEvent = events.find((event) => event.assignedUsers?.some((user) => user.id === session.user.id));
+  const lastDinnerNeedsRating =
+    lastAssignedEvent !== undefined && !lastAssignedEvent.ratings?.some((rating) => rating.userId === session.user.id);
+
+  // The most recent unrated dinner is promoted into RateLastDinnerBanner, so it must not
+  // also appear in the grid below - otherwise the same dinner shows up twice in a row.
+  const isPromotedToBanner = (eventId: string) => lastDinnerNeedsRating && eventId === lastAssignedEvent?.id;
 
   const unratedEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
     const userRating = event.ratings?.find((rating) => rating.userId === session.user.id);
 
-    return isUserAssigned && !userRating;
+    return isUserAssigned && !userRating && !isPromotedToBanner(event.id);
   });
 
   const otherEvents = events.filter((event) => {
     const isUserAssigned = event.assignedUsers?.some((user) => user.id === session.user.id);
     const userRating = event.ratings?.find((rating) => rating.userId === session.user.id);
 
-    return !isUserAssigned || userRating;
+    return (!isUserAssigned || userRating) && !isPromotedToBanner(event.id);
   });
 
   return (
@@ -40,6 +53,9 @@ export default async function HomePage() {
         </Empty>
       ) : (
         <div className="space-y-8">
+          {showRevealBanner ? <JahresrueckblickBanner year={previousYear} /> : null}
+          {lastDinnerNeedsRating && lastAssignedEvent ? <RateLastDinnerBanner event={lastAssignedEvent} /> : null}
+
           {/* Events to Rate Section */}
           {unratedEvents.length > 0 && (
             <div>

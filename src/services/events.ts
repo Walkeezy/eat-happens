@@ -4,24 +4,9 @@ import { type DbClient, db } from '@/db';
 import { event } from '@/db/schema';
 import { applyRatingsVisibility } from '@/lib/ratings-visibility';
 import type { EventWithAssignmentsData } from '@/lib/schemas';
-import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
+import { scoreAverage } from '@/lib/scores';
+import { assertConfirmedUsers, assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
-
-type RatingScores = {
-  legacyScore: number | null;
-  foodScore: number | null;
-  ambienceScore: number | null;
-  pricePerformanceScore: number | null;
-};
-
-const calculateAverage = (ratings: RatingScores[], field: keyof RatingScores) => {
-  const validRatings = ratings.filter((r) => r[field] !== null && r[field] !== undefined);
-  if (validRatings.length === 0) {
-    return undefined;
-  }
-
-  return validRatings.reduce((sum, r) => sum + (r[field] ?? 0), 0) / validRatings.length;
-};
 
 type GetEventsOptions = {
   upToDate?: string;
@@ -44,6 +29,7 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
           user: true,
         },
       },
+      pickedByUser: true,
     },
   });
 
@@ -51,10 +37,10 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
     const ratings = evt.ratings || [];
     const assignments = evt.assignments || [];
 
-    const averageLegacyRating = calculateAverage(ratings, 'legacyScore');
-    const averageFoodRating = calculateAverage(ratings, 'foodScore');
-    const averageAmbienceRating = calculateAverage(ratings, 'ambienceScore');
-    const averagePricePerformanceRating = calculateAverage(ratings, 'pricePerformanceScore');
+    const averageLegacyRating = scoreAverage(ratings, 'legacyScore');
+    const averageFoodRating = scoreAverage(ratings, 'foodScore');
+    const averageAmbienceRating = scoreAverage(ratings, 'ambienceScore');
+    const averagePricePerformanceRating = scoreAverage(ratings, 'pricePerformanceScore');
 
     return applyRatingsVisibility(
       {
@@ -65,6 +51,15 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
             image: a.user.image ?? undefined,
           }))
           .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+        pickedByUser: evt.pickedByUser
+          ? {
+              id: evt.pickedByUser.id,
+              name: evt.pickedByUser.name,
+              firstName: evt.pickedByUser.firstName,
+              lastName: evt.pickedByUser.lastName,
+              email: evt.pickedByUser.email,
+            }
+          : null,
         averageLegacyRating,
         averageFoodRating,
         averageAmbienceRating,
@@ -76,6 +71,15 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
   });
 }
 
+/** The picker dropdown only offers confirmed users; this keeps a hand-crafted payload from reaching the FK. */
+async function assertConfirmedPicker(pickedByUserId: string | null | undefined, client: DbClient): Promise<void> {
+  if (!pickedByUserId) {
+    return;
+  }
+
+  await assertConfirmedUsers([pickedByUserId], client, 'Nur bestätigte Benutzer können ein Restaurant auswählen');
+}
+
 async function createEvent(data: CreateEventData, client: DbClient): Promise<Event> {
   const [newEvent] = await client
     .insert(event)
@@ -84,6 +88,7 @@ async function createEvent(data: CreateEventData, client: DbClient): Promise<Eve
       restaurant: data.restaurant,
       date: data.date,
       totalCost: data.totalCost,
+      pickedByUserId: data.pickedByUserId,
     })
     .returning();
 
@@ -97,6 +102,7 @@ async function updateEvent(eventId: string, data: UpdateEventData, client: DbCli
       restaurant: data.restaurant,
       date: data.date,
       totalCost: data.totalCost,
+      pickedByUserId: data.pickedByUserId,
     })
     .where(eq(event.id, eventId))
     .returning();
@@ -106,6 +112,7 @@ async function updateEvent(eventId: string, data: UpdateEventData, client: DbCli
 
 export async function createEventWithAssignments(assignedBy: string, data: EventWithAssignmentsData) {
   return db.transaction(async (tx) => {
+    await assertConfirmedPicker(data.pickedByUserId, tx);
     const created = await createEvent(data, tx);
     const assignments = await assignMultipleUsers(assignedBy, created.id, data.assignedUserIds, tx);
 
@@ -118,6 +125,7 @@ export async function createEventWithAssignments(assignedBy: string, data: Event
 
 export async function updateEventWithAssignments(assignedBy: string, eventId: string, data: EventWithAssignmentsData) {
   return db.transaction(async (tx) => {
+    await assertConfirmedPicker(data.pickedByUserId, tx);
     const updated = await updateEvent(eventId, data, tx);
     if (!updated) {
       throw new Error('Event nicht gefunden');
