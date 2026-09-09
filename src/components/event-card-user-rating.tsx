@@ -19,7 +19,7 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
 
   // Check if this is a multi-category rating (new system) or legacy rating
   const isMultiCategory = userRating?.foodScore !== null && userRating?.foodScore !== undefined;
-  const hasRating = userRating && (isMultiCategory || (userRating.legacyScore ?? 0) > 0);
+  const hasRating = Boolean(userRating);
 
   // Calculate average of all 3 categories
   const averageRating =
@@ -47,7 +47,7 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
             </div>
           )}
         </div>
-        {showScore ? (
+        {showScore && userRating ? (
           isMultiCategory ? (
             <div className="mt-1 space-y-0.5">
               {ratingCategories.map(({ key, label }) => (

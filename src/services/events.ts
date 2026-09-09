@@ -2,6 +2,7 @@ import { desc, eq, lte, type SQL } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { type DbClient, db } from '@/db';
 import { event } from '@/db/schema';
+import { applyRatingsVisibility } from '@/lib/ratings-visibility';
 import type { EventWithAssignmentsData } from '@/lib/schemas';
 import { assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
@@ -24,6 +25,7 @@ const calculateAverage = (ratings: RatingScores[], field: keyof RatingScores) =>
 
 type GetEventsOptions = {
   upToDate?: string;
+  currentUserId?: string;
 };
 
 export async function getEvents(options?: GetEventsOptions): Promise<EventWithDetails[]> {
@@ -54,20 +56,23 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
     const averageAmbienceRating = calculateAverage(ratings, 'ambienceScore');
     const averagePricePerformanceRating = calculateAverage(ratings, 'pricePerformanceScore');
 
-    return {
-      ...evt,
-      assignedUsers: assignments
-        .map((a) => ({
-          ...a.user,
-          image: a.user.image ?? undefined,
-        }))
-        .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
-      averageLegacyRating,
-      averageFoodRating,
-      averageAmbienceRating,
-      averagePricePerformanceRating,
-      totalRatings: ratings.length,
-    };
+    return applyRatingsVisibility(
+      {
+        ...evt,
+        assignedUsers: assignments
+          .map((a) => ({
+            ...a.user,
+            image: a.user.image ?? undefined,
+          }))
+          .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+        averageLegacyRating,
+        averageFoodRating,
+        averageAmbienceRating,
+        averagePricePerformanceRating,
+        totalRatings: ratings.length,
+      },
+      options?.currentUserId,
+    );
   });
 }
 
