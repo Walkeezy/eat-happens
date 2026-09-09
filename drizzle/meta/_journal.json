@@ -29,6 +29,13 @@
       "when": 1788957433726,
       "tag": "0003_faulty_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788960957986,
+      "tag": "0004_add_picked_by_user",
+      "breakpoints": true
     }
   ]
 }

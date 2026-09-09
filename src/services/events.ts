@@ -44,6 +44,7 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
           user: true,
         },
       },
+      pickedByUser: true,
     },
   });
 
@@ -65,6 +66,15 @@ export async function getEvents(options?: GetEventsOptions): Promise<EventWithDe
             image: a.user.image ?? undefined,
           }))
           .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+        pickedByUser: evt.pickedByUser
+          ? {
+              id: evt.pickedByUser.id,
+              name: evt.pickedByUser.name,
+              firstName: evt.pickedByUser.firstName,
+              lastName: evt.pickedByUser.lastName,
+              email: evt.pickedByUser.email,
+            }
+          : null,
         averageLegacyRating,
         averageFoodRating,
         averageAmbienceRating,
@@ -84,6 +94,7 @@ async function createEvent(data: CreateEventData, client: DbClient): Promise<Eve
       restaurant: data.restaurant,
       date: data.date,
       totalCost: data.totalCost,
+      pickedByUserId: data.pickedByUserId,
     })
     .returning();
 
@@ -97,6 +108,7 @@ async function updateEvent(eventId: string, data: UpdateEventData, client: DbCli
       restaurant: data.restaurant,
       date: data.date,
       totalCost: data.totalCost,
+      pickedByUserId: data.pickedByUserId,
     })
     .where(eq(event.id, eventId))
     .returning();

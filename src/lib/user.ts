@@ -10,3 +10,7 @@ export const getInitials = (name: string | null) => {
     .join('')
     .toUpperCase();
 };
+
+export function displayName(user: { firstName?: string | null; name?: string | null; email?: string | null }): string {
+  return user.firstName || user.name || user.email || 'Unbekannt';
+}

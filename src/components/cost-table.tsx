@@ -3,9 +3,9 @@
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
-import type { EventCost } from '@/services/ratings';
+import type { EventCostRow } from '@/lib/statistics';
 
-const columns: ColumnDef<EventCost>[] = [
+const columns: ColumnDef<EventCostRow>[] = [
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
@@ -32,7 +32,7 @@ const columns: ColumnDef<EventCost>[] = [
   },
 ];
 
-export const CostTable = ({ events }: { events: EventCost[] }) => {
+export const CostTable = ({ events }: { events: EventCostRow[] }) => {
   const table = useReactTable({
     data: events,
     columns,

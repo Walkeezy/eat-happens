@@ -37,6 +37,7 @@ export const eventWithAssignmentsSchema = z.object({
   date: calendarDateSchema,
   assignedUserIds: z.array(z.string()).min(1, 'Mindestens ein Benutzer muss zugewiesen werden'),
   totalCost: z.string().refine(isPositiveTotalCost, TOTAL_COST_MESSAGE).nullable(),
+  pickedByUserId: z.string().min(1).nullable(),
 });
 
 export type EventWithAssignmentsData = z.infer<typeof eventWithAssignmentsSchema>;

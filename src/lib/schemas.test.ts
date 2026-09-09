@@ -41,6 +41,7 @@ describe('eventWithAssignmentsSchema', () => {
     date: '2026-09-09',
     assignedUserIds: ['user-1'],
     totalCost: '120',
+    pickedByUserId: null,
   };
 
   it('accepts null total cost so an amount can be cleared', () => {
@@ -53,6 +54,15 @@ describe('eventWithAssignmentsSchema', () => {
     expect(() => eventWithAssignmentsSchema.parse({ ...validEvent, totalCost: '0' })).toThrow();
     expect(() => eventWithAssignmentsSchema.parse({ ...validEvent, totalCost: '-1' })).toThrow();
     expect(() => eventWithAssignmentsSchema.parse({ ...validEvent, totalCost: '12.345' })).toThrow();
+  });
+
+  it('accepts a restaurant picker or null', () => {
+    expect(eventWithAssignmentsSchema.parse({ ...validEvent, pickedByUserId: 'user-1' }).pickedByUserId).toBe('user-1');
+    expect(eventWithAssignmentsSchema.parse({ ...validEvent, pickedByUserId: null }).pickedByUserId).toBeNull();
+  });
+
+  it('rejects an empty picker id', () => {
+    expect(() => eventWithAssignmentsSchema.parse({ ...validEvent, pickedByUserId: '' })).toThrow();
   });
 
   it('rejects invalid calendar dates', () => {
