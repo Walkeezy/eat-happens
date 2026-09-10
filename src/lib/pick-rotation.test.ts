@@ -53,6 +53,19 @@ describe('determineNextPicker', () => {
     expect(determineNextPicker(users, events)).toMatchObject({ name: 'Remo', isMakeUpTurn: false });
   });
 
+  it('never names the person who just picked', () => {
+    // Remo picked while it was Nino's turn, so Nino is owed - and then takes that make-up turn.
+    // The regular order must have moved past Nino by then, otherwise he is named twice in a row.
+    expect(determineNextPicker(users, history('remo', 'nino'))).toMatchObject({ name: 'Kevin', isMakeUpTurn: false });
+  });
+
+  it('keeps the regular order moving when the make-up turn wraps the rotation', () => {
+    // Marc picked twice, so Jan was passed over, took his make-up turn, and Adrian followed in regular order.
+    const events = history('kevin', 'marc', 'marc', 'jan', 'adrian');
+
+    expect(determineNextPicker(users, events)).toMatchObject({ name: 'Remo', isMakeUpTurn: false });
+  });
+
   it('does not stall on events without a recorded picker', () => {
     // Nobody was recorded for the third dinner, so Marc is owed and the regular order moves on to Jan.
     expect(determineNextPicker(users, history('nino', 'kevin', null))).toMatchObject({ name: 'Marc', isMakeUpTurn: true });

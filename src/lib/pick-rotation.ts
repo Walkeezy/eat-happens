@@ -74,6 +74,12 @@ export function determineNextPicker(users: RotationCandidate[], eventsNewestFirs
     // An unknown picker (no picker recorded, or someone outside the rotation) must not stall the rotation,
     // so the regular order advances past the person who was passed over instead.
     cursor = (pickerIndex === -1 ? expected + 1 : pickerIndex + 1) % size;
+
+    // Whoever is owed a turn is out of the regular flow, so the cursor must never point at them - otherwise
+    // taking the make-up turn leaves the cursor on the person who just picked and names them twice in a row.
+    if (owed !== null && cursor === owed) {
+      cursor = (cursor + 1) % size;
+    }
   }
 
   const index = owed ?? cursor;
