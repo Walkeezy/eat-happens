@@ -37,7 +37,7 @@ const raterColumns: ColumnDef<RaterStat>[] = [
   {
     accessorKey: 'ratingCount',
     header: 'Bewertungen',
-    cell: ({ row }) => `${row.original.ratingCount} / ${row.original.eligible}`,
+    cell: ({ row }) => `${row.original.ratingCount} / ${row.original.attended}`,
   },
 ];
 

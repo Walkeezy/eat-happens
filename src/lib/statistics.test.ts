@@ -183,20 +183,46 @@ describe('buildYearStatistics', () => {
       dinner({
         id: 'ghost-dinner',
         restaurant: 'Beisl',
+        assignedUserIds: ['anna', 'ghost'],
         ratings: [categoryRating('anna', 3, 3, 3), { ...categoryRating('ghost', 5, 5, 5), raterName: 'Ghost' }],
       }),
     ];
     const stats = buildYearStatistics({ isClosed: true, events: withGhost, people, currentUserId: 'anna' });
 
     expect(stats.raters?.map((row) => row.name)).toEqual(['Ghost', 'Anna']);
-    // A rater without an account starts counting at the dinner they showed up for.
-    expect(stats.raters?.find((row) => row.userId === 'ghost')).toMatchObject({ ratingCount: 1, eligible: 1 });
+    expect(stats.raters?.find((row) => row.userId === 'ghost')).toMatchObject({ ratingCount: 1, attended: 1 });
   });
 
-  it('reports how many of the dinners a rater could have rated', () => {
+  it('reports how many of their own dinners a rater has rated', () => {
     const stats = buildYearStatistics({ isClosed: true, events, people, currentUserId: 'anna' });
 
-    expect(stats.raters?.find((row) => row.userId === 'anna')).toMatchObject({ ratingCount: 2, eligible: 2 });
+    expect(stats.raters?.find((row) => row.userId === 'anna')).toMatchObject({ ratingCount: 2, attended: 2 });
+  });
+
+  it('ignores a rating from a dinner someone was not assigned to', () => {
+    const withOutsider = [
+      dinner({
+        id: 'attended',
+        restaurant: 'Dabei',
+        assignedUserIds: ['anna'],
+        ratings: [categoryRating('anna', 4, 4, 4), categoryRating('ben', 1, 1, 1)],
+      }),
+      dinner({
+        id: 'also-attended',
+        restaurant: 'Auch dabei',
+        assignedUserIds: ['anna'],
+        ratings: [categoryRating('anna', 2, 2, 2)],
+      }),
+    ];
+    const stats = buildYearStatistics({ isClosed: true, events: withOutsider, people, currentUserId: 'anna' });
+
+    expect(stats.raters?.find((row) => row.userId === 'anna')).toMatchObject({
+      averageGiven: 3,
+      ratingCount: 2,
+      attended: 2,
+    });
+    // Ben rated a dinner he was never assigned to, so he has nothing left to average.
+    expect(stats.raters?.find((row) => row.userId === 'ben')).toBeUndefined();
   });
 
   it('limits the controversial list to the five widest spreads', () => {
