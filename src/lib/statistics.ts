@@ -91,12 +91,6 @@ export type AttendanceStat = NamedStat & {
   rate: number;
 };
 
-export type CompletionStat = NamedStat & {
-  assigned: number;
-  rated: number;
-  open: number;
-};
-
 export type PickCountStat = NamedStat & {
   pickCount: number;
 };
@@ -139,7 +133,6 @@ export type YearStatistics = {
   costs?: EventCostRow[];
   yearTotals?: YearTotals;
   attendance?: AttendanceStat[];
-  completion?: CompletionStat[];
   pickCounts?: PickCountStat[];
   personalTop5?: TopRestaurant[];
   overallRanking?: RankedRestaurant[];
@@ -380,25 +373,6 @@ export function buildYearStatistics(input: {
     .filter((row): row is AttendanceStat => row !== null)
     .sort((a, b) => b.rate - a.rate || b.attended - a.attended || a.name.localeCompare(b.name));
 
-  const completion: CompletionStat[] = people
-    .map((person) => {
-      const assignedEvents = events.filter((event) => event.assignedUserIds.includes(person.id));
-      if (assignedEvents.length === 0) {
-        return null;
-      }
-      const rated = assignedEvents.filter((event) => event.ratings.some((rating) => rating.userId === person.id)).length;
-
-      return {
-        userId: person.id,
-        name: person.name,
-        assigned: assignedEvents.length,
-        rated,
-        open: assignedEvents.length - rated,
-      };
-    })
-    .filter((row): row is CompletionStat => row !== null)
-    .sort((a, b) => b.open - a.open || a.name.localeCompare(b.name));
-
   const pickCountMap = new Map<string, number>();
   for (const event of events) {
     if (!event.pickedByUserId) {
@@ -418,7 +392,6 @@ export function buildYearStatistics(input: {
     costs: yearTotals ? costs : undefined,
     yearTotals,
     attendance: nonEmpty(attendance),
-    completion: nonEmpty(completion),
     pickCounts: nonEmpty(pickCounts),
     personalTop5: nonEmpty(personalTop5),
   };

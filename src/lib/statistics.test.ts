@@ -371,7 +371,7 @@ describe('ratings visibility feeds the open year', () => {
     expect(stats.disagreement).toBeUndefined();
     expect(stats.groupTop5).toBeUndefined();
     // Ben's participation is still visible - only his scores are withheld
-    expect(stats.completion?.find((row) => row.userId === 'ben')).toMatchObject({ assigned: 1, rated: 1, open: 0 });
+    expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 1, eligible: 1, rate: 1 });
     expect(buildRevealHighlights(stats)).toEqual([]);
   });
 });

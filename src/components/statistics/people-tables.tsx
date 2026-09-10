@@ -4,7 +4,7 @@ import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-
 import { useMemo } from 'react';
 import { Table } from '@/components/table';
 import { cn } from '@/lib/shadcn-utils';
-import type { AttendanceStat, CompletionStat, PickCountStat, PickerBiasStat, RaterStat } from '@/lib/statistics';
+import type { AttendanceStat, PickCountStat, PickerBiasStat, RaterStat } from '@/lib/statistics';
 
 function StatTable<T>({ rows, columns }: { rows: T[]; columns: ColumnDef<T>[] }) {
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
@@ -57,16 +57,6 @@ const attendanceColumns: ColumnDef<AttendanceStat>[] = [
 
 export function AttendanceTable({ rows }: { rows: AttendanceStat[] }) {
   return <StatTable rows={rows} columns={attendanceColumns} />;
-}
-
-const completionColumns: ColumnDef<CompletionStat>[] = [
-  { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
-  { accessorKey: 'open', header: 'Offen', cell: ({ row }) => <span className="font-bold">{row.original.open}</span> },
-  { accessorKey: 'rated', header: 'Bewertet', cell: ({ row }) => `${row.original.rated} / ${row.original.assigned}` },
-];
-
-export function CompletionTable({ rows }: { rows: CompletionStat[] }) {
-  return <StatTable rows={rows} columns={completionColumns} />;
 }
 
 const pickCountColumns: ColumnDef<PickCountStat>[] = [
