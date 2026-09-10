@@ -2,9 +2,9 @@
  * The group picks restaurants in a fixed rotation. The order lives here as first names because there is no
  * rotation data in the database - people are created by Google OAuth sign-in, so the labels below are matched
  * against the first name, the first token of the full name, or the email local part of a confirmed user.
- * If someone signs in with a name that does not match (e.g. "Adrian" instead of "Adi"), adjust the label here.
+ * If someone signs in with a name that does not match (e.g. "Antonino" instead of "Nino"), adjust the label here.
  */
-export const pickRotation = ['Nino', 'Kevin', 'Marc', 'Jan', 'Adi', 'Remo'] as const;
+export const pickRotation = ['Nino', 'Kevin', 'Marc', 'Jan', 'Adrian', 'Remo'] as const;
 
 export type RotationCandidate = {
   id: string;

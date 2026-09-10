@@ -27,7 +27,7 @@ describe('determineNextPicker', () => {
   });
 
   it('wraps around after the last person', () => {
-    const full = history('nino', 'kevin', 'marc', 'jan', 'adi', 'remo');
+    const full = history('nino', 'kevin', 'marc', 'jan', 'adrian', 'remo');
 
     expect(determineNextPicker(users, full)).toMatchObject({ name: 'Nino', isMakeUpTurn: false });
   });
@@ -40,15 +40,15 @@ describe('determineNextPicker', () => {
   });
 
   it('continues the regular order after the make-up turn is taken', () => {
-    // Marc was passed over, took his make-up turn afterwards - Jan already picked, so Adi is next.
+    // Marc was passed over, took his make-up turn afterwards - Jan already picked, so Adrian is next.
     const events = history('nino', 'kevin', 'jan', 'marc');
 
-    expect(determineNextPicker(users, events)).toMatchObject({ name: 'Adi', isMakeUpTurn: false });
+    expect(determineNextPicker(users, events)).toMatchObject({ name: 'Adrian', isMakeUpTurn: false });
   });
 
   it('drops the make-up turn when the same person is passed over twice', () => {
-    // Marc was passed over by Jan and then by Adi - the regular order resumes with Remo.
-    const events = history('nino', 'kevin', 'jan', 'adi');
+    // Marc was passed over by Jan and then by Adrian - the regular order resumes with Remo.
+    const events = history('nino', 'kevin', 'jan', 'adrian');
 
     expect(determineNextPicker(users, events)).toMatchObject({ name: 'Remo', isMakeUpTurn: false });
   });
