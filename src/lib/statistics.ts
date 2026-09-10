@@ -82,6 +82,7 @@ export type NamedStat = {
 export type RaterStat = NamedStat & {
   averageGiven: number;
   ratingCount: number;
+  eligible: number;
 };
 
 export type AttendanceStat = NamedStat & {
@@ -297,6 +298,28 @@ function buildCostVsPrice(events: StatisticsEvent[]) {
   };
 }
 
+/**
+ * The dinners someone could have been part of, as far as the data can tell.
+ *
+ * The account creation date on its own is misleading: the dinner history is older than the app,
+ * so every imported dinner lands before the signup of the very people who sat at the table and
+ * would drop out of their quota - a year with a dozen dinners then reads as "2 / 2" for everyone.
+ * Whatever came first, the account or their first recorded dinner, is the honest starting point.
+ */
+function eligibleEventsFor(userId: string, createdOn: string | undefined, events: StatisticsEvent[]): StatisticsEvent[] {
+  const appearances = events
+    .filter((event) => event.assignedUserIds.includes(userId) || event.ratings.some((rating) => rating.userId === userId))
+    .map((event) => event.date);
+  const candidates = createdOn === undefined ? appearances : [createdOn, ...appearances];
+  if (candidates.length === 0) {
+    return [];
+  }
+
+  const joinedOn = candidates.reduce((earliest, date) => (date < earliest ? date : earliest));
+
+  return events.filter((event) => event.date >= joinedOn);
+}
+
 function formatScore(value: number): string {
   return value.toFixed(1);
 }
@@ -321,6 +344,7 @@ export function buildYearStatistics(input: {
   }
 
   const nameOf = (userId: string) => names.get(userId) ?? 'Unbekannt';
+  const createdOnById = new Map(people.map((person) => [person.id, person.createdOn]));
 
   const costs = buildCosts(events);
   const personalTop5: TopRestaurant[] = events
@@ -342,7 +366,7 @@ export function buildYearStatistics(input: {
 
   const attendance: AttendanceStat[] = people
     .map((person) => {
-      const eligibleEvents = events.filter((event) => event.date >= person.createdOn);
+      const eligibleEvents = eligibleEventsFor(person.id, person.createdOn, events);
       const attended = eligibleEvents.filter((event) => event.assignedUserIds.includes(person.id)).length;
       const eligible = eligibleEvents.length;
       if (eligible === 0) {
@@ -453,6 +477,7 @@ export function buildYearStatistics(input: {
         name: nameOf(userId),
         averageGiven,
         ratingCount: scores.length,
+        eligible: eligibleEventsFor(userId, createdOnById.get(userId), events).length,
       };
     })
     .filter((row): row is RaterStat => row !== null)

@@ -34,7 +34,11 @@ const raterColumns: ColumnDef<RaterStat>[] = [
     header: 'Ø gegeben',
     cell: ({ row }) => <span className="font-bold">{row.original.averageGiven.toFixed(1)}</span>,
   },
-  { accessorKey: 'ratingCount', header: 'Bewertungen', cell: ({ row }) => row.original.ratingCount },
+  {
+    accessorKey: 'ratingCount',
+    header: 'Bewertungen',
+    cell: ({ row }) => `${row.original.ratingCount} / ${row.original.eligible}`,
+  },
 ];
 
 export function RatersTable({ rows }: { rows: RaterStat[] }) {

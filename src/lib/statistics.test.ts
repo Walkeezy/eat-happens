@@ -189,6 +189,14 @@ describe('buildYearStatistics', () => {
     const stats = buildYearStatistics({ isClosed: true, events: withGhost, people, currentUserId: 'anna' });
 
     expect(stats.raters?.map((row) => row.name)).toEqual(['Ghost', 'Anna']);
+    // A rater without an account starts counting at the dinner they showed up for.
+    expect(stats.raters?.find((row) => row.userId === 'ghost')).toMatchObject({ ratingCount: 1, eligible: 1 });
+  });
+
+  it('reports how many of the dinners a rater could have rated', () => {
+    const stats = buildYearStatistics({ isClosed: true, events, people, currentUserId: 'anna' });
+
+    expect(stats.raters?.find((row) => row.userId === 'anna')).toMatchObject({ ratingCount: 2, eligible: 2 });
   });
 
   it('limits the controversial list to the five widest spreads', () => {
@@ -253,6 +261,43 @@ describe('cost handling', () => {
 });
 
 describe('attendance eligibility', () => {
+  it('counts imported dinners someone attended before their account existed', () => {
+    // The dinner history predates the app, so the accounts were created after most dinners.
+    const events = Array.from({ length: 4 }, (_, index) =>
+      dinner({
+        id: `imported-${index}`,
+        restaurant: `Lokal ${index}`,
+        date: `2025-0${index + 1}-01`,
+        assignedUserIds: index === 0 ? ['ben'] : ['anna', 'ben'],
+      }),
+    );
+    const stats = buildYearStatistics({
+      isClosed: true,
+      events,
+      people: [person('anna', '2025-11-01'), person('ben', '2025-11-01')],
+      currentUserId: 'anna',
+    });
+
+    // Anna joined the group with the second dinner, so the first one is not held against her.
+    expect(stats.attendance?.find((row) => row.userId === 'anna')).toMatchObject({ attended: 3, eligible: 3, rate: 1 });
+    expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 4, eligible: 4, rate: 1 });
+  });
+
+  it('still counts the dinners someone missed after joining', () => {
+    const events = [
+      dinner({ id: 'first', restaurant: 'Erst', date: '2025-02-01', assignedUserIds: ['anna', 'ben'] }),
+      dinner({ id: 'missed', restaurant: 'Verpasst', date: '2025-05-01', assignedUserIds: ['anna'] }),
+    ];
+    const stats = buildYearStatistics({
+      isClosed: true,
+      events,
+      people: [person('anna', '2025-11-01'), person('ben', '2025-11-01')],
+      currentUserId: 'anna',
+    });
+
+    expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 1, eligible: 2, rate: 0.5 });
+  });
+
   it('only counts dinners that happened after someone joined', () => {
     const events = [
       dinner({ id: 'before', restaurant: 'Frueh', date: '2025-03-01', assignedUserIds: ['anna'] }),
