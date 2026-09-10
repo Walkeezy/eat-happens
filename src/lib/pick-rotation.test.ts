@@ -27,7 +27,7 @@ describe('determineNextPicker', () => {
   });
 
   it('wraps around after the last person', () => {
-    const full = history('nino', 'kevin', 'marc', 'jan', 'adi', 'remo');
+    const full = history('nino', 'kevin', 'marc', 'jan', 'adrian', 'remo');
 
     expect(determineNextPicker(users, full)).toMatchObject({ name: 'Nino', isMakeUpTurn: false });
   });
@@ -40,15 +40,28 @@ describe('determineNextPicker', () => {
   });
 
   it('continues the regular order after the make-up turn is taken', () => {
-    // Marc was passed over, took his make-up turn afterwards - Jan already picked, so Adi is next.
+    // Marc was passed over, took his make-up turn afterwards - Jan already picked, so Adrian is next.
     const events = history('nino', 'kevin', 'jan', 'marc');
 
-    expect(determineNextPicker(users, events)).toMatchObject({ name: 'Adi', isMakeUpTurn: false });
+    expect(determineNextPicker(users, events)).toMatchObject({ name: 'Adrian', isMakeUpTurn: false });
   });
 
   it('drops the make-up turn when the same person is passed over twice', () => {
-    // Marc was passed over by Jan and then by Adi - the regular order resumes with Remo.
-    const events = history('nino', 'kevin', 'jan', 'adi');
+    // Marc was passed over by Jan and then by Adrian - the regular order resumes with Remo.
+    const events = history('nino', 'kevin', 'jan', 'adrian');
+
+    expect(determineNextPicker(users, events)).toMatchObject({ name: 'Remo', isMakeUpTurn: false });
+  });
+
+  it('never names the person who just picked', () => {
+    // Remo picked while it was Nino's turn, so Nino is owed - and then takes that make-up turn.
+    // The regular order must have moved past Nino by then, otherwise he is named twice in a row.
+    expect(determineNextPicker(users, history('remo', 'nino'))).toMatchObject({ name: 'Kevin', isMakeUpTurn: false });
+  });
+
+  it('keeps the regular order moving when the make-up turn wraps the rotation', () => {
+    // Marc picked twice, so Jan was passed over, took his make-up turn, and Adrian followed in regular order.
+    const events = history('kevin', 'marc', 'marc', 'jan', 'adrian');
 
     expect(determineNextPicker(users, events)).toMatchObject({ name: 'Remo', isMakeUpTurn: false });
   });
