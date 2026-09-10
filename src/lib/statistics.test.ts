@@ -183,12 +183,46 @@ describe('buildYearStatistics', () => {
       dinner({
         id: 'ghost-dinner',
         restaurant: 'Beisl',
+        assignedUserIds: ['anna', 'ghost'],
         ratings: [categoryRating('anna', 3, 3, 3), { ...categoryRating('ghost', 5, 5, 5), raterName: 'Ghost' }],
       }),
     ];
     const stats = buildYearStatistics({ isClosed: true, events: withGhost, people, currentUserId: 'anna' });
 
     expect(stats.raters?.map((row) => row.name)).toEqual(['Ghost', 'Anna']);
+    expect(stats.raters?.find((row) => row.userId === 'ghost')).toMatchObject({ ratingCount: 1, attended: 1 });
+  });
+
+  it('reports how many of their own dinners a rater has rated', () => {
+    const stats = buildYearStatistics({ isClosed: true, events, people, currentUserId: 'anna' });
+
+    expect(stats.raters?.find((row) => row.userId === 'anna')).toMatchObject({ ratingCount: 2, attended: 2 });
+  });
+
+  it('ignores a rating from a dinner someone was not assigned to', () => {
+    const withOutsider = [
+      dinner({
+        id: 'attended',
+        restaurant: 'Dabei',
+        assignedUserIds: ['anna'],
+        ratings: [categoryRating('anna', 4, 4, 4), categoryRating('ben', 1, 1, 1)],
+      }),
+      dinner({
+        id: 'also-attended',
+        restaurant: 'Auch dabei',
+        assignedUserIds: ['anna'],
+        ratings: [categoryRating('anna', 2, 2, 2)],
+      }),
+    ];
+    const stats = buildYearStatistics({ isClosed: true, events: withOutsider, people, currentUserId: 'anna' });
+
+    expect(stats.raters?.find((row) => row.userId === 'anna')).toMatchObject({
+      averageGiven: 3,
+      ratingCount: 2,
+      attended: 2,
+    });
+    // Ben rated a dinner he was never assigned to, so he has nothing left to average.
+    expect(stats.raters?.find((row) => row.userId === 'ben')).toBeUndefined();
   });
 
   it('limits the controversial list to the five widest spreads', () => {
@@ -253,6 +287,43 @@ describe('cost handling', () => {
 });
 
 describe('attendance eligibility', () => {
+  it('counts imported dinners someone attended before their account existed', () => {
+    // The dinner history predates the app, so the accounts were created after most dinners.
+    const events = Array.from({ length: 4 }, (_, index) =>
+      dinner({
+        id: `imported-${index}`,
+        restaurant: `Lokal ${index}`,
+        date: `2025-0${index + 1}-01`,
+        assignedUserIds: index === 0 ? ['ben'] : ['anna', 'ben'],
+      }),
+    );
+    const stats = buildYearStatistics({
+      isClosed: true,
+      events,
+      people: [person('anna', '2025-11-01'), person('ben', '2025-11-01')],
+      currentUserId: 'anna',
+    });
+
+    // Anna joined the group with the second dinner, so the first one is not held against her.
+    expect(stats.attendance?.find((row) => row.userId === 'anna')).toMatchObject({ attended: 3, eligible: 3, rate: 1 });
+    expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 4, eligible: 4, rate: 1 });
+  });
+
+  it('still counts the dinners someone missed after joining', () => {
+    const events = [
+      dinner({ id: 'first', restaurant: 'Erst', date: '2025-02-01', assignedUserIds: ['anna', 'ben'] }),
+      dinner({ id: 'missed', restaurant: 'Verpasst', date: '2025-05-01', assignedUserIds: ['anna'] }),
+    ];
+    const stats = buildYearStatistics({
+      isClosed: true,
+      events,
+      people: [person('anna', '2025-11-01'), person('ben', '2025-11-01')],
+      currentUserId: 'anna',
+    });
+
+    expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 1, eligible: 2, rate: 0.5 });
+  });
+
   it('only counts dinners that happened after someone joined', () => {
     const events = [
       dinner({ id: 'before', restaurant: 'Frueh', date: '2025-03-01', assignedUserIds: ['anna'] }),

@@ -82,6 +82,7 @@ export type NamedStat = {
 export type RaterStat = NamedStat & {
   averageGiven: number;
   ratingCount: number;
+  attended: number;
 };
 
 export type AttendanceStat = NamedStat & {
@@ -297,6 +298,25 @@ function buildCostVsPrice(events: StatisticsEvent[]) {
   };
 }
 
+/**
+ * The dinners someone could have been part of, as far as the data can tell.
+ *
+ * The account creation date on its own is misleading: the dinner history is older than the app,
+ * so every imported dinner lands before the signup of the very people who sat at the table and
+ * would drop out of their quota - a year with a dozen dinners then reads as "2 / 2" for everyone.
+ * Whatever came first, the account or their first recorded dinner, is the honest starting point.
+ */
+function eligibleEventsFor(person: StatisticsPerson, events: StatisticsEvent[]): StatisticsEvent[] {
+  const appearances = events
+    .filter(
+      (event) => event.assignedUserIds.includes(person.id) || event.ratings.some((rating) => rating.userId === person.id),
+    )
+    .map((event) => event.date);
+  const joinedOn = [person.createdOn, ...appearances].reduce((earliest, date) => (date < earliest ? date : earliest));
+
+  return events.filter((event) => event.date >= joinedOn);
+}
+
 function formatScore(value: number): string {
   return value.toFixed(1);
 }
@@ -342,7 +362,7 @@ export function buildYearStatistics(input: {
 
   const attendance: AttendanceStat[] = people
     .map((person) => {
-      const eligibleEvents = events.filter((event) => event.date >= person.createdOn);
+      const eligibleEvents = eligibleEventsFor(person, events);
       const attended = eligibleEvents.filter((event) => event.assignedUserIds.includes(person.id)).length;
       const eligible = eligibleEvents.length;
       if (eligible === 0) {
@@ -435,7 +455,11 @@ export function buildYearStatistics(input: {
 
   const raters: RaterStat[] = [...new Set(events.flatMap((event) => event.ratings.map((rating) => rating.userId)))]
     .map((userId) => {
-      const scores = events.flatMap((event) => {
+      // Only the dinners someone actually sat at count. A rating left on a dinner they were never
+      // assigned to says nothing about how generous they are, and it would put a rating count next
+      // to a denominator that person could never reach.
+      const attendedEvents = events.filter((event) => event.assignedUserIds.includes(userId));
+      const scores = attendedEvents.flatMap((event) => {
         const rating = event.ratings.find((item) => item.userId === userId);
         if (!rating) {
           return [];
@@ -453,6 +477,7 @@ export function buildYearStatistics(input: {
         name: nameOf(userId),
         averageGiven,
         ratingCount: scores.length,
+        attended: attendedEvents.length,
       };
     })
     .filter((row): row is RaterStat => row !== null)
