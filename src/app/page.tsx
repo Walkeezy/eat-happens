@@ -2,18 +2,25 @@ import { CalendarOff } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { JahresrueckblickBanner } from '@/components/jahresrueckblick-banner';
 import { AppLayout } from '@/components/layout/app-layout';
+import { NextPickerBanner } from '@/components/next-picker-banner';
 import { RateLastDinnerBanner } from '@/components/rate-last-dinner-banner';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
 import { calendarYear, isJanuary, previousCalendarYearRange, todayCalendarDate } from '@/lib/calendar-date';
+import { determineNextPicker } from '@/lib/pick-rotation';
 import { shouldHideRatings } from '@/lib/ratings-visibility';
 import { verifySession } from '@/lib/verify-session';
+import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
 
 export default async function HomePage() {
   const { session } = await verifySession();
   const today = todayCalendarDate();
-  const events = await getEvents({ upToDate: today, currentUserId: session.user.id });
+  const [events, confirmedUsers] = await Promise.all([
+    getEvents({ upToDate: today, currentUserId: session.user.id }),
+    getAllConfirmedUsers(),
+  ]);
+  const nextPicker = determineNextPicker(confirmedUsers, events);
   const previousYear = previousCalendarYearRange(today).year;
   const showRevealBanner = isJanuary(today) && events.some((event) => calendarYear(event.date) === previousYear);
 
@@ -41,6 +48,10 @@ export default async function HomePage() {
 
   return (
     <AppLayout>
+      <div className="mb-8">
+        <NextPickerBanner {...nextPicker} />
+      </div>
+
       {events.length === 0 ? (
         <Empty>
           <EmptyHeader>
