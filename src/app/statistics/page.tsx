@@ -3,13 +3,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Button } from '@/components/shadcn/button';
 import { CostVsPriceSection } from '@/components/statistics/cost-vs-price';
 import { DisagreementTable } from '@/components/statistics/disagreement-table';
-import {
-  AttendanceTable,
-  CompletionTable,
-  PickCountsTable,
-  PickerBiasTable,
-  RatersTable,
-} from '@/components/statistics/people-tables';
+import { AttendanceTable, PickCountsTable, PickerBiasTable, RatersTable } from '@/components/statistics/people-tables';
 import { StatisticsSection } from '@/components/statistics/section';
 import { TopLists } from '@/components/statistics/top-lists';
 import { YearChips } from '@/components/statistics/year-chips';
@@ -104,12 +98,6 @@ export default async function StatisticsPage({ searchParams }: Props) {
           {stats.attendance ? (
             <StatisticsSection title="Teilnahme">
               <AttendanceTable rows={stats.attendance} />
-            </StatisticsSection>
-          ) : null}
-
-          {stats.completion ? (
-            <StatisticsSection title="Offene Bewertungen">
-              <CompletionTable rows={stats.completion} />
             </StatisticsSection>
           ) : null}
 
