@@ -24,8 +24,11 @@ export async function getRestaurantRows(currentUserId: string): Promise<Restaura
 
 type YearRank = { rank: number; total: number; year: number };
 
-/** Where the dinner landed in its year's group ranking - only once the year is closed and the ranking is public. */
-async function getYearRank(event: EventWithDetails, currentUserId: string): Promise<YearRank | undefined> {
+/**
+ * Where the dinner landed in its year's group ranking - only once the year is closed and the ranking is public.
+ * It needs the whole year's statistics, so the detail page streams it in instead of waiting for it.
+ */
+export async function getYearRank(event: EventWithDetails, currentUserId: string): Promise<YearRank | undefined> {
   const year = calendarYear(event.date);
   if (!isClosedCalendarYear(year)) {
     return undefined;
@@ -40,12 +43,12 @@ async function getYearRank(event: EventWithDetails, currentUserId: string): Prom
 export async function getRestaurantDetail(
   eventId: string,
   currentUserId: string,
-): Promise<{ event: EventWithDetails; detail: RestaurantDetail; yearRank: YearRank | undefined } | null> {
+): Promise<{ event: EventWithDetails; detail: RestaurantDetail } | null> {
   const event = await getEvent(eventId, currentUserId);
   // The restaurant list only covers dinners that already took place, the detail page follows suit.
   if (!event || event.date > todayCalendarDate()) {
     return null;
   }
 
-  return { event, detail: buildRestaurantDetail(event), yearRank: await getYearRank(event, currentUserId) };
+  return { event, detail: buildRestaurantDetail(event) };
 }

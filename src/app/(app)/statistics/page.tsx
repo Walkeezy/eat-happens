@@ -38,9 +38,7 @@ function topListsTitle(stats: YearStatistics): string {
 }
 
 export default async function StatisticsPage({ searchParams }: Props) {
-  const { session } = await verifySession();
-  const { year: yearParam } = await searchParams;
-  const years = await getEventYears();
+  const [{ session }, { year: yearParam }, years] = await Promise.all([verifySession(), searchParams, getEventYears()]);
   const year = resolveStatisticsYear(yearParam, years);
   const stats = await getYearStatistics(year, session.user.id);
   const yearRankings = rankings(stats);

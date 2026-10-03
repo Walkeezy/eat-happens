@@ -1,10 +1,9 @@
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import type { event, eventAssignment, rating, user } from '@/db/schema';
+import type { event, rating, user } from '@/db/schema';
 
 // Basic types from schema
 export type Event = InferSelectModel<typeof event>;
 export type User = InferSelectModel<typeof user>;
-type EventAssignment = InferSelectModel<typeof eventAssignment>;
 export type Rating = InferSelectModel<typeof rating>;
 
 // Insert types
@@ -32,7 +31,6 @@ export type EventWithDetails = Event & {
   averageAmbienceRating?: number;
   averagePricePerformanceRating?: number;
   totalRatings?: number;
-  assignments?: EventAssignment[];
   assignedUsers?: {
     id: string;
     name: string | null;
@@ -40,8 +38,6 @@ export type EventWithDetails = Event & {
     lastName: string | null;
     email: string;
     image?: string | null;
-    isAdmin: boolean;
-    isConfirmed: boolean;
   }[];
   pickedByUser?: {
     id: string;

@@ -1,7 +1,7 @@
 import { ChevronLeft, Star } from 'lucide-react';
 import NextLink from 'next/link';
 import { notFound } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
 import { AvatarStack } from '@/components/avatar-stack';
 import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { PageHeader } from '@/components/layout/page-header';
@@ -14,7 +14,8 @@ import { formatCurrency } from '@/lib/format';
 import type { RestaurantDetail } from '@/lib/restaurant-detail';
 import { displayName } from '@/lib/user';
 import { verifySession } from '@/lib/verify-session';
-import { getRestaurantDetail } from '@/services/restaurants';
+import { getRestaurantDetail, getYearRank } from '@/services/restaurants';
+import type { EventWithDetails } from '@/types/events';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -38,7 +39,7 @@ export default async function RestaurantDetailPage({ params }: Props) {
     notFound();
   }
 
-  const { event, detail, yearRank } = result;
+  const { event, detail } = result;
   const assignedUsers = event.assignedUsers ?? [];
   const pickerName = event.pickedByUser ? displayName(event.pickedByUser) : null;
   const canRate =
@@ -97,16 +98,15 @@ export default async function RestaurantDetailPage({ params }: Props) {
                 </span>
               </DetailRow>
             ) : null}
-            {yearRank ? (
-              <DetailRow label={`Rang ${yearRank.year}`}>
-                Platz {yearRank.rank} von {yearRank.total}
-              </DetailRow>
-            ) : null}
             {detail.spread ? (
               <DetailRow label="Spannweite">
                 {detail.spread.min.toFixed(1)} – {detail.spread.max.toFixed(1)}
               </DetailRow>
             ) : null}
+            {/* Last, so the row streaming in later does not push the others around. */}
+            <Suspense fallback={null}>
+              <YearRankRow event={event} currentUserId={session.user.id} />
+            </Suspense>
           </dl>
         </Section>
 
@@ -118,7 +118,7 @@ export default async function RestaurantDetailPage({ params }: Props) {
                 {detail.ratedCount} / {detail.people.length}
               </Badge>
             }
-            action={canRate ? <RatingDialog event={event} trigger={<Button size="sm">Jetzt bewerten</Button>} /> : null}
+            action={canRate ? <RatingDialog eventId={event.id} trigger={<Button size="sm">Jetzt bewerten</Button>} /> : null}
           >
             <div className="grid gap-2 sm:grid-cols-2">
               {detail.people.map(({ person, rating }) => (
@@ -135,6 +135,19 @@ export default async function RestaurantDetailPage({ params }: Props) {
         ) : null}
       </div>
     </>
+  );
+}
+
+async function YearRankRow({ event, currentUserId }: { event: EventWithDetails; currentUserId: string }) {
+  const yearRank = await getYearRank(event, currentUserId);
+  if (!yearRank) {
+    return null;
+  }
+
+  return (
+    <DetailRow label={`Rang ${yearRank.year}`}>
+      Platz {yearRank.rank} von {yearRank.total}
+    </DetailRow>
   );
 }
 

@@ -1,5 +1,3 @@
-'use client';
-
 import { Star } from 'lucide-react';
 import { Banner, BannerIcon } from '@/components/banner';
 import { RatingDialog } from '@/components/rating-dialog';
@@ -22,7 +20,7 @@ export function RateLastDinnerBanner({ event }: { event: EventWithDetails }) {
           <RestaurantLink id={event.id}>{event.restaurant}</RestaurantLink> · {displayCalendarDate(event.date)}
         </>
       }
-      action={<RatingDialog event={event} trigger={<Button>Jetzt bewerten</Button>} />}
+      action={<RatingDialog eventId={event.id} trigger={<Button>Jetzt bewerten</Button>} />}
     />
   );
 }

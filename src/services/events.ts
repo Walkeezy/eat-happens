@@ -6,6 +6,7 @@ import { applyRatingsVisibility } from '@/lib/ratings-visibility';
 import type { EventWithAssignmentsData } from '@/lib/schemas';
 import { scoreAverage } from '@/lib/scores';
 import { assertConfirmedUsers, assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
+import { userSummaryColumns } from '@/services/users';
 import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
 
 type GetEventsOptions = {
@@ -16,15 +17,16 @@ type GetEventsOptions = {
 const eventDetailsRelations = {
   ratings: {
     with: {
-      user: true,
+      user: { columns: userSummaryColumns },
     },
   },
   assignments: {
+    columns: { userId: true },
     with: {
-      user: true,
+      user: { columns: userSummaryColumns },
     },
   },
-  pickedByUser: true,
+  pickedByUser: { columns: userSummaryColumns },
 } as const;
 
 type EventWithRelations = NonNullable<Awaited<ReturnType<typeof findEventWithRelations>>>;
@@ -33,9 +35,8 @@ function findEventWithRelations(eventId: string) {
   return db.query.event.findFirst({ where: eq(event.id, eventId), with: eventDetailsRelations });
 }
 
-function toEventWithDetails(evt: EventWithRelations, currentUserId?: string): EventWithDetails {
+function toEventWithDetails({ assignments = [], ...evt }: EventWithRelations, currentUserId?: string): EventWithDetails {
   const ratings = evt.ratings || [];
-  const assignments = evt.assignments || [];
 
   const averageLegacyRating = scoreAverage(ratings, 'legacyScore');
   const averageFoodRating = scoreAverage(ratings, 'foodScore');

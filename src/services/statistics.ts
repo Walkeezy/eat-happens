@@ -13,6 +13,7 @@ import { applyRatingsVisibility } from '@/lib/ratings-visibility';
 import { buildYearStatistics, type YearStatistics } from '@/lib/statistics';
 import { displayName } from '@/lib/user';
 import { getAllConfirmedUsers } from '@/services/assignments';
+import { userSummaryColumns } from '@/services/users';
 
 export async function getEventYears(): Promise<number[]> {
   const today = todayCalendarDate();
@@ -36,11 +37,11 @@ export async function getYearStatistics(year: number, currentUserId: string): Pr
       with: {
         ratings: {
           with: {
-            user: true,
+            user: { columns: userSummaryColumns },
           },
         },
-        assignments: true,
-        pickedByUser: true,
+        assignments: { columns: { userId: true } },
+        pickedByUser: { columns: userSummaryColumns },
       },
     }),
     getAllConfirmedUsers(),

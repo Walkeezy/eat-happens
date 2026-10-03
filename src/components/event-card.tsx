@@ -1,5 +1,3 @@
-'use client';
-
 import { CalendarIcon, ChevronDown, ChevronRight, Star, UserRound, Wallet } from 'lucide-react';
 import NextLink from 'next/link';
 import type { FC, ReactNode } from 'react';
@@ -72,7 +70,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
 
       {hasUnratedAssignment ? (
         <div className="relative z-10 mt-auto pt-4">
-          <RatingDialog event={event} trigger={<Button className="w-full">Jetzt bewerten</Button>} />
+          <RatingDialog eventId={event.id} trigger={<Button className="w-full">Jetzt bewerten</Button>} />
         </div>
       ) : (
         hasAssignedUsers && (
