@@ -20,6 +20,7 @@ export type EventWithDetails = Event & {
   ratings?: (Rating & {
     user?: {
       id: string;
+      name: string | null;
       firstName: string | null;
       lastName: string | null;
       email: string;

@@ -1,12 +1,15 @@
-import { CostTable } from '@/components/cost-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
+import { ChevronRight } from 'lucide-react';
+import NextLink from 'next/link';
+import { restaurantHref } from '@/components/restaurant-link';
 import { formatCurrency } from '@/lib/format';
-import type { EventCostRow, YearTotals } from '@/lib/statistics';
+import { cn } from '@/lib/shadcn-utils';
+import type { YearTotals } from '@/lib/statistics';
 
 type Summary = {
   title: string;
   value: string;
   detail?: string;
+  href?: string;
 };
 
 /** Only the totals we can actually put a number on. */
@@ -24,6 +27,7 @@ function summaries(totals: YearTotals): Summary[] {
       title: 'Teuerster Abend',
       value: totals.mostExpensive.restaurant,
       detail: formatCurrency(totals.mostExpensive.costPerPerson),
+      href: restaurantHref(totals.mostExpensive.id),
     });
   }
   if (totals.leastExpensive) {
@@ -31,41 +35,45 @@ function summaries(totals: YearTotals): Summary[] {
       title: 'Günstigster Abend',
       value: totals.leastExpensive.restaurant,
       detail: formatCurrency(totals.leastExpensive.costPerPerson),
+      href: restaurantHref(totals.leastExpensive.id),
     });
   }
 
   return cards;
 }
 
-export function YearTotalsSection({ totals, costs }: { totals: YearTotals; costs: EventCostRow[] }) {
+export function YearSummaryCards({ totals }: { totals: YearTotals }) {
   const cards = summaries(totals);
 
-  return (
-    <div className="space-y-4">
-      {cards.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((card) => (
-            <SummaryCard key={card.title} title={card.title} value={card.value} detail={card.detail} />
-          ))}
-        </div>
-      ) : null}
-      <CostTable events={costs} />
-    </div>
-  );
-}
+  if (cards.length === 0) {
+    return null;
+  }
 
-function SummaryCard({ title, value, detail }: Summary) {
   return (
-    <Card>
-      <CardHeader>
-        <CardDescription>{title}</CardDescription>
-        <CardTitle className="text-lg">{value}</CardTitle>
-      </CardHeader>
-      {detail ? (
-        <CardContent>
-          <p className="text-sm text-muted-foreground">{detail} / Person</p>
-        </CardContent>
-      ) : null}
-    </Card>
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {cards.map((card) => {
+        const classes = 'flex flex-col rounded-xl border bg-card p-3 shadow-xs sm:p-4';
+        const content = (
+          <>
+            <p className="flex items-center justify-between gap-1 text-xs text-muted-foreground">
+              {card.title}
+              {card.href ? <ChevronRight className="size-3.5 shrink-0" aria-hidden /> : null}
+            </p>
+            <p className="mt-1 line-clamp-2 leading-snug font-bold">{card.value}</p>
+            {card.detail ? <p className="mt-auto pt-1 text-xs text-muted-foreground">{card.detail} / Person</p> : null}
+          </>
+        );
+
+        return card.href ? (
+          <NextLink key={card.title} href={card.href} className={cn(classes, 'transition-colors hover:border-primary/40')}>
+            {content}
+          </NextLink>
+        ) : (
+          <div key={card.title} className={classes}>
+            {content}
+          </div>
+        );
+      })}
+    </div>
   );
 }

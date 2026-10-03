@@ -1,6 +1,7 @@
 'use client';
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { HighlightCard } from '@/components/statistics/highlight-card';
 import { Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
@@ -10,7 +11,8 @@ const columns: ColumnDef<CostVsPriceRow>[] = [
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
-    cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
+    meta: { className: 'whitespace-normal' },
+    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
   },
   {
     accessorKey: 'costPerPerson',
@@ -46,6 +48,7 @@ export function CostVsPriceSection({
           <HighlightCard
             title="Teuer und gut"
             name={expensiveAndGood.restaurant}
+            href={restaurantHref(expensiveAndGood.id)}
             detail={`${formatCurrency(expensiveAndGood.costPerPerson)} / Person · PL ${expensiveAndGood.pricePerformance.toFixed(1)}`}
           />
         ) : null}
@@ -53,11 +56,12 @@ export function CostVsPriceSection({
           <HighlightCard
             title="Günstig und enttäuschend"
             name={cheapAndDisappointing.restaurant}
+            href={restaurantHref(cheapAndDisappointing.id)}
             detail={`${formatCurrency(cheapAndDisappointing.costPerPerson)} / Person · PL ${cheapAndDisappointing.pricePerformance.toFixed(1)}`}
           />
         ) : null}
       </div>
-      <Table table={table} columns={columns} />
+      <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />
     </div>
   );
 }

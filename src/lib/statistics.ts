@@ -1,4 +1,3 @@
-import { formatCurrency } from './format';
 import {
   type CategoryScoreKey,
   computePickerBias,
@@ -10,12 +9,6 @@ import {
   scoreAverage,
   scoreRange,
 } from './scores';
-
-/**
- * A picker needs at least this many picks before they can win the "Bester Picker" award.
- * Without it a single lucky 5.0 outranks a whole year of consistently good choices.
- */
-const MIN_PICKS_FOR_AWARD = 2;
 
 /** How many entries the "most controversial" list shows. */
 const DISAGREEMENT_LIMIT = 5;
@@ -117,13 +110,6 @@ export type TopRestaurant = {
   score: number;
 };
 
-type RevealHighlight = {
-  key: string;
-  title: string;
-  name: string;
-  detail: string;
-};
-
 /**
  * Every section is optional and stays undefined whenever there is nothing to show for the year,
  * so the statistics pages can hide it instead of rendering an empty table or a row of dashes.
@@ -161,7 +147,7 @@ function compareRanked(a: RankedRestaurant, b: RankedRestaurant) {
   return b.average - a.average || b.ratingCount - a.ratingCount || a.restaurant.localeCompare(b.restaurant);
 }
 
-function costPerPerson(totalCost: string | null, attendeeCount: number): number | null {
+export function costPerPerson(totalCost: string | null, attendeeCount: number): number | null {
   if (totalCost === null || attendeeCount === 0) {
     return null;
   }
@@ -308,10 +294,6 @@ function eligibleEventsFor(person: StatisticsPerson, events: StatisticsEvent[]):
   const joinedOn = [person.createdOn, ...appearances].reduce((earliest, date) => (date < earliest ? date : earliest));
 
   return events.filter((event) => event.date >= joinedOn);
-}
-
-function formatScore(value: number): string {
-  return value.toFixed(1);
 }
 
 export function buildYearStatistics(input: {
@@ -503,91 +485,4 @@ export function buildYearStatistics(input: {
 /** Whether the year has anything at all to show, so the pages can fall back to an empty state. */
 export function hasYearStatisticsData(stats: YearStatistics): boolean {
   return Object.entries(stats).some(([section, value]) => section !== 'isClosed' && value !== undefined);
-}
-
-export function buildRevealHighlights(stats: YearStatistics): RevealHighlight[] {
-  if (!stats.isClosed) {
-    return [];
-  }
-
-  const highlights: RevealHighlight[] = [];
-  const winner = stats.overallRanking?.[0];
-  const flop = stats.overallRanking?.at(-1);
-  const controversial = stats.disagreement?.[0];
-  const bestPicker = stats.pickerBias?.find((row) => row.pickCount >= MIN_PICKS_FOR_AWARD) ?? stats.pickerBias?.[0];
-
-  if (winner) {
-    highlights.push({
-      key: 'winner',
-      title: 'Gewinner',
-      name: winner.restaurant,
-      detail: `${formatScore(winner.average)} Sterne`,
-    });
-  }
-
-  if (flop && flop.id !== winner?.id) {
-    highlights.push({
-      key: 'flop',
-      title: 'Grösster Flop',
-      name: flop.restaurant,
-      detail: `${formatScore(flop.average)} Sterne`,
-    });
-  }
-
-  if (stats.yearTotals?.mostExpensive) {
-    highlights.push({
-      key: 'expensive',
-      title: 'Teuerster Abend',
-      name: stats.yearTotals.mostExpensive.restaurant,
-      detail: `${formatCurrency(stats.yearTotals.mostExpensive.costPerPerson)} / Person`,
-    });
-  }
-
-  if (controversial) {
-    highlights.push({
-      key: 'controversial',
-      title: 'Umstrittenster Abend',
-      name: controversial.restaurant,
-      detail: `Spannweite ${formatScore(controversial.spread)} (${formatScore(controversial.min)}–${formatScore(controversial.max)})`,
-    });
-  }
-
-  if (bestPicker) {
-    highlights.push({
-      key: 'picker',
-      title: 'Bester Picker',
-      name: bestPicker.name,
-      detail: `Gruppe Ø ${formatScore(bestPicker.groupAverage)} · ${bestPicker.pickCount} ${bestPicker.pickCount === 1 ? 'Auswahl' : 'Auswählen'}`,
-    });
-  }
-
-  return highlights;
-}
-
-export function categoryWinnerHighlights(stats: YearStatistics): RevealHighlight[] {
-  if (!stats.categoryRankings) {
-    return [];
-  }
-
-  const winners: Array<{ key: string; title: string; ranking?: RankedRestaurant[] }> = [
-    { key: 'food', title: 'Bestes Essen', ranking: stats.categoryRankings.food },
-    { key: 'ambience', title: 'Bestes Ambiente', ranking: stats.categoryRankings.ambience },
-    { key: 'price', title: 'Beste Preis-Leistung', ranking: stats.categoryRankings.pricePerformance },
-  ];
-
-  return winners.flatMap(({ key, title, ranking }) => {
-    const winner = ranking?.[0];
-    if (!winner) {
-      return [];
-    }
-
-    return [
-      {
-        key,
-        title,
-        name: winner.restaurant,
-        detail: `${formatScore(winner.average)} Sterne`,
-      },
-    ];
-  });
 }

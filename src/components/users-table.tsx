@@ -43,14 +43,16 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
         const user = row.original;
 
         return (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image ?? ''} alt={user.name ?? user.email} />
-              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+          <div className="flex min-w-0 items-center gap-2">
+            <Avatar className="size-8">
+              <AvatarImage src={user.image ?? undefined} alt={user.name ?? user.email} />
+              <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                {getInitials(user.name)}
+              </AvatarFallback>
             </Avatar>
-            <div className="grid">
-              <span className="font-medium">{user.name ?? '-'}</span>
-              <span className="text-xs text-muted-foreground">{user.email}</span>
+            <div className="grid min-w-0">
+              <span className="truncate font-medium">{user.name ?? '-'}</span>
+              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
             </div>
           </div>
         );
@@ -59,6 +61,7 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
     {
       accessorKey: 'createdAt',
       header: 'Registriert am',
+      meta: { className: 'hidden md:table-cell' },
       cell: ({ row }) => dayjs(row.original.createdAt).format('D. MMMM YYYY'),
     },
     {
@@ -68,7 +71,7 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
         const user = row.original;
 
         return (
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             <Badge variant={user.isConfirmed ? 'default' : 'secondary'}>
               {user.isConfirmed ? 'Bestätigt' : 'Ausstehend'}
             </Badge>
@@ -79,7 +82,8 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
     },
     {
       id: 'actions',
-      header: 'Aktionen',
+      header: () => <span className="sr-only">Aktionen</span>,
+      meta: { className: 'text-right' },
       cell: ({ row }) => {
         const user = row.original;
         if (user.id === currentUserId) {
@@ -87,18 +91,15 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
         }
 
         return (
-          <Button variant="outline" size="sm" disabled={isPending} onClick={() => handleToggleConfirmation(user)}>
-            {user.isConfirmed ? (
-              <>
-                <UserX />
-                Bestätigung entziehen
-              </>
-            ) : (
-              <>
-                <UserCheck />
-                Bestätigen
-              </>
-            )}
+          <Button
+            variant={user.isConfirmed ? 'outline' : 'default'}
+            size="sm"
+            disabled={isPending}
+            onClick={() => handleToggleConfirmation(user)}
+            aria-label={user.isConfirmed ? 'Bestätigung entziehen' : 'Bestätigen'}
+          >
+            {user.isConfirmed ? <UserX /> : <UserCheck />}
+            <span className="hidden sm:inline">{user.isConfirmed ? 'Bestätigung entziehen' : 'Bestätigen'}</span>
           </Button>
         );
       },

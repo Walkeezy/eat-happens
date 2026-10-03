@@ -76,7 +76,9 @@ export const RatingDialog: FC<Props> = ({ event, trigger }) => {
               />
             ))}
 
-            {form.formState.errors.root && <div className="text-sm text-red-600">{form.formState.errors.root.message}</div>}
+            {form.formState.errors.root && (
+              <div className="text-sm text-destructive">{form.formState.errors.root.message}</div>
+            )}
 
             <div className="flex justify-center pt-2">
               <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">

@@ -4,8 +4,8 @@ import {
   calendarYear,
   calendarYearRange,
   displayCalendarDate,
+  groupByCalendarYear,
   isClosedCalendarYear,
-  isJanuary,
   isValidCalendarDate,
   parseYearParam,
   previousCalendarYearRange,
@@ -77,13 +77,6 @@ describe('isClosedCalendarYear', () => {
   });
 });
 
-describe('isJanuary', () => {
-  it('is true only in January', () => {
-    expect(isJanuary('2026-01-31')).toBe(true);
-    expect(isJanuary('2026-02-01')).toBe(false);
-  });
-});
-
 describe('parseYearParam', () => {
   it('accepts a 4-digit year and rejects partial or junk values', () => {
     expect(parseYearParam('2026')).toBe(2026);
@@ -95,8 +88,8 @@ describe('parseYearParam', () => {
 });
 
 describe('resolveStatisticsYear', () => {
-  it('defaults to the previous calendar year', () => {
-    expect(resolveStatisticsYear(undefined, [2024, 2025, 2026], '2026-09-09')).toBe(2025);
+  it('defaults to the current calendar year', () => {
+    expect(resolveStatisticsYear(undefined, [2024, 2025, 2026], '2026-09-09')).toBe(2026);
   });
 
   it('accepts the current year and known past years', () => {
@@ -105,12 +98,33 @@ describe('resolveStatisticsYear', () => {
   });
 
   it('rejects future, unknown, or malformed years', () => {
-    expect(resolveStatisticsYear('2027', [2026], '2026-09-09')).toBe(2025);
-    expect(resolveStatisticsYear('nope', [2026], '2026-09-09')).toBe(2025);
-    expect(resolveStatisticsYear('2025abc', [2025], '2026-09-09')).toBe(2025);
+    expect(resolveStatisticsYear('2027', [2026], '2026-09-09')).toBe(2026);
+    expect(resolveStatisticsYear('nope', [2026], '2026-09-09')).toBe(2026);
+    expect(resolveStatisticsYear('2025abc', [2025], '2026-09-09')).toBe(2026);
   });
 
   it('rejects a well-formed past year that has no events', () => {
-    expect(resolveStatisticsYear('1999', [2025, 2026], '2026-09-09')).toBe(2025);
+    expect(resolveStatisticsYear('1999', [2025, 2026], '2026-09-09')).toBe(2026);
+  });
+});
+
+describe('groupByCalendarYear', () => {
+  it('groups by year, newest year first, keeping the order within a year', () => {
+    const items = [
+      { id: 'a', date: '2025-03-01' },
+      { id: 'b', date: '2026-01-10' },
+      { id: 'c', date: '2025-11-20' },
+      { id: 'd', date: '2024-06-05' },
+    ];
+
+    expect(groupByCalendarYear(items)).toEqual([
+      { year: 2026, items: [items[1]] },
+      { year: 2025, items: [items[0], items[2]] },
+      { year: 2024, items: [items[3]] },
+    ]);
+  });
+
+  it('returns no groups for no items', () => {
+    expect(groupByCalendarYear([])).toEqual([]);
   });
 });

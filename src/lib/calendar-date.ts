@@ -38,10 +38,6 @@ export function isClosedCalendarYear(year: number, today = todayCalendarDate()):
   return year < calendarYear(today);
 }
 
-export function isJanuary(today = todayCalendarDate()): boolean {
-  return parseCalendarDate(today).month() === 0;
-}
-
 export function parseYearParam(yearParam: string | undefined): number | undefined {
   if (yearParam === undefined || !/^\d{4}$/.test(yearParam)) {
     return undefined;
@@ -60,5 +56,17 @@ export function resolveStatisticsYear(yearParam: string | undefined, years: numb
     return parsed;
   }
 
-  return previousYear;
+  return currentYear;
+}
+
+/** Groups items by the calendar year of their date, newest year first. Keeps the input order within a year. */
+export function groupByCalendarYear<T extends { date: string }>(items: T[]): { year: number; items: T[] }[] {
+  const groups = new Map<number, T[]>();
+
+  for (const item of items) {
+    const year = calendarYear(item.date);
+    groups.set(year, [...(groups.get(year) ?? []), item]);
+  }
+
+  return [...groups.entries()].sort(([a], [b]) => b - a).map(([year, yearItems]) => ({ year, items: yearItems }));
 }

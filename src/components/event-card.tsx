@@ -1,11 +1,14 @@
 'use client';
 
-import { CalendarIcon, Star, UserRound, Wallet } from 'lucide-react';
-import type { FC } from 'react';
+import { CalendarIcon, ChevronDown, ChevronRight, Star, UserRound, Wallet } from 'lucide-react';
+import NextLink from 'next/link';
+import type { FC, ReactNode } from 'react';
+import { AvatarStack } from '@/components/avatar-stack';
 import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { RatingDialog } from '@/components/rating-dialog';
+import { restaurantHref } from '@/components/restaurant-link';
 import { Button } from '@/components/shadcn/button';
-import { Card, CardContent, CardDescription, CardTitle } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import { displayCalendarDate } from '@/lib/calendar-date';
 import { formatCurrency } from '@/lib/format';
 import { displayName } from '@/lib/user';
@@ -34,44 +37,54 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
   const showAverageRating = !hideRatings && averageRating !== undefined && averageRating > 0;
   const assignedUsers = event.assignedUsers ?? [];
   const hasAssignedUsers = assignedUsers.length > 0;
+  const ratedCount = assignedUsers.filter((user) => event.ratings?.some((rating) => rating.userId === user.id)).length;
 
   return (
-    <Card>
-      <CardContent>
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <CardTitle className="text-base font-bold">{event.restaurant}</CardTitle>
-            <CardDescription className="flex items-center gap-1 text-sm">
-              <CalendarIcon className="size-3" />
-              {displayCalendarDate(event.date)}
-            </CardDescription>
-            {event.totalCost !== null && (
-              <CardDescription className="flex items-center gap-1 text-sm">
-                <Wallet className="size-3" />
-                {formatCurrency(event.totalCost)}
-                {hasAssignedUsers && ` (Ø ${formatCurrency(Number(event.totalCost) / assignedUsers.length)})`}
-              </CardDescription>
-            )}
-            {event.pickedByUser && (
-              <CardDescription className="flex items-center gap-1 text-sm">
-                <UserRound className="size-3" />
-                Ausgewählt von {displayName(event.pickedByUser)}
-              </CardDescription>
-            )}
-          </div>
+    <Card className="group relative h-full gap-0 p-4 transition-colors hover:border-primary/40">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="line-clamp-2 leading-snug font-semibold">
+          {/* The overlay makes the whole card a link; the rating controls below sit on top of it. */}
+          <NextLink href={restaurantHref(event.id)} className="after:absolute after:inset-0 group-hover:underline">
+            {event.restaurant}
+          </NextLink>
+        </h3>
+        <div className="flex shrink-0 items-center gap-1">
           {!hasUnratedAssignment && showAverageRating ? (
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
-              <Star className="size-6 fill-yellow-400 text-yellow-400" />
+            <div className="flex items-center gap-1 rounded-full bg-star/15 px-2 py-0.5 text-sm font-bold">
+              <Star className="size-3.5 fill-star text-star" />
+              {averageRating.toFixed(1)}
             </div>
           ) : null}
+          <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
         </div>
+      </div>
 
-        {hasUnratedAssignment ? (
-          <RatingDialog event={event} trigger={<Button>Jetzt bewerten</Button>} />
-        ) : (
-          hasAssignedUsers && (
-            <div className="flex flex-col gap-2">
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <Meta icon={<CalendarIcon />}>{displayCalendarDate(event.date)}</Meta>
+        {event.totalCost !== null && (
+          <Meta icon={<Wallet />}>
+            {formatCurrency(event.totalCost)}
+            {hasAssignedUsers && ` · Ø ${formatCurrency(Number(event.totalCost) / assignedUsers.length)}`}
+          </Meta>
+        )}
+        {event.pickedByUser && <Meta icon={<UserRound />}>{displayName(event.pickedByUser)}</Meta>}
+      </div>
+
+      {hasUnratedAssignment ? (
+        <div className="relative z-10 mt-auto pt-4">
+          <RatingDialog event={event} trigger={<Button className="w-full">Jetzt bewerten</Button>} />
+        </div>
+      ) : (
+        hasAssignedUsers && (
+          <details className="group/ratings relative z-10 mt-auto pt-3">
+            <summary className="-mx-2 flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted [&::-webkit-details-marker]:hidden">
+              <AvatarStack users={assignedUsers} />
+              <span className="text-xs text-muted-foreground">
+                {ratedCount} / {assignedUsers.length} bewertet
+              </span>
+              <ChevronDown className="ml-auto size-4 text-muted-foreground transition-transform group-open/ratings:rotate-180" />
+            </summary>
+            <div className="mt-2 flex flex-col gap-1.5">
               {assignedUsers.map((user) => (
                 <EventCardUserRating
                   key={user.id}
@@ -82,9 +95,18 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
                 />
               ))}
             </div>
-          )
-        )}
-      </CardContent>
+          </details>
+        )
+      )}
     </Card>
   );
 };
+
+function Meta({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 [&_svg]:size-3 [&_svg]:shrink-0">
+      {icon}
+      {children}
+    </span>
+  );
+}
