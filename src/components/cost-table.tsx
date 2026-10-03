@@ -1,6 +1,7 @@
 'use client';
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
 import type { EventCostRow } from '@/lib/statistics';
@@ -10,7 +11,7 @@ const columns: ColumnDef<EventCostRow>[] = [
     accessorKey: 'restaurant',
     header: 'Restaurant',
     meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
+    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
   },
   {
     accessorKey: 'totalCost',
@@ -38,5 +39,5 @@ export const CostTable = ({ events }: { events: EventCostRow[] }) => {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <Table table={table} columns={columns} />;
+  return <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />;
 };

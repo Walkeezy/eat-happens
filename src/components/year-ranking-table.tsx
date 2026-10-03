@@ -2,6 +2,7 @@
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Star } from 'lucide-react';
+import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { Table } from '@/components/table';
 import { cn } from '@/lib/shadcn-utils';
 import type { RankedRestaurant } from '@/lib/statistics';
@@ -28,7 +29,7 @@ const columns: ColumnDef<RankedRestaurant>[] = [
     accessorKey: 'restaurant',
     header: 'Restaurant',
     meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
+    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
   },
   {
     accessorKey: 'average',
@@ -55,5 +56,5 @@ export const YearRankingTable = ({ events }: { events: RankedRestaurant[] }) => 
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <Table table={table} columns={columns} />;
+  return <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />;
 };

@@ -1,3 +1,4 @@
+import { RestaurantLink } from '@/components/restaurant-link';
 import { cn } from '@/lib/shadcn-utils';
 import type { TopRestaurant } from '@/lib/statistics';
 
@@ -34,7 +35,7 @@ function TopList({ title, rows, overlapIds }: List) {
         {rows.map((row, index) => (
           <li key={row.id} className="flex items-center justify-between gap-3 text-sm">
             <span className={cn('truncate font-medium', overlapIds.has(row.id) && 'text-primary')}>
-              {index + 1}. {row.restaurant}
+              {index + 1}. <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>
             </span>
             <span className="font-bold">{row.score.toFixed(1)}</span>
           </li>
