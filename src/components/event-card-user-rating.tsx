@@ -3,12 +3,12 @@ import { type FC, Fragment } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import { StarRating } from '@/components/star-rating';
 import { ratingCategories } from '@/lib/constants';
+import type { RatingScores } from '@/lib/scores';
 import { getInitials } from '@/lib/user';
-import type { EventWithDetails } from '@/types/events';
 
 type Props = {
-  user: NonNullable<EventWithDetails['assignedUsers']>[number];
-  userRating: NonNullable<EventWithDetails['ratings']>[number] | undefined;
+  user: { name: string | null; email: string; image?: string | null };
+  userRating: RatingScores | undefined;
   isCurrentUser: boolean;
   hideRatings: boolean;
 };
