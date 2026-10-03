@@ -147,7 +147,7 @@ function compareRanked(a: RankedRestaurant, b: RankedRestaurant) {
   return b.average - a.average || b.ratingCount - a.ratingCount || a.restaurant.localeCompare(b.restaurant);
 }
 
-function costPerPerson(totalCost: string | null, attendeeCount: number): number | null {
+export function costPerPerson(totalCost: string | null, attendeeCount: number): number | null {
   if (totalCost === null || attendeeCount === 0) {
     return null;
   }

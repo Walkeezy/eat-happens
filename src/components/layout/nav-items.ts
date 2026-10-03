@@ -1,4 +1,4 @@
-import { CalendarDays, ChartNoAxesCombined, House, type LucideIcon, ShieldUser, Users } from 'lucide-react';
+import { CalendarDays, ChartNoAxesCombined, House, type LucideIcon, ShieldUser, Users, UtensilsCrossed } from 'lucide-react';
 
 type NavItem = {
   href: string;
@@ -8,6 +8,13 @@ type NavItem = {
 };
 
 const home: NavItem = { href: '/', label: 'Übersicht', icon: House, isActive: (pathname) => pathname === '/' };
+
+const restaurants: NavItem = {
+  href: '/restaurants',
+  label: 'Restaurants',
+  icon: UtensilsCrossed,
+  isActive: (pathname) => pathname.startsWith('/restaurants'),
+};
 
 const statistics: NavItem = {
   href: '/statistics',
@@ -32,10 +39,10 @@ const users: NavItem = {
 
 /** Header links: admin pages get their own entries since there is room for them. */
 export function headerNavItems(isAdmin: boolean): NavItem[] {
-  return isAdmin ? [home, statistics, events, users] : [home, statistics];
+  return isAdmin ? [home, restaurants, statistics, events, users] : [home, restaurants, statistics];
 }
 
-/** Bottom tab bar: the admin pages share a single tab to keep it at three entries. */
+/** Bottom tab bar: the admin pages share a single tab to keep it at four entries. */
 export function bottomNavItems(isAdmin: boolean): NavItem[] {
   const admin: NavItem = {
     href: '/events',
@@ -44,5 +51,5 @@ export function bottomNavItems(isAdmin: boolean): NavItem[] {
     isActive: (pathname) => events.isActive(pathname) || users.isActive(pathname),
   };
 
-  return isAdmin ? [home, statistics, admin] : [home, statistics];
+  return isAdmin ? [home, restaurants, statistics, admin] : [home, restaurants, statistics];
 }
