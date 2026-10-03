@@ -1,10 +1,12 @@
 'use client';
 
-import { CalendarIcon, ChevronDown, Star, UserRound, Wallet } from 'lucide-react';
+import { CalendarIcon, ChevronDown, ChevronRight, Star, UserRound, Wallet } from 'lucide-react';
+import NextLink from 'next/link';
 import type { FC, ReactNode } from 'react';
 import { AvatarStack } from '@/components/avatar-stack';
 import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { RatingDialog } from '@/components/rating-dialog';
+import { restaurantHref } from '@/components/restaurant-link';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { displayCalendarDate } from '@/lib/calendar-date';
@@ -38,15 +40,23 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
   const ratedCount = assignedUsers.filter((user) => event.ratings?.some((rating) => rating.userId === user.id)).length;
 
   return (
-    <Card className="h-full gap-0 p-4">
+    <Card className="group relative h-full gap-0 p-4 transition-colors hover:border-primary/40">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="line-clamp-2 leading-snug font-semibold">{event.restaurant}</h3>
-        {!hasUnratedAssignment && showAverageRating ? (
-          <div className="flex shrink-0 items-center gap-1 rounded-full bg-star/15 px-2 py-0.5 text-sm font-bold">
-            <Star className="size-3.5 fill-star text-star" />
-            {averageRating.toFixed(1)}
-          </div>
-        ) : null}
+        <h3 className="line-clamp-2 leading-snug font-semibold">
+          {/* The overlay makes the whole card a link; the rating controls below sit on top of it. */}
+          <NextLink href={restaurantHref(event.id)} className="after:absolute after:inset-0 group-hover:underline">
+            {event.restaurant}
+          </NextLink>
+        </h3>
+        <div className="flex shrink-0 items-center gap-1">
+          {!hasUnratedAssignment && showAverageRating ? (
+            <div className="flex items-center gap-1 rounded-full bg-star/15 px-2 py-0.5 text-sm font-bold">
+              <Star className="size-3.5 fill-star text-star" />
+              {averageRating.toFixed(1)}
+            </div>
+          ) : null}
+          <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+        </div>
       </div>
 
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -61,18 +71,18 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
       </div>
 
       {hasUnratedAssignment ? (
-        <div className="mt-auto pt-4">
+        <div className="relative z-10 mt-auto pt-4">
           <RatingDialog event={event} trigger={<Button className="w-full">Jetzt bewerten</Button>} />
         </div>
       ) : (
         hasAssignedUsers && (
-          <details className="group mt-auto pt-3">
+          <details className="group/ratings relative z-10 mt-auto pt-3">
             <summary className="-mx-2 flex cursor-pointer list-none items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted [&::-webkit-details-marker]:hidden">
               <AvatarStack users={assignedUsers} />
               <span className="text-xs text-muted-foreground">
                 {ratedCount} / {assignedUsers.length} bewertet
               </span>
-              <ChevronDown className="ml-auto size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+              <ChevronDown className="ml-auto size-4 text-muted-foreground transition-transform group-open/ratings:rotate-180" />
             </summary>
             <div className="mt-2 flex flex-col gap-1.5">
               {assignedUsers.map((user) => (

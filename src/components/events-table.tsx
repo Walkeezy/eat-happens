@@ -4,9 +4,10 @@ import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-
 import { SquarePen } from 'lucide-react';
 import { AvatarStack } from '@/components/avatar-stack';
 import { EventDialog } from '@/components/event-dialog';
+import { RestaurantLink } from '@/components/restaurant-link';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
-import { displayCalendarDate } from '@/lib/calendar-date';
+import { displayCalendarDate, todayCalendarDate } from '@/lib/calendar-date';
 import { formatCurrency } from '@/lib/format';
 import { displayName } from '@/lib/user';
 import type { EventWithDetails, User } from '@/types/events';
@@ -25,7 +26,12 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
       meta: { className: 'whitespace-normal' },
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.restaurant}</div>
+          {/* Upcoming dinners have no detail page yet. */}
+          {row.original.date <= todayCalendarDate() ? (
+            <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>
+          ) : (
+            <div className="font-medium">{row.original.restaurant}</div>
+          )}
           <div className="text-xs text-muted-foreground md:hidden">{displayCalendarDate(row.original.date)}</div>
         </div>
       ),

@@ -1,9 +1,9 @@
 'use client';
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Search, Star } from 'lucide-react';
-import NextLink from 'next/link';
+import { ChevronRight, Search, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { Input } from '@/components/shadcn/input';
 import { Table } from '@/components/table';
 import { displayCalendarDate } from '@/lib/calendar-date';
@@ -23,16 +23,10 @@ const columns: ColumnDef<RestaurantRow>[] = [
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'relative whitespace-normal' },
+    meta: { className: 'whitespace-normal' },
     cell: ({ row }) => (
       <div className="min-w-0">
-        {/* The overlay stretches the link across the whole cell, so the date line is a tap target too. */}
-        <NextLink
-          href={`/restaurants/${row.original.id}`}
-          className="font-medium after:absolute after:inset-0 hover:underline"
-        >
-          {row.original.restaurant}
-        </NextLink>
+        <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>
         <div className="text-xs text-muted-foreground">
           {displayCalendarDate(row.original.date)}
           {row.original.pickerName ? ` · ${row.original.pickerName}` : null}
@@ -85,6 +79,12 @@ const columns: ColumnDef<RestaurantRow>[] = [
         </div>
       ),
   },
+  {
+    id: 'open',
+    header: '',
+    meta: { className: 'w-6 pl-0' },
+    cell: () => <ChevronRight className="size-4 text-muted-foreground" aria-hidden />,
+  },
 ];
 
 export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
@@ -132,7 +132,7 @@ export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
           </fieldset>
         </div>
       </div>
-      <Table table={table} columns={columns} />
+      <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />
       {hiddenYear ? (
         <p className="text-sm text-muted-foreground">Die Bewertungen aus {hiddenYear} gibt’s ab 1. Januar.</p>
       ) : null}
