@@ -1,5 +1,5 @@
 import { Check, Star } from 'lucide-react';
-import type { FC } from 'react';
+import { type FC, Fragment } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import { StarRating } from '@/components/star-rating';
 import { ratingCategories } from '@/lib/constants';
@@ -32,29 +32,29 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
   const showCheckmark = hasRating && hideRatings && !isCurrentUser;
 
   return (
-    <div className="flex space-x-2 rounded-lg bg-gray-50 p-2">
-      <Avatar className="size-8">
+    <div className="flex gap-2 rounded-lg bg-muted/70 p-2">
+      <Avatar className="size-7">
         <AvatarImage src={user.image ?? undefined} alt={userName} />
-        <AvatarFallback className="bg-primary/50 text-xs text-primary-foreground">{userInitials}</AvatarFallback>
+        <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">{userInitials}</AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-sm font-medium">{userName}</span>
           {showScore && isMultiCategory && averageRating !== null && (
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{averageRating.toFixed(1)}</span>
-              <Star className="size-4 fill-yellow-400 text-yellow-400" />
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-semibold">{averageRating.toFixed(1)}</span>
+              <Star className="size-3.5 fill-star text-star" />
             </div>
           )}
         </div>
         {showScore && userRating ? (
           isMultiCategory ? (
-            <div className="mt-1 space-y-0.5">
+            <div className="mt-1 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0.5">
               {ratingCategories.map(({ key, label }) => (
-                <div key={key} className="grid grid-cols-[110px_auto] items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">{label}:</span>
+                <Fragment key={key}>
+                  <span className="text-xs text-muted-foreground">{label}</span>
                   <StarRating score={userRating[key] ?? 0} />
-                </div>
+                </Fragment>
               ))}
             </div>
           ) : (
@@ -63,7 +63,7 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
             </div>
           )
         ) : showCheckmark ? (
-          <div className="mt-1 flex items-center gap-0.5 text-xs font-semibold text-green-600">
+          <div className="mt-1 flex items-center gap-0.5 text-xs font-semibold text-success">
             <Check className="size-3" />
             <span>Bewertet</span>
           </div>

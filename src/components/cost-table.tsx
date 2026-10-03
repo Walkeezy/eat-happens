@@ -9,26 +9,25 @@ const columns: ColumnDef<EventCostRow>[] = [
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
+    meta: { className: 'whitespace-normal' },
     cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
   },
   {
     accessorKey: 'totalCost',
     header: 'Gesamtkosten',
+    meta: { className: 'hidden sm:table-cell' },
     cell: ({ row }) => formatCurrency(row.original.totalCost),
   },
   {
     accessorKey: 'attendeeCount',
     header: 'Teilnehmer',
+    meta: { className: 'hidden sm:table-cell' },
     cell: ({ row }) => row.original.attendeeCount || '-',
   },
   {
     accessorKey: 'costPerPerson',
     header: 'Pro Person',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="font-bold">{formatCurrency(row.original.costPerPerson)}</span>
-      </div>
-    ),
+    cell: ({ row }) => <span className="font-bold">{formatCurrency(row.original.costPerPerson)}</span>,
   },
 ];
 

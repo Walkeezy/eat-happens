@@ -62,3 +62,15 @@ export function resolveStatisticsYear(yearParam: string | undefined, years: numb
 
   return previousYear;
 }
+
+/** Groups items by the calendar year of their date, newest year first. Keeps the input order within a year. */
+export function groupByCalendarYear<T extends { date: string }>(items: T[]): { year: number; items: T[] }[] {
+  const groups = new Map<number, T[]>();
+
+  for (const item of items) {
+    const year = calendarYear(item.date);
+    groups.set(year, [...(groups.get(year) ?? []), item]);
+  }
+
+  return [...groups.entries()].sort(([a], [b]) => b - a).map(([year, yearItems]) => ({ year, items: yearItems }));
+}

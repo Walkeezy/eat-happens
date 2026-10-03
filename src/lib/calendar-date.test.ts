@@ -4,6 +4,7 @@ import {
   calendarYear,
   calendarYearRange,
   displayCalendarDate,
+  groupByCalendarYear,
   isClosedCalendarYear,
   isJanuary,
   isValidCalendarDate,
@@ -112,5 +113,26 @@ describe('resolveStatisticsYear', () => {
 
   it('rejects a well-formed past year that has no events', () => {
     expect(resolveStatisticsYear('1999', [2025, 2026], '2026-09-09')).toBe(2025);
+  });
+});
+
+describe('groupByCalendarYear', () => {
+  it('groups by year, newest year first, keeping the order within a year', () => {
+    const items = [
+      { id: 'a', date: '2025-03-01' },
+      { id: 'b', date: '2026-01-10' },
+      { id: 'c', date: '2025-11-20' },
+      { id: 'd', date: '2024-06-05' },
+    ];
+
+    expect(groupByCalendarYear(items)).toEqual([
+      { year: 2026, items: [items[1]] },
+      { year: 2025, items: [items[0], items[2]] },
+      { year: 2024, items: [items[3]] },
+    ]);
+  });
+
+  it('returns no groups for no items', () => {
+    expect(groupByCalendarYear([])).toEqual([]);
   });
 });

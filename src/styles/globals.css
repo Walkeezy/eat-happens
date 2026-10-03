@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 @theme {
   --font-sans: var(--noto-sans-font), sans-serif;
@@ -26,6 +26,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-star: var(--star);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -75,6 +79,10 @@
   --border: oklch(0.9506 0.0274 299.5528);
   --input: oklch(0.9753 0.0136 299.8037);
   --ring: oklch(0.6922 0.1818 295.0141);
+  --star: oklch(0.82 0.17 85);
+  --success: oklch(0.6 0.16 150);
+  --warning: oklch(0.95 0.06 90);
+  --warning-foreground: oklch(0.55 0.13 70);
   --chart-1: oklch(0.81 0.1 252);
   --chart-2: oklch(0.62 0.19 260);
   --chart-3: oklch(0.55 0.22 263);
@@ -107,9 +115,41 @@
   --spacing: 0.25rem;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --background: oklch(0.17 0.025 290);
+    --foreground: oklch(0.96 0.01 295);
+    --card: oklch(0.21 0.03 290);
+    --card-foreground: oklch(0.96 0.01 295);
+    --popover: oklch(0.23 0.03 290);
+    --popover-foreground: oklch(0.96 0.01 295);
+    --primary: oklch(0.63 0.22 290);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.27 0.03 290);
+    --secondary-foreground: oklch(0.96 0.01 295);
+    --muted: oklch(0.25 0.03 290);
+    --muted-foreground: oklch(0.72 0.04 295);
+    --accent: oklch(0.29 0.04 290);
+    --accent-foreground: oklch(0.96 0.01 295);
+    --destructive: oklch(0.65 0.2 25);
+    --border: oklch(0.3 0.035 290);
+    --input: oklch(0.32 0.035 290);
+    --ring: oklch(0.63 0.22 290);
+    --star: oklch(0.84 0.16 85);
+    --success: oklch(0.75 0.16 150);
+    --warning: oklch(0.32 0.06 80);
+    --warning-foreground: oklch(0.85 0.13 85);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
 
   button:not(:disabled),

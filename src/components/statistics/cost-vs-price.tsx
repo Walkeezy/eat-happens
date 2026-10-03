@@ -10,6 +10,7 @@ const columns: ColumnDef<CostVsPriceRow>[] = [
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
+    meta: { className: 'whitespace-normal' },
     cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
   },
   {

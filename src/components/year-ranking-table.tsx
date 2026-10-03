@@ -3,32 +3,47 @@
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Star } from 'lucide-react';
 import { Table } from '@/components/table';
+import { cn } from '@/lib/shadcn-utils';
 import type { RankedRestaurant } from '@/lib/statistics';
+
+const podiumStyles = ['bg-star/30 text-foreground', 'bg-muted-foreground/15 text-foreground', 'bg-primary/10 text-primary'];
 
 const columns: ColumnDef<RankedRestaurant>[] = [
   {
     accessorKey: 'rank',
     header: '#',
-    cell: ({ row }) => <span className="text-center font-medium">{row.index + 1}</span>,
+    meta: { className: 'w-10' },
+    cell: ({ row }) => (
+      <span
+        className={cn(
+          'inline-flex size-6 items-center justify-center rounded-full text-xs font-bold',
+          podiumStyles[row.index] ?? 'text-muted-foreground',
+        )}
+      >
+        {row.index + 1}
+      </span>
+    ),
   },
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
-    cell: ({ row }) => <div className="max-w-35 truncate font-medium">{row.original.restaurant}</div>,
+    meta: { className: 'whitespace-normal' },
+    cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
   },
   {
     accessorKey: 'average',
     header: 'Ø',
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <Star className="size-3.5 fill-star text-star" />
         <span className="font-bold">{row.original.average.toFixed(1)}</span>
-        <Star className="size-4 fill-yellow-400 text-yellow-400" />
       </div>
     ),
   },
   {
     accessorKey: 'ratingCount',
     header: 'Bewertungen',
+    meta: { className: 'hidden text-right sm:table-cell' },
     cell: ({ row }) => <span className="text-muted-foreground">{row.original.ratingCount}</span>,
   },
 ];
