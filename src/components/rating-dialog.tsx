@@ -12,14 +12,14 @@ import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/
 import { StarVoting } from '@/components/star-voting';
 import { ratingCategories } from '@/lib/constants';
 import { type RatingFormData, ratingSchema } from '@/lib/schemas';
-import type { CreateRatingData, Event } from '@/types/events';
+import type { CreateRatingData } from '@/types/events';
 
 type Props = {
-  event: Event;
+  eventId: string;
   trigger: ReactNode;
 };
 
-export const RatingDialog: FC<Props> = ({ event, trigger }) => {
+export const RatingDialog: FC<Props> = ({ eventId, trigger }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -35,7 +35,7 @@ export const RatingDialog: FC<Props> = ({ event, trigger }) => {
   const onSubmit = async (data: RatingFormData) => {
     try {
       const ratingData: CreateRatingData = {
-        eventId: event.id,
+        eventId,
         ...data,
       };
 

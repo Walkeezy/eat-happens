@@ -118,7 +118,7 @@ export default async function RestaurantDetailPage({ params }: Props) {
                 {detail.ratedCount} / {detail.people.length}
               </Badge>
             }
-            action={canRate ? <RatingDialog event={event} trigger={<Button size="sm">Jetzt bewerten</Button>} /> : null}
+            action={canRate ? <RatingDialog eventId={event.id} trigger={<Button size="sm">Jetzt bewerten</Button>} /> : null}
           >
             <div className="grid gap-2 sm:grid-cols-2">
               {detail.people.map(({ person, rating }) => (
