@@ -2,6 +2,7 @@
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Search, Star } from 'lucide-react';
+import NextLink from 'next/link';
 import { useMemo, useState } from 'react';
 import { Input } from '@/components/shadcn/input';
 import { Table } from '@/components/table';
@@ -22,10 +23,16 @@ const columns: ColumnDef<RestaurantRow>[] = [
   {
     accessorKey: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'whitespace-normal' },
+    meta: { className: 'relative whitespace-normal' },
     cell: ({ row }) => (
       <div className="min-w-0">
-        <div className="font-medium">{row.original.restaurant}</div>
+        {/* The overlay stretches the link across the whole cell, so the date line is a tap target too. */}
+        <NextLink
+          href={`/restaurants/${row.original.id}`}
+          className="font-medium after:absolute after:inset-0 hover:underline"
+        >
+          {row.original.restaurant}
+        </NextLink>
         <div className="text-xs text-muted-foreground">
           {displayCalendarDate(row.original.date)}
           {row.original.pickerName ? ` · ${row.original.pickerName}` : null}

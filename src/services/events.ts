@@ -13,62 +13,78 @@ type GetEventsOptions = {
   currentUserId?: string;
 };
 
+const eventDetailsRelations = {
+  ratings: {
+    with: {
+      user: true,
+    },
+  },
+  assignments: {
+    with: {
+      user: true,
+    },
+  },
+  pickedByUser: true,
+} as const;
+
+type EventWithRelations = NonNullable<Awaited<ReturnType<typeof findEventWithRelations>>>;
+
+function findEventWithRelations(eventId: string) {
+  return db.query.event.findFirst({ where: eq(event.id, eventId), with: eventDetailsRelations });
+}
+
+function toEventWithDetails(evt: EventWithRelations, currentUserId?: string): EventWithDetails {
+  const ratings = evt.ratings || [];
+  const assignments = evt.assignments || [];
+
+  const averageLegacyRating = scoreAverage(ratings, 'legacyScore');
+  const averageFoodRating = scoreAverage(ratings, 'foodScore');
+  const averageAmbienceRating = scoreAverage(ratings, 'ambienceScore');
+  const averagePricePerformanceRating = scoreAverage(ratings, 'pricePerformanceScore');
+
+  return applyRatingsVisibility(
+    {
+      ...evt,
+      assignedUsers: assignments
+        .map((a) => ({
+          ...a.user,
+          image: a.user.image ?? undefined,
+        }))
+        .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+      pickedByUser: evt.pickedByUser
+        ? {
+            id: evt.pickedByUser.id,
+            name: evt.pickedByUser.name,
+            firstName: evt.pickedByUser.firstName,
+            lastName: evt.pickedByUser.lastName,
+            email: evt.pickedByUser.email,
+          }
+        : null,
+      averageLegacyRating,
+      averageFoodRating,
+      averageAmbienceRating,
+      averagePricePerformanceRating,
+      totalRatings: ratings.length,
+    },
+    currentUserId,
+  );
+}
+
 export async function getEvents(options?: GetEventsOptions): Promise<EventWithDetails[]> {
   const where: SQL | undefined = options?.upToDate ? lte(event.date, options.upToDate) : undefined;
   const eventsWithDetails = await db.query.event.findMany({
     where,
     orderBy: [desc(event.date)],
-    with: {
-      ratings: {
-        with: {
-          user: true,
-        },
-      },
-      assignments: {
-        with: {
-          user: true,
-        },
-      },
-      pickedByUser: true,
-    },
+    with: eventDetailsRelations,
   });
 
-  return eventsWithDetails.map((evt) => {
-    const ratings = evt.ratings || [];
-    const assignments = evt.assignments || [];
+  return eventsWithDetails.map((evt) => toEventWithDetails(evt, options?.currentUserId));
+}
 
-    const averageLegacyRating = scoreAverage(ratings, 'legacyScore');
-    const averageFoodRating = scoreAverage(ratings, 'foodScore');
-    const averageAmbienceRating = scoreAverage(ratings, 'ambienceScore');
-    const averagePricePerformanceRating = scoreAverage(ratings, 'pricePerformanceScore');
+export async function getEvent(eventId: string, currentUserId?: string): Promise<EventWithDetails | null> {
+  const evt = await findEventWithRelations(eventId);
 
-    return applyRatingsVisibility(
-      {
-        ...evt,
-        assignedUsers: assignments
-          .map((a) => ({
-            ...a.user,
-            image: a.user.image ?? undefined,
-          }))
-          .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
-        pickedByUser: evt.pickedByUser
-          ? {
-              id: evt.pickedByUser.id,
-              name: evt.pickedByUser.name,
-              firstName: evt.pickedByUser.firstName,
-              lastName: evt.pickedByUser.lastName,
-              email: evt.pickedByUser.email,
-            }
-          : null,
-        averageLegacyRating,
-        averageFoodRating,
-        averageAmbienceRating,
-        averagePricePerformanceRating,
-        totalRatings: ratings.length,
-      },
-      options?.currentUserId,
-    );
-  });
+  return evt ? toEventWithDetails(evt, currentUserId) : null;
 }
 
 /** The picker dropdown only offers confirmed users; this keeps a hand-crafted payload from reaching the FK. */
