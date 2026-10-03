@@ -1,19 +1,12 @@
 import { CalendarOff } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
-import { JahresrueckblickBanner } from '@/components/jahresrueckblick-banner';
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
 import { NextPickerBanner } from '@/components/next-picker-banner';
 import { RateLastDinnerBanner } from '@/components/rate-last-dinner-banner';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
-import {
-  calendarYear,
-  groupByCalendarYear,
-  isJanuary,
-  previousCalendarYearRange,
-  todayCalendarDate,
-} from '@/lib/calendar-date';
+import { groupByCalendarYear, todayCalendarDate } from '@/lib/calendar-date';
 import { determineNextPicker } from '@/lib/pick-rotation';
 import { shouldHideRatings } from '@/lib/ratings-visibility';
 import { displayName } from '@/lib/user';
@@ -29,8 +22,6 @@ export default async function HomePage() {
     getAllConfirmedUsers(),
   ]);
   const nextPicker = determineNextPicker(confirmedUsers, events);
-  const previousYear = previousCalendarYearRange(today).year;
-  const showRevealBanner = isJanuary(today) && events.some((event) => calendarYear(event.date) === previousYear);
 
   const lastAssignedEvent = events.find((event) => event.assignedUsers?.some((user) => user.id === session.user.id));
   const lastDinnerNeedsRating =
@@ -73,7 +64,6 @@ export default async function HomePage() {
 
       <div className="space-y-3">
         <NextPickerBanner {...nextPicker} />
-        {showRevealBanner ? <JahresrueckblickBanner year={previousYear} /> : null}
         {lastDinnerNeedsRating && lastAssignedEvent ? <RateLastDinnerBanner event={lastAssignedEvent} /> : null}
       </div>
 

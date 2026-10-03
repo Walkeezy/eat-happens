@@ -2,13 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { calendarYear, todayCalendarDate } from './calendar-date';
 import { applyRatingsVisibility } from './ratings-visibility';
-import {
-  buildRevealHighlights,
-  buildYearStatistics,
-  hasYearStatisticsData,
-  type StatisticsEvent,
-  type StatisticsPerson,
-} from './statistics';
+import { buildYearStatistics, hasYearStatisticsData, type StatisticsEvent, type StatisticsPerson } from './statistics';
 
 const names: Record<string, string> = {
   anna: 'Anna',
@@ -126,7 +120,6 @@ describe('buildYearStatistics', () => {
 
     expect(stats).toEqual({ isClosed: true });
     expect(hasYearStatisticsData(stats)).toBe(false);
-    expect(buildRevealHighlights(stats)).toEqual([]);
   });
 
   it('keeps the sections that have data while the empty ones stay hidden', () => {
@@ -372,68 +365,5 @@ describe('ratings visibility feeds the open year', () => {
     expect(stats.groupTop5).toBeUndefined();
     // Ben's participation is still visible - only his scores are withheld
     expect(stats.attendance?.find((row) => row.userId === 'ben')).toMatchObject({ attended: 1, eligible: 1, rate: 1 });
-    expect(buildRevealHighlights(stats)).toEqual([]);
-  });
-});
-
-describe('buildRevealHighlights', () => {
-  const people = [person('anna'), person('ben'), person('solo')];
-
-  it('returns nothing for an open year', () => {
-    expect(
-      buildRevealHighlights(
-        buildYearStatistics({
-          isClosed: false,
-          events: [],
-          people: [],
-          currentUserId: 'anna',
-        }),
-      ),
-    ).toEqual([]);
-  });
-
-  it('does not award a flop when there is only one ranked dinner', () => {
-    const stats = buildYearStatistics({
-      isClosed: true,
-      events: [dinner({ id: 'only', restaurant: 'Einzig', ratings: [categoryRating('anna', 4, 4, 4)] })],
-      people,
-      currentUserId: 'anna',
-    });
-    const keys = buildRevealHighlights(stats).map((card) => card.key);
-
-    expect(keys).toContain('winner');
-    expect(keys).not.toContain('flop');
-  });
-
-  it('prefers a picker with a real track record over a single lucky pick', () => {
-    const events = [
-      dinner({
-        id: 'lucky',
-        restaurant: 'Glueck',
-        pickedByUserId: 'solo',
-        pickerName: 'Solo',
-        ratings: [categoryRating('anna', 5, 5, 5)],
-      }),
-      dinner({
-        id: 'steady-1',
-        restaurant: 'Stetig 1',
-        pickedByUserId: 'ben',
-        pickerName: 'Ben',
-        ratings: [categoryRating('anna', 4, 4, 4)],
-      }),
-      dinner({
-        id: 'steady-2',
-        restaurant: 'Stetig 2',
-        pickedByUserId: 'ben',
-        pickerName: 'Ben',
-        ratings: [categoryRating('anna', 5, 5, 5)],
-      }),
-    ];
-    const stats = buildYearStatistics({ isClosed: true, events, people, currentUserId: 'anna' });
-
-    // Solo still tops the table on raw group average...
-    expect(stats.pickerBias?.[0]?.userId).toBe('solo');
-    // ...but the award goes to the picker with more than one pick behind them.
-    expect(buildRevealHighlights(stats).find((card) => card.key === 'picker')).toMatchObject({ name: 'Ben' });
   });
 });
