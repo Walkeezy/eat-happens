@@ -1,42 +1,20 @@
-'use client';
-
 import { Clock } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { LogoutButton } from '@/app/pending-confirmation/logout-button';
 import { UnauthenticatedLayout } from '@/components/layout/unauthenticated-layout';
-import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/shadcn/card';
-import { authClient } from '@/lib/auth-client';
+import { auth } from '@/lib/auth';
 
-export default function PendingConfirmationPage() {
-  const { data: session, isPending } = authClient.useSession();
-  const router = useRouter();
+export default async function PendingConfirmationPage() {
+  // Not verifySession(): that one sends unconfirmed users here, so it would redirect in a loop.
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  const user = session?.user;
-
-  useEffect(() => {
-    if (!isPending) {
-      if (!session) {
-        router.push('/login');
-      } else if (user?.isConfirmed) {
-        router.push('/');
-      }
-    }
-  }, [session, isPending, router, user]);
-
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push('/');
-          router.refresh();
-        },
-      },
-    });
-  };
-
-  if (isPending || !session || user?.isConfirmed) {
-    return null;
+  if (!session) {
+    redirect('/login');
+  }
+  if (session.user.isConfirmed) {
+    redirect('/');
   }
 
   return (
@@ -59,9 +37,7 @@ export default function PendingConfirmationPage() {
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={handleLogout} variant="ghost" size="sm">
-            Abmelden
-          </Button>
+          <LogoutButton />
         </CardFooter>
       </Card>
     </UnauthenticatedLayout>
