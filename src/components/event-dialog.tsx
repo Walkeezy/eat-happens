@@ -196,7 +196,9 @@ export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [
               )}
             />
 
-            {form.formState.errors.root && <div className="text-sm text-red-600">{form.formState.errors.root.message}</div>}
+            {form.formState.errors.root && (
+              <div className="text-sm text-destructive">{form.formState.errors.root.message}</div>
+            )}
 
             <div className="flex justify-end">
               <Button type="submit" disabled={form.formState.isSubmitting}>
