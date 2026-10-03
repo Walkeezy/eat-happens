@@ -1,14 +1,22 @@
 import { CalendarOff } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { JahresrueckblickBanner } from '@/components/jahresrueckblick-banner';
-import { AppLayout } from '@/components/layout/app-layout';
+import { PageHeader } from '@/components/layout/page-header';
+import { Section } from '@/components/layout/section';
 import { NextPickerBanner } from '@/components/next-picker-banner';
 import { RateLastDinnerBanner } from '@/components/rate-last-dinner-banner';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
-import { calendarYear, isJanuary, previousCalendarYearRange, todayCalendarDate } from '@/lib/calendar-date';
+import {
+  calendarYear,
+  groupByCalendarYear,
+  isJanuary,
+  previousCalendarYearRange,
+  todayCalendarDate,
+} from '@/lib/calendar-date';
 import { determineNextPicker } from '@/lib/pick-rotation';
 import { shouldHideRatings } from '@/lib/ratings-visibility';
+import { displayName } from '@/lib/user';
 import { verifySession } from '@/lib/verify-session';
 import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
@@ -46,14 +54,31 @@ export default async function HomePage() {
     return (!isUserAssigned || userRating) && !isPromotedToBanner(event.id);
   });
 
+  const renderGrid = (gridEvents: typeof events) => (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {gridEvents.map((event) => (
+        <EventCard
+          key={event.id}
+          event={event}
+          currentUserId={session.user.id}
+          hideRatings={shouldHideRatings(event.date)}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <AppLayout>
-      <div className="mb-8">
+    <>
+      <PageHeader title={`Hoi ${displayName(session.user)}`} />
+
+      <div className="space-y-3">
         <NextPickerBanner {...nextPicker} />
+        {showRevealBanner ? <JahresrueckblickBanner year={previousYear} /> : null}
+        {lastDinnerNeedsRating && lastAssignedEvent ? <RateLastDinnerBanner event={lastAssignedEvent} /> : null}
       </div>
 
       {events.length === 0 ? (
-        <Empty>
+        <Empty className="mt-8">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <CalendarOff />
@@ -63,68 +88,32 @@ export default async function HomePage() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="space-y-8">
-          {showRevealBanner ? <JahresrueckblickBanner year={previousYear} /> : null}
-          {lastDinnerNeedsRating && lastAssignedEvent ? <RateLastDinnerBanner event={lastAssignedEvent} /> : null}
-
-          {/* Events to Rate Section */}
+        <div className="mt-8 space-y-8">
           {unratedEvents.length > 0 && (
-            <div>
-              <div className="mb-4 flex items-center gap-2">
-                <h2 className="text-lg font-semibold">Deine Events zum Bewerten</h2>
-                <Badge>{unratedEvents.length}</Badge>
-              </div>
-              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                {unratedEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    currentUserId={session.user.id}
-                    hideRatings={shouldHideRatings(event.date)}
-                  />
-                ))}
-              </div>
-            </div>
+            <Section title="Zum Bewerten" badge={<Badge>{unratedEvents.length}</Badge>}>
+              {renderGrid(unratedEvents)}
+            </Section>
           )}
 
-          {/* All Other Events Section */}
           {otherEvents.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold">{unratedEvents.length > 0 ? 'Alle anderen Events' : 'Alle Events'}</h2>
-                <Badge variant="outline">{unratedEvents.length > 0 ? otherEvents.length : events.length}</Badge>
-              </div>
-              {Object.entries(
-                otherEvents.reduce<Record<string, typeof otherEvents>>((acc, event) => {
-                  const year = calendarYear(event.date).toString();
-                  if (!acc[year]) {
-                    acc[year] = [];
-                  }
-                  acc[year].push(event);
-
-                  return acc;
-                }, {}),
-              )
-                .sort(([a], [b]) => Number(b) - Number(a))
-                .map(([year, yearEvents]) => (
+            <Section
+              title={unratedEvents.length > 0 ? 'Alle anderen Events' : 'Alle Events'}
+              badge={<Badge variant="outline">{otherEvents.length}</Badge>}
+            >
+              <div className="space-y-2">
+                {groupByCalendarYear(otherEvents).map(({ year, items }) => (
                   <div key={year}>
-                    <h3 className="mb-3 text-sm font-medium text-muted-foreground">{year}</h3>
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-                      {yearEvents.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          currentUserId={session.user.id}
-                          hideRatings={shouldHideRatings(event.date)}
-                        />
-                      ))}
-                    </div>
+                    <h3 className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-10 -mx-4 bg-muted/85 px-4 py-2 text-sm font-semibold text-muted-foreground backdrop-blur-lg sm:-mx-6 sm:px-6">
+                      {year}
+                    </h3>
+                    {renderGrid(items)}
                   </div>
                 ))}
-            </div>
+              </div>
+            </Section>
           )}
         </div>
       )}
-    </AppLayout>
+    </>
   );
 }

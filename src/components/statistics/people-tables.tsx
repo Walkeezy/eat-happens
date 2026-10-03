@@ -70,7 +70,12 @@ export function PickCountsTable({ rows }: { rows: PickCountStat[] }) {
 
 const createPickerBiasColumns = (highlightDelta: number | undefined): ColumnDef<PickerBiasStat>[] => [
   { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
-  { accessorKey: 'pickCount', header: 'Auswählen', cell: ({ row }) => row.original.pickCount },
+  {
+    accessorKey: 'pickCount',
+    header: 'Auswählen',
+    meta: { className: 'hidden sm:table-cell' },
+    cell: ({ row }) => row.original.pickCount,
+  },
   {
     accessorKey: 'groupAverage',
     header: 'Gruppe Ø',

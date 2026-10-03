@@ -1,13 +1,41 @@
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  PiggyBank,
+  Sparkles,
+  Swords,
+  ThumbsDown,
+  Trophy,
+  UtensilsCrossed,
+  Wallet,
+} from 'lucide-react';
+import NextLink from 'next/link';
 import { redirect } from 'next/navigation';
-import { AppLayout } from '@/components/layout/app-layout';
+import type { ReactNode } from 'react';
+import { PageHeader } from '@/components/layout/page-header';
+import { Section } from '@/components/layout/section';
+import { Button } from '@/components/shadcn/button';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
 import { HighlightCard } from '@/components/statistics/highlight-card';
 import { isClosedCalendarYear, parseYearParam } from '@/lib/calendar-date';
 import { buildRevealHighlights, categoryWinnerHighlights } from '@/lib/statistics';
 import { verifySession } from '@/lib/verify-session';
-import { getYearStatistics } from '@/services/statistics';
+import { getEventYears, getYearStatistics } from '@/services/statistics';
 
 type Props = {
   params: Promise<{ year: string }>;
+};
+
+const highlightIcons: Record<string, ReactNode> = {
+  winner: <Trophy />,
+  flop: <ThumbsDown />,
+  expensive: <Wallet />,
+  controversial: <Swords />,
+  picker: <Crown />,
+  food: <UtensilsCrossed />,
+  ambience: <Sparkles />,
+  price: <PiggyBank />,
 };
 
 export default async function JahresrueckblickPage({ params }: Props) {
@@ -19,35 +47,92 @@ export default async function JahresrueckblickPage({ params }: Props) {
     redirect('/statistics');
   }
 
-  const stats = await getYearStatistics(year, session.user.id);
+  const [stats, years] = await Promise.all([getYearStatistics(year, session.user.id), getEventYears()]);
   const highlights = buildRevealHighlights(stats);
   const categoryWinners = categoryWinnerHighlights(stats);
+  const previousYear = years.includes(year - 1) ? year - 1 : undefined;
+  const nextYear = isClosedCalendarYear(year + 1) && years.includes(year + 1) ? year + 1 : undefined;
 
   return (
-    <AppLayout>
-      <div className="mb-8 space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">Jahresrückblick</p>
-        <h1 className="text-3xl font-bold">Rangliste {year}</h1>
-      </div>
+    <>
+      <PageHeader
+        eyebrow="Jahresrückblick"
+        title={`Rangliste ${year}`}
+        actions={
+          <>
+            <YearLink year={previousYear} label="Vorheriges Jahr">
+              <ChevronLeft />
+            </YearLink>
+            <YearLink year={nextYear} label="Nächstes Jahr">
+              <ChevronRight />
+            </YearLink>
+          </>
+        }
+      />
 
       {highlights.length === 0 ? (
-        <p className="text-muted-foreground">Für {year} gibt es noch keine Rangliste.</p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Trophy />
+            </EmptyMedia>
+            <EmptyTitle>Noch keine Rangliste</EmptyTitle>
+            <EmptyDescription>Für {year} gibt es noch keine Rangliste.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
-        <div className="space-y-8">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {highlights.map((card) => (
-              <HighlightCard key={card.key} title={card.title} name={card.name} detail={card.detail} />
+        <div className="space-y-10">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {highlights.map((card, index) => (
+              <HighlightCard
+                key={card.key}
+                title={card.title}
+                name={card.name}
+                detail={card.detail}
+                icon={highlightIcons[card.key]}
+                variant={index === 0 && card.key === 'winner' ? 'hero' : 'default'}
+                className={index === 0 && card.key === 'winner' ? 'sm:col-span-2' : undefined}
+              />
             ))}
           </div>
           {categoryWinners.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-3">
-              {categoryWinners.map((card) => (
-                <HighlightCard key={card.key} title={card.title} name={card.name} detail={card.detail} />
-              ))}
-            </div>
+            <Section title="Kategorie-Sieger">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {categoryWinners.map((card) => (
+                  <HighlightCard
+                    key={card.key}
+                    title={card.title}
+                    name={card.name}
+                    detail={card.detail}
+                    icon={highlightIcons[card.key]}
+                  />
+                ))}
+              </div>
+            </Section>
           ) : null}
+          <Button variant="outline" className="w-full sm:w-auto" asChild>
+            <NextLink href={`/statistics?year=${year}`}>Alle Statistiken {year}</NextLink>
+          </Button>
         </div>
       )}
-    </AppLayout>
+    </>
+  );
+}
+
+function YearLink({ year, label, children }: { year: number | undefined; label: string; children: ReactNode }) {
+  if (year === undefined) {
+    return (
+      <Button variant="outline" size="icon" disabled aria-label={label}>
+        {children}
+      </Button>
+    );
+  }
+
+  return (
+    <Button variant="outline" size="icon" asChild>
+      <NextLink href={`/jahresrueckblick/${year}`} aria-label={`${label} (${year})`}>
+        {children}
+      </NextLink>
+    </Button>
   );
 }

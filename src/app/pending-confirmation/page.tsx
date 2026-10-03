@@ -41,11 +41,11 @@ export default function PendingConfirmationPage() {
 
   return (
     <UnauthenticatedLayout>
-      <Card className="mx-auto w-full max-w-md text-center">
+      <Card className="w-full text-center">
         <CardHeader>
           <div className="mb-4 flex justify-center">
-            <div className="rounded-full bg-yellow-100 p-2 dark:bg-yellow-900/20">
-              <Clock className="size-4 text-yellow-600 dark:text-yellow-500" />
+            <div className="rounded-full bg-warning p-3">
+              <Clock className="size-5 text-warning-foreground" />
             </div>
           </div>
           <CardTitle>Bestätigung ausstehend</CardTitle>

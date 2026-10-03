@@ -2,6 +2,7 @@
 
 import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { SquarePen } from 'lucide-react';
+import { AvatarStack } from '@/components/avatar-stack';
 import { EventDialog } from '@/components/event-dialog';
 import { Button } from '@/components/shadcn/button';
 import { Table } from '@/components/table';
@@ -21,21 +22,30 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
     {
       accessorKey: 'restaurant',
       header: 'Restaurant',
-      cell: ({ row }) => <div className="font-medium">{row.original.restaurant}</div>,
+      meta: { className: 'whitespace-normal' },
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.restaurant}</div>
+          <div className="text-xs text-muted-foreground md:hidden">{displayCalendarDate(row.original.date)}</div>
+        </div>
+      ),
     },
     {
       accessorKey: 'date',
       header: 'Datum',
+      meta: { className: 'hidden md:table-cell' },
       cell: ({ row }) => displayCalendarDate(row.original.date),
     },
     {
       accessorKey: 'totalCost',
       header: 'Gesamtkosten',
+      meta: { className: 'hidden md:table-cell' },
       cell: ({ row }) => formatCurrency(row.original.totalCost),
     },
     {
       accessorKey: 'pickedByUser',
       header: 'Auswahl',
+      meta: { className: 'hidden md:table-cell' },
       cell: ({ row }) => (row.original.pickedByUser ? displayName(row.original.pickedByUser) : '-'),
     },
     {
@@ -44,19 +54,16 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
       cell: ({ row }) => {
         const assignedUsers = row.original.assignedUsers;
         if (!assignedUsers || assignedUsers.length === 0) {
-          return <div className="font-medium">-</div>;
+          return <span className="text-muted-foreground">-</span>;
         }
-        const initials = assignedUsers
-          .map((user) => user.firstName?.[0])
-          .filter(Boolean)
-          .join(', ');
 
-        return <div className="font-medium">{initials || '-'}</div>;
+        return <AvatarStack users={assignedUsers} max={4} />;
       },
     },
     {
       id: 'actions',
-      header: 'Aktionen',
+      header: () => <span className="sr-only">Aktionen</span>,
+      meta: { className: 'text-right' },
       cell: ({ row }) => {
         const event = row.original;
 
@@ -68,9 +75,9 @@ export const EventsTable = ({ events, users, isAdmin }: Props) => {
               users={users}
               assignedUserIds={event.assignedUsers?.map((user) => user.id) ?? []}
               trigger={
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" aria-label={`${event.restaurant} bearbeiten`}>
                   <SquarePen />
-                  Bearbeiten
+                  <span className="hidden sm:inline">Bearbeiten</span>
                 </Button>
               }
             />

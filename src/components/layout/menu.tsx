@@ -1,10 +1,8 @@
 'use client';
 
-import { CalendarDays, ChartNoAxesCombined, Ellipsis, LogOut, Trophy, Users } from 'lucide-react';
-import NextLink from 'next/link';
+import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
-import { Button } from '@/components/shadcn/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +11,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu';
 import { authClient } from '@/lib/auth-client';
-import { previousCalendarYearRange } from '@/lib/calendar-date';
 import { getInitials } from '@/lib/user';
 
-export function Menu() {
-  const { data: session } = authClient.useSession();
+type Props = {
+  user: { name: string | null; email: string; image?: string | null };
+};
+
+export function Menu({ user }: Props) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -31,60 +31,30 @@ export function Menu() {
     });
   };
 
-  if (!session?.user) {
-    return null;
-  }
-
-  const { user } = session;
+  const avatar = (className: string) => (
+    <Avatar className={className}>
+      <AvatarImage src={user.image ?? undefined} alt={user.name ?? user.email} />
+      <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">{getInitials(user.name)}</AvatarFallback>
+    </Avatar>
+  );
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-10 w-10 p-0">
-          <Ellipsis className="h-4 w-4" />
-        </Button>
+      <DropdownMenuTrigger
+        aria-label="Konto"
+        className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        {avatar('size-9')}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-60">
         <div className="flex items-center gap-2 p-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user.image ?? ''} alt={user.name ?? user.email ?? ''} />
-            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-          </Avatar>
+          {avatar('size-8')}
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">{user.name || user.email || ''}</span>
-            <span className="truncate text-xs text-muted-foreground">{user.email || ''}</span>
+            <span className="truncate font-semibold">{user.name || user.email}</span>
+            <span className="truncate text-xs text-muted-foreground">{user.email}</span>
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <NextLink href="/statistics" className="w-full cursor-pointer">
-            <ChartNoAxesCombined className="mr-2 h-4 w-4" />
-            Statistiken
-          </NextLink>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <NextLink href={`/jahresrueckblick/${previousCalendarYearRange().year}`} className="w-full cursor-pointer">
-            <Trophy className="mr-2 h-4 w-4" />
-            Jahresrückblick
-          </NextLink>
-        </DropdownMenuItem>
-        {user.isAdmin && (
-          <>
-            <DropdownMenuItem asChild>
-              <NextLink href="/events" className="w-full cursor-pointer">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Events verwalten
-              </NextLink>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <NextLink href="/users" className="w-full cursor-pointer">
-                <Users className="mr-2 h-4 w-4" />
-                Benutzer verwalten
-              </NextLink>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
         <DropdownMenuItem asChild>
           <button type="button" onClick={handleLogout} className="w-full cursor-pointer">
             <LogOut className="mr-2 h-4 w-4" />
