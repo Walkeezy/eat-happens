@@ -3,6 +3,16 @@ import { db } from '@/db';
 import { user } from '@/db/schema';
 import type { User } from '@/types/events';
 
+/** The user fields the UI shows next to events and ratings - leaves out timestamps, flags and auth details. */
+export const userSummaryColumns = {
+  id: true,
+  name: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  image: true,
+} as const;
+
 export async function getAllUsers(): Promise<User[]> {
   return db.query.user.findMany({
     orderBy: [asc(user.createdAt)],
