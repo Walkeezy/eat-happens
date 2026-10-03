@@ -1,5 +1,4 @@
-import { CalendarDays, ChartNoAxesCombined, House, type LucideIcon, ShieldUser, Trophy, Users } from 'lucide-react';
-import { previousCalendarYearRange } from '@/lib/calendar-date';
+import { CalendarDays, ChartNoAxesCombined, House, type LucideIcon, ShieldUser, Users, UtensilsCrossed } from 'lucide-react';
 
 type NavItem = {
   href: string;
@@ -10,19 +9,19 @@ type NavItem = {
 
 const home: NavItem = { href: '/', label: 'Übersicht', icon: House, isActive: (pathname) => pathname === '/' };
 
+const restaurants: NavItem = {
+  href: '/restaurants',
+  label: 'Restaurants',
+  icon: UtensilsCrossed,
+  isActive: (pathname) => pathname.startsWith('/restaurants'),
+};
+
 const statistics: NavItem = {
   href: '/statistics',
   label: 'Statistiken',
   icon: ChartNoAxesCombined,
   isActive: (pathname) => pathname.startsWith('/statistics'),
 };
-
-const yearInReview = (): NavItem => ({
-  href: `/jahresrueckblick/${previousCalendarYearRange().year}`,
-  label: 'Rückblick',
-  icon: Trophy,
-  isActive: (pathname) => pathname.startsWith('/jahresrueckblick'),
-});
 
 const events: NavItem = {
   href: '/events',
@@ -40,7 +39,7 @@ const users: NavItem = {
 
 /** Header links: admin pages get their own entries since there is room for them. */
 export function headerNavItems(isAdmin: boolean): NavItem[] {
-  return isAdmin ? [home, statistics, yearInReview(), events, users] : [home, statistics, yearInReview()];
+  return isAdmin ? [home, restaurants, statistics, events, users] : [home, restaurants, statistics];
 }
 
 /** Bottom tab bar: the admin pages share a single tab to keep it at four entries. */
@@ -52,5 +51,5 @@ export function bottomNavItems(isAdmin: boolean): NavItem[] {
     isActive: (pathname) => events.isActive(pathname) || users.isActive(pathname),
   };
 
-  return isAdmin ? [home, statistics, yearInReview(), admin] : [home, statistics, yearInReview()];
+  return isAdmin ? [home, restaurants, statistics, admin] : [home, restaurants, statistics];
 }

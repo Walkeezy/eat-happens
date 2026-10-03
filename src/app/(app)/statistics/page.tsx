@@ -1,9 +1,7 @@
-import { ChartNoAxesCombined, Trophy } from 'lucide-react';
-import NextLink from 'next/link';
+import { ChartNoAxesCombined } from 'lucide-react';
 import { CostTable } from '@/components/cost-table';
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
-import { Button } from '@/components/shadcn/button';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
 import { CostVsPriceSection } from '@/components/statistics/cost-vs-price';
 import { DisagreementTable } from '@/components/statistics/disagreement-table';
@@ -50,19 +48,7 @@ export default async function StatisticsPage({ searchParams }: Props) {
 
   return (
     <>
-      <PageHeader
-        title="Statistiken"
-        actions={
-          stats.isClosed ? (
-            <Button variant="outline" size="sm" asChild>
-              <NextLink href={`/jahresrueckblick/${year}`}>
-                <Trophy />
-                Rückblick {year}
-              </NextLink>
-            </Button>
-          ) : null
-        }
-      />
+      <PageHeader title="Statistiken" />
       <div className="mb-8 space-y-2">
         <YearChips years={years} selectedYear={year} />
         {stats.isClosed ? null : <p className="text-sm text-muted-foreground">Die Gruppen-Rangliste gibt’s ab 1. Januar.</p>}
