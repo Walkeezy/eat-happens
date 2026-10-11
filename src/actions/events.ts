@@ -1,58 +1,41 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
+import { unstable_rethrow } from 'next/navigation';
+import { type ActionResult, actionFailure } from '@/lib/action-result';
 import { type EventWithAssignmentsData, eventWithAssignmentsSchema } from '@/lib/schemas';
 import { requireAdmin } from '@/lib/verify-session';
 import { createEventWithAssignments, updateEventWithAssignments } from '@/services/events';
 
-function rethrowEventActionError(error: unknown, fallback: string): never {
-  if (error instanceof z.ZodError) {
-    throw new Error(error.issues[0]?.message ?? fallback);
-  }
-  if (error instanceof Error) {
-    throw error;
-  }
-  throw new Error(fallback);
-}
-
-export async function updateEventWithAssignmentsAction(eventId: string, data: EventWithAssignmentsData) {
+export async function updateEventWithAssignmentsAction(
+  eventId: string,
+  data: EventWithAssignmentsData,
+): Promise<ActionResult> {
   const { user } = await requireAdmin();
 
   try {
     const validatedData = eventWithAssignmentsSchema.parse(data);
-    const { event, assignmentChanges } = await updateEventWithAssignments(user.id, eventId, validatedData);
-
+    await updateEventWithAssignments(user.id, eventId, validatedData);
     revalidatePath('/', 'layout');
 
-    return {
-      success: true,
-      event,
-      assignmentChanges,
-    };
+    return { success: true };
   } catch (error) {
-    console.error('Error updating event with assignments:', error);
-    rethrowEventActionError(error, 'Event konnte nicht aktualisiert werden');
+    unstable_rethrow(error);
+    return actionFailure(error, 'Event konnte nicht aktualisiert werden');
   }
 }
 
-export async function createEventWithAssignmentsAction(data: EventWithAssignmentsData) {
+export async function createEventWithAssignmentsAction(data: EventWithAssignmentsData): Promise<ActionResult> {
   const { user } = await requireAdmin();
 
   try {
     const validatedData = eventWithAssignmentsSchema.parse(data);
-    const { event, assignments } = await createEventWithAssignments(user.id, validatedData);
-
+    await createEventWithAssignments(user.id, validatedData);
     revalidatePath('/', 'layout');
 
-    return {
-      success: true,
-      event,
-      assignments,
-      assignedCount: assignments.length,
-    };
+    return { success: true };
   } catch (error) {
-    console.error('Error creating event with assignments:', error);
-    rethrowEventActionError(error, 'Event konnte nicht erstellt werden');
+    unstable_rethrow(error);
+    return actionFailure(error, 'Event konnte nicht erstellt werden');
   }
 }

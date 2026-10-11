@@ -4,16 +4,17 @@ import { type AdminEventRow, EventsTable } from '@/components/events-table';
 import { AdminTabs } from '@/components/layout/admin-tabs';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/shadcn/button';
-import { todayCalendarDate } from '@/lib/calendar-date';
+import { displayCalendarDate, todayCalendarDate } from '@/lib/calendar-date';
 import { displayName } from '@/lib/user';
 import { requireAdminPage } from '@/lib/verify-session';
 import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
 
 export default async function EventsPage() {
-  const { user } = await requireAdminPage();
-
-  const [events, confirmedUsers] = await Promise.all([getEvents(), getAllConfirmedUsers()]);
+  // Neither query depends on who is asking, so they run while the session is being verified.
+  const dataPromise = Promise.all([getEvents(), getAllConfirmedUsers()]);
+  await requireAdminPage();
+  const [events, confirmedUsers] = await dataPromise;
   const today = todayCalendarDate();
 
   // The table and its dialogs are client components - hand them only the fields they render.
@@ -21,6 +22,7 @@ export default async function EventsPage() {
     id: event.id,
     restaurant: event.restaurant,
     date: event.date,
+    displayDate: displayCalendarDate(event.date),
     totalCost: event.totalCost,
     pickedByUserId: event.pickedByUserId,
     pickerName: event.pickedByUser ? displayName(event.pickedByUser) : null,
@@ -55,7 +57,7 @@ export default async function EventsPage() {
         }
       />
       <AdminTabs />
-      <EventsTable events={rows} users={users} isAdmin={user.isAdmin} />
+      <EventsTable events={rows} users={users} />
     </>
   );
 }

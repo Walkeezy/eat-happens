@@ -1,43 +1,34 @@
-'use client';
-
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
-import { Table } from '@/components/table';
+import { type Column, Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
 import type { EventCostRow } from '@/lib/statistics';
 
-const columns: ColumnDef<EventCostRow>[] = [
+const columns: Column<EventCostRow>[] = [
   {
-    accessorKey: 'restaurant',
+    id: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
+    className: 'whitespace-normal',
+    cell: (row) => <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>,
   },
   {
-    accessorKey: 'totalCost',
+    id: 'totalCost',
     header: 'Gesamtkosten',
-    meta: { className: 'hidden sm:table-cell' },
-    cell: ({ row }) => formatCurrency(row.original.totalCost),
+    className: 'hidden sm:table-cell',
+    cell: (row) => formatCurrency(row.totalCost),
   },
   {
-    accessorKey: 'attendeeCount',
+    id: 'attendeeCount',
     header: 'Teilnehmer',
-    meta: { className: 'hidden sm:table-cell' },
-    cell: ({ row }) => row.original.attendeeCount || '-',
+    className: 'hidden sm:table-cell',
+    cell: (row) => row.attendeeCount || '-',
   },
   {
-    accessorKey: 'costPerPerson',
+    id: 'costPerPerson',
     header: 'Pro Person',
-    cell: ({ row }) => <span className="font-bold">{formatCurrency(row.original.costPerPerson)}</span>,
+    cell: (row) => <span className="font-bold">{formatCurrency(row.costPerPerson)}</span>,
   },
 ];
 
-export const CostTable = ({ events }: { events: EventCostRow[] }) => {
-  const table = useReactTable({
-    data: events,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  return <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />;
-};
+export const CostTable = ({ events }: { events: EventCostRow[] }) => (
+  <Table rows={events} columns={columns} rowKey={(row) => row.id} rowHref={(row) => restaurantHref(row.id)} />
+);

@@ -1,3 +1,5 @@
+const chf = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' });
+
 export const formatCurrency = (value: string | number | null) => {
   if (value === null) {
     return '-';
@@ -8,5 +10,5 @@ export const formatCurrency = (value: string | number | null) => {
     return '-';
   }
 
-  return new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(amount);
+  return chf.format(amount);
 };

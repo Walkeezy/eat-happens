@@ -1,6 +1,7 @@
 import { calendarYear, isClosedCalendarYear, todayCalendarDate } from '@/lib/calendar-date';
 import { buildRestaurantDetail, type RestaurantDetail } from '@/lib/restaurant-detail';
-import { buildRestaurantRows, type RestaurantRow } from '@/lib/restaurants';
+import { buildRestaurantRows } from '@/lib/restaurant-rows';
+import type { RestaurantRow } from '@/lib/restaurants';
 import { displayName } from '@/lib/user';
 import { getEvent, getEvents } from '@/services/events';
 import { getYearStatistics } from '@/services/statistics';

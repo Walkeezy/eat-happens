@@ -1,60 +1,51 @@
-'use client';
-
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Star } from 'lucide-react';
 import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
-import { Table } from '@/components/table';
+import { type Column, Table } from '@/components/table';
 import { cn } from '@/lib/shadcn-utils';
 import type { RankedRestaurant } from '@/lib/statistics';
 
 const podiumStyles = ['bg-star/30 text-foreground', 'bg-muted-foreground/15 text-foreground', 'bg-primary/10 text-primary'];
 
-const columns: ColumnDef<RankedRestaurant>[] = [
+const columns: Column<RankedRestaurant>[] = [
   {
-    accessorKey: 'rank',
+    id: 'rank',
     header: '#',
-    meta: { className: 'w-10' },
-    cell: ({ row }) => (
+    className: 'w-10',
+    cell: (_row, index) => (
       <span
         className={cn(
           'inline-flex size-6 items-center justify-center rounded-full text-xs font-bold',
-          podiumStyles[row.index] ?? 'text-muted-foreground',
+          podiumStyles[index] ?? 'text-muted-foreground',
         )}
       >
-        {row.index + 1}
+        {index + 1}
       </span>
     ),
   },
   {
-    accessorKey: 'restaurant',
+    id: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
+    className: 'whitespace-normal',
+    cell: (row) => <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>,
   },
   {
-    accessorKey: 'average',
+    id: 'average',
     header: 'Ø',
-    cell: ({ row }) => (
+    cell: (row) => (
       <div className="flex items-center gap-1">
         <Star className="size-3.5 fill-star text-star" />
-        <span className="font-bold">{row.original.average.toFixed(1)}</span>
+        <span className="font-bold">{row.average.toFixed(1)}</span>
       </div>
     ),
   },
   {
-    accessorKey: 'ratingCount',
+    id: 'ratingCount',
     header: 'Bewertungen',
-    meta: { className: 'hidden text-right sm:table-cell' },
-    cell: ({ row }) => <span className="text-muted-foreground">{row.original.ratingCount}</span>,
+    className: 'hidden text-right sm:table-cell',
+    cell: (row) => <span className="text-muted-foreground">{row.ratingCount}</span>,
   },
 ];
 
-export const YearRankingTable = ({ events }: { events: RankedRestaurant[] }) => {
-  const table = useReactTable({
-    data: events,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  return <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />;
-};
+export const YearRankingTable = ({ events }: { events: RankedRestaurant[] }) => (
+  <Table rows={events} columns={columns} rowKey={(row) => row.id} rowHref={(row) => restaurantHref(row.id)} />
+);

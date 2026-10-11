@@ -1,13 +1,27 @@
 import { AdminTabs } from '@/components/layout/admin-tabs';
 import { PageHeader } from '@/components/layout/page-header';
-import { UsersTable } from '@/components/users-table';
+import { type AdminUserRow, UsersTable } from '@/components/users-table';
+import { calendarDateOf, displayCalendarDate } from '@/lib/calendar-date';
 import { requireAdminPage } from '@/lib/verify-session';
 import { getAllUsers } from '@/services/users';
 
 export default async function UsersPage() {
+  // The query does not depend on who is asking, so it runs while the session is being verified.
+  const usersPromise = getAllUsers();
   const { user } = await requireAdminPage();
-  const users = await getAllUsers();
+  const users = await usersPromise;
   const pendingCount = users.filter((candidate) => !candidate.isConfirmed).length;
+
+  // The table is a client component - hand it only the fields it renders.
+  const rows: AdminUserRow[] = users.map(({ id, name, email, image, isAdmin, isConfirmed, createdAt }) => ({
+    id,
+    name,
+    email,
+    image,
+    isAdmin,
+    isConfirmed,
+    registeredOn: displayCalendarDate(calendarDateOf(createdAt)),
+  }));
 
   return (
     <>
@@ -17,7 +31,7 @@ export default async function UsersPage() {
         description={pendingCount > 0 ? `${pendingCount} warten auf Bestätigung` : `${users.length} Benutzer`}
       />
       <AdminTabs />
-      <UsersTable users={users} currentUserId={user.id} />
+      <UsersTable users={rows} currentUserId={user.id} />
     </>
   );
 }

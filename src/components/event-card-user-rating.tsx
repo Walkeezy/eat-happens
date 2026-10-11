@@ -1,6 +1,6 @@
 import { Check, Star } from 'lucide-react';
 import { type FC, Fragment } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
+import { Avatar } from '@/components/avatar';
 import { StarRating } from '@/components/star-rating';
 import { ratingCategories } from '@/lib/constants';
 import type { RatingScores } from '@/lib/scores';
@@ -33,10 +33,12 @@ export const EventCardUserRating: FC<Props> = ({ user, userRating, isCurrentUser
 
   return (
     <div className="flex gap-2 rounded-lg bg-muted/70 p-2">
-      <Avatar className="size-7">
-        <AvatarImage src={user.image ?? undefined} alt={userName} />
-        <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">{userInitials}</AvatarFallback>
-      </Avatar>
+      <Avatar
+        src={user.image}
+        fallback={userInitials}
+        className="size-7"
+        fallbackClassName="bg-primary/15 text-[10px] font-semibold text-primary"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-sm font-medium">{userName}</span>

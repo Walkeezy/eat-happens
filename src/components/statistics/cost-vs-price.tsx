@@ -1,28 +1,25 @@
-'use client';
-
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { HighlightCard } from '@/components/statistics/highlight-card';
-import { Table } from '@/components/table';
+import { type Column, Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
 import type { CostVsPriceRow } from '@/lib/statistics';
 
-const columns: ColumnDef<CostVsPriceRow>[] = [
+const columns: Column<CostVsPriceRow>[] = [
   {
-    accessorKey: 'restaurant',
+    id: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
+    className: 'whitespace-normal',
+    cell: (row) => <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>,
   },
   {
-    accessorKey: 'costPerPerson',
+    id: 'costPerPerson',
     header: 'Pro Person',
-    cell: ({ row }) => formatCurrency(row.original.costPerPerson),
+    cell: (row) => formatCurrency(row.costPerPerson),
   },
   {
-    accessorKey: 'pricePerformance',
+    id: 'pricePerformance',
     header: 'Preis-Leistung',
-    cell: ({ row }) => <span className="font-bold">{row.original.pricePerformance.toFixed(1)}</span>,
+    cell: (row) => <span className="font-bold">{row.pricePerformance.toFixed(1)}</span>,
   },
 ];
 
@@ -35,12 +32,6 @@ export function CostVsPriceSection({
   expensiveAndGood: CostVsPriceRow | null;
   cheapAndDisappointing: CostVsPriceRow | null;
 }) {
-  const table = useReactTable({
-    data: rows,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -61,7 +52,7 @@ export function CostVsPriceSection({
           />
         ) : null}
       </div>
-      <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />
+      <Table rows={rows} columns={columns} rowKey={(row) => row.id} rowHref={(row) => restaurantHref(row.id)} />
     </div>
   );
 }

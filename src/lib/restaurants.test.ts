@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { calendarYear, todayCalendarDate } from './calendar-date';
-import { buildRestaurantRows, filterAndSortRestaurants } from './restaurants';
+import { buildRestaurantRows } from './restaurant-rows';
+import { filterAndSortRestaurants } from './restaurants';
 
 const categoryRating = (food: number, ambience: number, price: number) => ({
   legacyScore: null,

@@ -1,30 +1,26 @@
-'use client';
-
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
-import { Table } from '@/components/table';
+import { type Column, Table } from '@/components/table';
 import type { DisagreementStat } from '@/lib/statistics';
 
-const columns: ColumnDef<DisagreementStat>[] = [
+const columns: Column<DisagreementStat>[] = [
   {
-    accessorKey: 'restaurant',
+    id: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>,
+    className: 'whitespace-normal',
+    cell: (row) => <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>,
   },
   {
-    accessorKey: 'spread',
+    id: 'spread',
     header: 'Spannweite',
-    cell: ({ row }) => <span className="font-bold">{row.original.spread.toFixed(1)}</span>,
+    cell: (row) => <span className="font-bold">{row.spread.toFixed(1)}</span>,
   },
   {
-    accessorKey: 'range',
+    id: 'range',
     header: 'Min–Max',
-    cell: ({ row }) => `${row.original.min.toFixed(1)}–${row.original.max.toFixed(1)}`,
+    cell: (row) => `${row.min.toFixed(1)}–${row.max.toFixed(1)}`,
   },
 ];
 
 export function DisagreementTable({ rows }: { rows: DisagreementStat[] }) {
-  const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
-  return <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />;
+  return <Table rows={rows} columns={columns} rowKey={(row) => row.id} rowHref={(row) => restaurantHref(row.id)} />;
 }

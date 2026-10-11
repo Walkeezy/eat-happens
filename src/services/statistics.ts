@@ -2,13 +2,13 @@ import { and, gte, lte, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { event } from '@/db/schema';
 import {
+  calendarDateOf,
   calendarYear,
   calendarYearRange,
   isClosedCalendarYear,
   previousCalendarYearRange,
   todayCalendarDate,
 } from '@/lib/calendar-date';
-import { dayjs } from '@/lib/dayjs';
 import { applyRatingsVisibility } from '@/lib/ratings-visibility';
 import { buildYearStatistics, type YearStatistics } from '@/lib/statistics';
 import { displayName } from '@/lib/user';
@@ -75,7 +75,7 @@ export async function getYearStatistics(year: number, currentUserId: string): Pr
     people: confirmedUsers.map((user) => ({
       id: user.id,
       name: displayName(user),
-      createdOn: dayjs(user.createdAt).format('YYYY-MM-DD'),
+      createdOn: calendarDateOf(user.createdAt),
     })),
   });
 }

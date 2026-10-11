@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { rating } from '@/db/schema';
+import { AppError } from '@/lib/action-result';
 
 export async function saveRating(
   userId: string,
@@ -21,7 +22,7 @@ export async function saveRating(
     .returning();
 
   if (!newRating) {
-    throw new Error('Du hast dieses Event bereits bewertet und kannst deine Bewertung nicht mehr ändern');
+    throw new AppError('Du hast dieses Event bereits bewertet und kannst deine Bewertung nicht mehr ändern');
   }
 
   return newRating;

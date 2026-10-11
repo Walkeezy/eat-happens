@@ -6,10 +6,11 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { CostVsPriceSection } from '@/components/statistics/cost-vs-price';
 import { DisagreementTable } from '@/components/statistics/disagreement-table';
 import { AttendanceTable, PickCountsTable, PickerBiasTable, RatersTable } from '@/components/statistics/people-tables';
-import { type Ranking, RankingTabs } from '@/components/statistics/ranking-tabs';
+import { type RankingTab, RankingTabs } from '@/components/statistics/ranking-tabs';
 import { TopLists } from '@/components/statistics/top-lists';
 import { YearChips } from '@/components/statistics/year-chips';
 import { YearSummaryCards } from '@/components/statistics/year-totals';
+import { YearRankingTable } from '@/components/year-ranking-table';
 import { resolveStatisticsYear } from '@/lib/calendar-date';
 import { hasYearStatisticsData, type YearStatistics } from '@/lib/statistics';
 import { verifySession } from '@/lib/verify-session';
@@ -19,14 +20,14 @@ type Props = {
   searchParams: Promise<{ year?: string }>;
 };
 
-/** Only the rankings that someone actually rated. */
-function rankings(stats: YearStatistics): Ranking[] {
+/** Only the rankings that someone actually rated - rendered here, so the tabs only have to switch between them. */
+function rankingTabs(stats: YearStatistics): RankingTab[] {
   return [
     { label: 'Gesamt', events: stats.overallRanking },
     { label: 'Essen', events: stats.categoryRankings?.food },
     { label: 'Ambiente', events: stats.categoryRankings?.ambience },
     { label: 'Preis-Leistung', events: stats.categoryRankings?.pricePerformance },
-  ].filter((ranking): ranking is Ranking => ranking.events !== undefined);
+  ].flatMap(({ label, events }) => (events ? [{ label, table: <YearRankingTable events={events} /> }] : []));
 }
 
 function topListsTitle(stats: YearStatistics): string {
@@ -41,7 +42,7 @@ export default async function StatisticsPage({ searchParams }: Props) {
   const [{ session }, { year: yearParam }, years] = await Promise.all([verifySession(), searchParams, getEventYears()]);
   const year = resolveStatisticsYear(yearParam, years);
   const stats = await getYearStatistics(year, session.user.id);
-  const yearRankings = rankings(stats);
+  const yearRankings = rankingTabs(stats);
   const hasTopLists = stats.personalTop5 !== undefined || stats.groupTop5 !== undefined;
 
   return (
@@ -58,7 +59,7 @@ export default async function StatisticsPage({ searchParams }: Props) {
 
           {yearRankings.length > 0 ? (
             <Section title={`Rangliste ${year}`}>
-              <RankingTabs rankings={yearRankings} />
+              <RankingTabs tabs={yearRankings} />
             </Section>
           ) : null}
 

@@ -2,6 +2,7 @@ import { desc, eq, lte, type SQL } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { type DbClient, db } from '@/db';
 import { event } from '@/db/schema';
+import { AppError } from '@/lib/action-result';
 import { applyRatingsVisibility } from '@/lib/ratings-visibility';
 import type { EventWithAssignmentsData } from '@/lib/schemas';
 import { scoreAverage } from '@/lib/scores';
@@ -145,7 +146,7 @@ export async function updateEventWithAssignments(assignedBy: string, eventId: st
     await assertConfirmedPicker(data.pickedByUserId, tx);
     const updated = await updateEvent(eventId, data, tx);
     if (!updated) {
-      throw new Error('Event nicht gefunden');
+      throw new AppError('Event nicht gefunden');
     }
 
     const assignmentChanges = await updateEventAssignments(assignedBy, eventId, data.assignedUserIds, tx);

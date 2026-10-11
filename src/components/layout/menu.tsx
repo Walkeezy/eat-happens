@@ -2,7 +2,7 @@
 
 import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
+import { Avatar } from '@/components/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,10 +32,12 @@ export function Menu({ user }: Props) {
   };
 
   const avatar = (className: string) => (
-    <Avatar className={className}>
-      <AvatarImage src={user.image ?? undefined} alt={user.name ?? user.email} />
-      <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">{getInitials(user.name)}</AvatarFallback>
-    </Avatar>
+    <Avatar
+      src={user.image}
+      fallback={getInitials(user.name)}
+      className={className}
+      fallbackClassName="bg-primary/15 text-xs font-semibold text-primary"
+    />
   );
 
   return (
