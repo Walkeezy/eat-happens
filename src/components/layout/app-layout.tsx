@@ -22,7 +22,7 @@ export const AppLayout: FC<PropsWithChildren> = async ({ children }) => {
           </NextLink>
           <NavLinks isAdmin={user.isAdmin} />
           <div className="ml-auto">
-            <Menu user={user} />
+            <Menu user={{ name: user.name, email: user.email, image: user.image }} />
           </div>
         </div>
       </header>

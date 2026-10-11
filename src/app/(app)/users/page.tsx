@@ -7,9 +7,7 @@ import { getAllUsers } from '@/services/users';
 
 export default async function UsersPage() {
   // The query does not depend on who is asking, so it runs while the session is being verified.
-  const usersPromise = getAllUsers();
-  const { user } = await requireAdminPage();
-  const users = await usersPromise;
+  const [{ user }, users] = await Promise.all([requireAdminPage(), getAllUsers()]);
   const pendingCount = users.filter((candidate) => !candidate.isConfirmed).length;
 
   // The table is a client component - hand it only the fields it renders.

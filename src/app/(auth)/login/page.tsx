@@ -1,26 +1,15 @@
-'use client';
-
-import { toast } from 'sonner';
+import { signInWithGoogleAction } from '@/actions/auth';
 import { UnauthenticatedLayout } from '@/components/layout/unauthenticated-layout';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/card';
-import { authClient } from '@/lib/auth-client';
+import { safeRedirectPath } from '@/lib/safe-redirect';
 
-export default function LoginPage() {
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: '/',
-      });
+type Props = {
+  searchParams: Promise<{ next?: string; error?: string }>;
+};
 
-      if (result?.error) {
-        toast.error('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
-      }
-    } catch {
-      toast.error('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
-    }
-  };
+export default async function LoginPage({ searchParams }: Props) {
+  const { next, error } = await searchParams;
 
   return (
     <UnauthenticatedLayout>
@@ -29,11 +18,20 @@ export default function LoginPage() {
           <CardTitle>Anmelden</CardTitle>
           <CardDescription>Melde dich mit deinem Google-Konto an, Brudi.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button onClick={handleGoogleSignIn} size="lg" className="w-full">
-            <GoogleIcon />
-            Mit Google anmelden
-          </Button>
+        <CardContent className="space-y-3">
+          {error ? (
+            <p role="alert" className="text-sm text-destructive">
+              Anmeldung fehlgeschlagen. Bitte versuche es erneut.
+            </p>
+          ) : null}
+          {/* A plain form posting to a server action - no auth client in the browser, and it works before hydration. */}
+          <form action={signInWithGoogleAction}>
+            <input type="hidden" name="next" value={safeRedirectPath(next)} />
+            <Button type="submit" size="lg" className="w-full">
+              <GoogleIcon />
+              Mit Google anmelden
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </UnauthenticatedLayout>

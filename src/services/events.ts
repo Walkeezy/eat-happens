@@ -8,50 +8,68 @@ import type { EventWithAssignmentsData } from '@/lib/schemas';
 import { scoreAverage } from '@/lib/scores';
 import { assertConfirmedUsers, assignMultipleUsers, updateEventAssignments } from '@/services/assignments';
 import { userSummaryColumns } from '@/services/users';
-import type { CreateEventData, Event, EventWithDetails, UpdateEventData } from '@/types/events';
+import type { CreateEventData, Event, EventRating, EventWithDetails, UpdateEventData } from '@/types/events';
+
+const ratingScoreColumns = {
+  userId: true,
+  legacyScore: true,
+  foodScore: true,
+  ambienceScore: true,
+  pricePerformanceScore: true,
+} as const;
+
+const assignmentsWithUser = {
+  columns: { userId: true },
+  with: { user: { columns: userSummaryColumns } },
+} as const;
+
+/**
+ * How much of each dinner a page loads. Only the detail page shows raters who are not on the guest list, so only
+ * it loads the rater with every rating; the admin table shows no ratings at all.
+ */
+const eventShapes = {
+  detail: {
+    ratings: { columns: ratingScoreColumns, with: { user: { columns: userSummaryColumns } } },
+    assignments: assignmentsWithUser,
+    pickedByUser: { columns: userSummaryColumns },
+  },
+  cards: {
+    ratings: { columns: ratingScoreColumns },
+    assignments: assignmentsWithUser,
+    pickedByUser: { columns: userSummaryColumns },
+  },
+  admin: {
+    assignments: assignmentsWithUser,
+    pickedByUser: { columns: userSummaryColumns },
+  },
+} as const;
+
+type EventShape = keyof typeof eventShapes;
+
+type EventRow = Event & {
+  ratings?: EventRating[];
+  assignments: { userId: string; user: NonNullable<EventWithDetails['assignedUsers']>[number] }[];
+  pickedByUser: EventWithDetails['pickedByUser'];
+};
 
 type GetEventsOptions = {
   upToDate?: string;
-  currentUserId?: string;
+  shape: EventShape;
+  /**
+   * Whose ratings stay visible in the current year. A promise is fine: the query starts right away and only the
+   * post-processing waits for it, so a page can run the query while its session is still being verified.
+   */
+  currentUserId?: string | Promise<string>;
 };
 
-const eventDetailsRelations = {
-  ratings: {
-    with: {
-      user: { columns: userSummaryColumns },
-    },
-  },
-  assignments: {
-    columns: { userId: true },
-    with: {
-      user: { columns: userSummaryColumns },
-    },
-  },
-  pickedByUser: { columns: userSummaryColumns },
-} as const;
-
-type EventWithRelations = NonNullable<Awaited<ReturnType<typeof findEventWithRelations>>>;
-
-function findEventWithRelations(eventId: string) {
-  return db.query.event.findFirst({ where: eq(event.id, eventId), with: eventDetailsRelations });
-}
-
-function toEventWithDetails({ assignments = [], ...evt }: EventWithRelations, currentUserId?: string): EventWithDetails {
-  const ratings = evt.ratings || [];
-
-  const averageLegacyRating = scoreAverage(ratings, 'legacyScore');
-  const averageFoodRating = scoreAverage(ratings, 'foodScore');
-  const averageAmbienceRating = scoreAverage(ratings, 'ambienceScore');
-  const averagePricePerformanceRating = scoreAverage(ratings, 'pricePerformanceScore');
+function toEventWithDetails({ assignments, ...evt }: EventRow, currentUserId?: string): EventWithDetails {
+  const ratings = evt.ratings ?? [];
 
   return applyRatingsVisibility(
     {
       ...evt,
       assignedUsers: assignments
-        .map((a) => ({
-          ...a.user,
-          image: a.user.image ?? undefined,
-        }))
+        .map((a) => ({ ...a.user, image: a.user.image ?? undefined }))
         .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
       pickedByUser: evt.pickedByUser
         ? {
@@ -62,31 +80,33 @@ function toEventWithDetails({ assignments = [], ...evt }: EventWithRelations, cu
             email: evt.pickedByUser.email,
           }
         : null,
-      averageLegacyRating,
-      averageFoodRating,
-      averageAmbienceRating,
-      averagePricePerformanceRating,
+      averageLegacyRating: scoreAverage(ratings, 'legacyScore'),
+      averageFoodRating: scoreAverage(ratings, 'foodScore'),
+      averageAmbienceRating: scoreAverage(ratings, 'ambienceScore'),
+      averagePricePerformanceRating: scoreAverage(ratings, 'pricePerformanceScore'),
       totalRatings: ratings.length,
     },
     currentUserId,
   );
 }
 
-export async function getEvents(options?: GetEventsOptions): Promise<EventWithDetails[]> {
-  const where: SQL | undefined = options?.upToDate ? lte(event.date, options.upToDate) : undefined;
-  const eventsWithDetails = await db.query.event.findMany({
-    where,
-    orderBy: [desc(event.date)],
-    with: eventDetailsRelations,
-  });
+export async function getEvents({ upToDate, shape, currentUserId }: GetEventsOptions): Promise<EventWithDetails[]> {
+  const where: SQL | undefined = upToDate ? lte(event.date, upToDate) : undefined;
+  const [rows, userId] = await Promise.all([
+    db.query.event.findMany({ where, orderBy: [desc(event.date)], with: eventShapes[shape] }),
+    currentUserId,
+  ]);
 
-  return eventsWithDetails.map((evt) => toEventWithDetails(evt, options?.currentUserId));
+  return (rows as EventRow[]).map((row) => toEventWithDetails(row, userId));
 }
 
-export async function getEvent(eventId: string, currentUserId?: string): Promise<EventWithDetails | null> {
-  const evt = await findEventWithRelations(eventId);
+export async function getEvent(eventId: string, currentUserId?: string | Promise<string>): Promise<EventWithDetails | null> {
+  const [row, userId] = await Promise.all([
+    db.query.event.findFirst({ where: eq(event.id, eventId), with: eventShapes.detail }),
+    currentUserId,
+  ]);
 
-  return evt ? toEventWithDetails(evt, currentUserId) : null;
+  return row ? toEventWithDetails(row as EventRow, userId) : null;
 }
 
 /** The picker dropdown only offers confirmed users; this keeps a hand-crafted payload from reaching the FK. */

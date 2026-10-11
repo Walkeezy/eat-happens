@@ -1,36 +1,19 @@
-'use client';
-
 import { LogOut } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { signOutAction } from '@/actions/auth';
 import { Avatar } from '@/components/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/shadcn/dropdown-menu';
-import { authClient } from '@/lib/auth-client';
 import { getInitials } from '@/lib/user';
 
 type Props = {
   user: { name: string | null; email: string; image?: string | null };
 };
 
+const MENU_ID = 'account-menu';
+
+/**
+ * The account menu is a native popover: the browser handles opening, closing on Escape and on outside clicks,
+ * so the header needs no client JavaScript. Sign-out is a form posting to a server action.
+ */
 export function Menu({ user }: Props) {
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push('/login');
-          router.refresh();
-        },
-      },
-    });
-  };
-
   const avatar = (className: string) => (
     <Avatar
       src={user.image}
@@ -41,14 +24,21 @@ export function Menu({ user }: Props) {
   );
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <>
+      <button
+        type="button"
+        popoverTarget={MENU_ID}
         aria-label="Konto"
-        className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="block rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         {avatar('size-9')}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
+      </button>
+      {/* Pinned under the header's right edge; no display utility here, the popover's own display:none must win while it is closed. */}
+      <div
+        id={MENU_ID}
+        popover="auto"
+        className="inset-auto top-[calc(3.5rem+env(safe-area-inset-top)+0.25rem)] right-[max(1rem,calc((100vw-64rem)/2+1.5rem))] m-0 w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+      >
         <div className="flex items-center gap-2 p-2">
           {avatar('size-8')}
           <div className="grid flex-1 text-left text-sm leading-tight">
@@ -56,14 +46,17 @@ export function Menu({ user }: Props) {
             <span className="truncate text-xs text-muted-foreground">{user.email}</span>
           </div>
         </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <button type="button" onClick={handleLogout} className="w-full cursor-pointer">
-            <LogOut className="mr-2 h-4 w-4" />
+        <div className="-mx-1 my-1 h-px bg-border" />
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent"
+          >
+            <LogOut className="size-4" />
             Abmelden
           </button>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </form>
+      </div>
+    </>
   );
 }

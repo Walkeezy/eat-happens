@@ -15,10 +15,15 @@ import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
 
 export default async function HomePage() {
-  const { session } = await verifySession();
-  const today = todayCalendarDate();
-  const [events, confirmedUsers] = await Promise.all([
-    getEvents({ upToDate: today, currentUserId: session.user.id }),
+  // The queries start right away; only the ratings-visibility step waits for the verified session.
+  const sessionPromise = verifySession();
+  const [{ session }, events, confirmedUsers] = await Promise.all([
+    sessionPromise,
+    getEvents({
+      upToDate: todayCalendarDate(),
+      shape: 'cards',
+      currentUserId: sessionPromise.then(({ user }) => user.id),
+    }),
     getAllConfirmedUsers(),
   ]);
   const nextPicker = determineNextPicker(confirmedUsers, events);

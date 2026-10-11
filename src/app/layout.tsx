@@ -1,5 +1,5 @@
 import { notoSans } from '@/app/fonts';
-import { Toaster } from '@/components/shadcn/sonner';
+import { LazyToaster } from '@/components/lazy-toaster';
 import { StarSymbol } from '@/components/star-rating';
 import '@/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <StarSymbol />
         {children}
-        <Toaster />
+        <LazyToaster />
       </body>
     </html>
   );

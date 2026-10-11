@@ -1,24 +1,48 @@
-import { calendarYear, isClosedCalendarYear, todayCalendarDate } from '@/lib/calendar-date';
+import { and, desc, gte, lte } from 'drizzle-orm';
+import { db } from '@/db';
+import { event } from '@/db/schema';
+import { calendarYear, calendarYearRange, isClosedCalendarYear, todayCalendarDate } from '@/lib/calendar-date';
 import { buildRestaurantDetail, type RestaurantDetail } from '@/lib/restaurant-detail';
 import { buildRestaurantRows } from '@/lib/restaurant-rows';
 import type { RestaurantRow } from '@/lib/restaurants';
+import { rankedOverall } from '@/lib/statistics';
 import { displayName } from '@/lib/user';
-import { getEvent, getEvents } from '@/services/events';
-import { getYearStatistics } from '@/services/statistics';
+import { getEvent } from '@/services/events';
+import { userSummaryColumns } from '@/services/users';
 import type { EventWithDetails } from '@/types/events';
 
-export async function getRestaurantRows(currentUserId: string): Promise<RestaurantRow[]> {
-  const events = await getEvents({ upToDate: todayCalendarDate(), currentUserId });
+const ratingScoreColumns = {
+  legacyScore: true,
+  foodScore: true,
+  ambienceScore: true,
+  pricePerformanceScore: true,
+} as const;
+
+/**
+ * The restaurant list only needs scores, the guest count and the picker's name. It does not depend on who is
+ * asking: the current year's scores are hidden for everyone, so the query can run before the session is checked.
+ */
+export async function getRestaurantRows(): Promise<RestaurantRow[]> {
+  const events = await db.query.event.findMany({
+    where: lte(event.date, todayCalendarDate()),
+    orderBy: [desc(event.date)],
+    columns: { id: true, date: true, restaurant: true, totalCost: true },
+    with: {
+      ratings: { columns: ratingScoreColumns },
+      assignments: { columns: { userId: true } },
+      pickedByUser: { columns: userSummaryColumns },
+    },
+  });
 
   return buildRestaurantRows(
-    events.map((event) => ({
-      id: event.id,
-      date: event.date,
-      restaurant: event.restaurant,
-      totalCost: event.totalCost,
-      pickerName: event.pickedByUser ? displayName(event.pickedByUser) : null,
-      attendeeCount: event.assignedUsers?.length ?? 0,
-      ratings: event.ratings ?? [],
+    events.map((item) => ({
+      id: item.id,
+      date: item.date,
+      restaurant: item.restaurant,
+      totalCost: item.totalCost,
+      pickerName: item.pickedByUser ? displayName(item.pickedByUser) : null,
+      attendeeCount: item.assignments.length,
+      ratings: item.ratings,
     })),
   );
 }
@@ -27,23 +51,30 @@ type YearRank = { rank: number; total: number; year: number };
 
 /**
  * Where the dinner landed in its year's group ranking - only once the year is closed and the ranking is public.
- * It needs the whole year's statistics, so the detail page streams it in instead of waiting for it.
+ * One query for that year's scores is enough; the detail page streams the row in instead of waiting for it.
  */
-export async function getYearRank(event: EventWithDetails, currentUserId: string): Promise<YearRank | undefined> {
-  const year = calendarYear(event.date);
+export async function getYearRank(eventId: string, date: string): Promise<YearRank | undefined> {
+  const year = calendarYear(date);
   if (!isClosedCalendarYear(year)) {
     return undefined;
   }
 
-  const ranking = (await getYearStatistics(year, currentUserId)).overallRanking ?? [];
-  const index = ranking.findIndex((row) => row.id === event.id);
+  const { start, end } = calendarYearRange(year);
+  const events = await db.query.event.findMany({
+    where: and(gte(event.date, start), lte(event.date, end)),
+    columns: { id: true, restaurant: true },
+    with: { ratings: { columns: ratingScoreColumns } },
+  });
+
+  const ranking = rankedOverall(events);
+  const index = ranking.findIndex((row) => row.id === eventId);
 
   return index === -1 ? undefined : { rank: index + 1, total: ranking.length, year };
 }
 
 export async function getRestaurantDetail(
   eventId: string,
-  currentUserId: string,
+  currentUserId: string | Promise<string>,
 ): Promise<{ event: EventWithDetails; detail: RestaurantDetail } | null> {
   const event = await getEvent(eventId, currentUserId);
   // The restaurant list only covers dinners that already took place, the detail page follows suit.
