@@ -16,7 +16,7 @@ const DISAGREEMENT_LIMIT = 5;
 /** How many entries the personal and group top lists show. */
 const TOP_LIST_LIMIT = 5;
 
-export type StatisticsRating = RatingScores & {
+type StatisticsRating = RatingScores & {
   userId: string;
   raterName?: string | null;
 };
@@ -67,7 +67,7 @@ export type YearTotals = {
   leastExpensive: EventCostRow | null;
 };
 
-export type NamedStat = {
+type NamedStat = {
   userId: string;
   name: string;
 };
