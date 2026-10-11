@@ -157,3 +157,11 @@
     cursor: pointer;
   }
 }
+
+/* Stroke for the shared star symbol; fill and colour come from the usual utilities. */
+@utility icon-star {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

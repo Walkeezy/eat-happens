@@ -179,7 +179,8 @@ function rankedByCategory(events: StatisticsEvent[], field: CategoryScoreKey): R
     .sort(compareRanked);
 }
 
-function rankedOverall(events: StatisticsEvent[]): RankedRestaurant[] {
+/** The group ranking by overall score. Exported for the restaurant detail page, which only needs a dinner's rank. */
+export function rankedOverall(events: { id: string; restaurant: string; ratings: RatingScores[] }[]): RankedRestaurant[] {
   return events
     .map((event) => {
       const average = eventOverall(event.ratings);

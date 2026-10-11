@@ -1,7 +1,9 @@
+import 'server-only';
 import { and, eq, type InferSelectModel, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { type DbClient, db } from '@/db';
 import { eventAssignment, user } from '@/db/schema';
+import { AppError } from '@/lib/action-result';
 
 type EventAssignment = InferSelectModel<typeof eventAssignment>;
 type User = InferSelectModel<typeof user>;
@@ -28,7 +30,7 @@ export async function assertConfirmedUsers(
     .where(and(inArray(user.id, uniqueIds), eq(user.isConfirmed, true)));
 
   if (confirmed.length !== uniqueIds.length) {
-    throw new Error(message);
+    throw new AppError(message);
   }
 }
 
@@ -40,7 +42,7 @@ export async function assignMultipleUsers(
 ): Promise<EventAssignment[]> {
   const uniqueIds = [...new Set(userIds)];
   if (uniqueIds.length === 0) {
-    throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
+    throw new AppError('Mindestens ein Benutzer muss zugewiesen werden');
   }
 
   await assertConfirmedUsers(uniqueIds, client);
@@ -78,7 +80,7 @@ export async function updateEventAssignments(
 ): Promise<number> {
   const uniqueIds = [...new Set(newUserIds)];
   if (uniqueIds.length === 0) {
-    throw new Error('Mindestens ein Benutzer muss zugewiesen werden');
+    throw new AppError('Mindestens ein Benutzer muss zugewiesen werden');
   }
 
   await assertConfirmedUsers(uniqueIds, client);

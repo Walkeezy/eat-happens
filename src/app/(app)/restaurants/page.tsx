@@ -7,8 +7,8 @@ import { verifySession } from '@/lib/verify-session';
 import { getRestaurantRows } from '@/services/restaurants';
 
 export default async function RestaurantsPage() {
-  const { session } = await verifySession();
-  const rows = await getRestaurantRows(session.user.id);
+  // The rows do not depend on who is asking, so the query runs while the session is being verified.
+  const [, rows] = await Promise.all([verifySession(), getRestaurantRows()]);
   const firstYear = rows.length > 0 ? Math.min(...rows.map((row) => calendarYear(row.date))) : undefined;
 
   return (

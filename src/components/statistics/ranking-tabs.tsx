@@ -1,28 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import { YearRankingTable } from '@/components/year-ranking-table';
+import { type ReactNode, useState } from 'react';
 import { cn } from '@/lib/shadcn-utils';
-import type { RankedRestaurant } from '@/lib/statistics';
 
-export type Ranking = {
+export type RankingTab = {
   label: string;
-  events: RankedRestaurant[];
+  /** The table, rendered on the server; this component only decides which one is visible. */
+  table: ReactNode;
 };
 
-/** The overall and per-category rankings list the same restaurants, so they share one table behind tabs. */
-export function RankingTabs({ rankings }: { rankings: Ranking[] }) {
+/** The overall and per-category rankings list the same restaurants, so they share one slot behind tabs. */
+export function RankingTabs({ tabs }: { tabs: RankingTab[] }) {
   const [selected, setSelected] = useState(0);
-  const current = rankings[selected] ?? rankings[0];
+  const current = tabs[selected] ?? tabs[0];
 
   return (
     <div className="space-y-3">
-      {rankings.length > 1 ? (
+      {tabs.length > 1 ? (
         <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
           <div role="tablist" aria-label="Rangliste" className="inline-flex gap-1 rounded-full border bg-card p-1 shadow-xs">
-            {rankings.map((ranking, index) => (
+            {tabs.map((tab, index) => (
               <button
-                key={ranking.label}
+                key={tab.label}
                 type="button"
                 role="tab"
                 aria-selected={index === selected}
@@ -32,15 +31,13 @@ export function RankingTabs({ rankings }: { rankings: Ranking[] }) {
                   index === selected && 'bg-primary text-primary-foreground hover:text-primary-foreground',
                 )}
               >
-                {ranking.label}
+                {tab.label}
               </button>
             ))}
           </div>
         </div>
       ) : null}
-      <div role="tabpanel">
-        <YearRankingTable events={current.events} />
-      </div>
+      <div role="tabpanel">{current.table}</div>
     </div>
   );
 }

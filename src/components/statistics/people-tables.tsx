@@ -1,15 +1,6 @@
-'use client';
-
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo } from 'react';
-import { Table } from '@/components/table';
+import { type Column, Table } from '@/components/table';
 import { cn } from '@/lib/shadcn-utils';
 import type { AttendanceStat, PickCountStat, PickerBiasStat, RaterStat } from '@/lib/statistics';
-
-function StatTable<T>({ rows, columns }: { rows: T[]; columns: ColumnDef<T>[] }) {
-  const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
-  return <Table table={table} columns={columns} />;
-}
 
 function formatDelta(delta: number | undefined): string {
   if (delta === undefined) {
@@ -27,83 +18,82 @@ function formatDelta(delta: number | undefined): string {
   return formatted;
 }
 
-const raterColumns: ColumnDef<RaterStat>[] = [
-  { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
+const byUserId = (row: { userId: string }) => row.userId;
+
+const raterColumns: Column<RaterStat>[] = [
+  { id: 'name', header: 'Name', cell: (row) => row.name },
   {
-    accessorKey: 'averageGiven',
+    id: 'averageGiven',
     header: 'Ø gegeben',
-    cell: ({ row }) => <span className="font-bold">{row.original.averageGiven.toFixed(1)}</span>,
+    cell: (row) => <span className="font-bold">{row.averageGiven.toFixed(1)}</span>,
   },
   {
-    accessorKey: 'ratingCount',
+    id: 'ratingCount',
     header: 'Bewertungen',
-    cell: ({ row }) => `${row.original.ratingCount} / ${row.original.attended}`,
+    cell: (row) => `${row.ratingCount} / ${row.attended}`,
   },
 ];
 
 export function RatersTable({ rows }: { rows: RaterStat[] }) {
-  return <StatTable rows={rows} columns={raterColumns} />;
+  return <Table rows={rows} columns={raterColumns} rowKey={byUserId} />;
 }
 
-const attendanceColumns: ColumnDef<AttendanceStat>[] = [
-  { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
+const attendanceColumns: Column<AttendanceStat>[] = [
+  { id: 'name', header: 'Name', cell: (row) => row.name },
   {
-    accessorKey: 'attended',
+    id: 'attended',
     header: 'Dabei',
-    cell: ({ row }) => `${row.original.attended} / ${row.original.eligible}`,
+    cell: (row) => `${row.attended} / ${row.eligible}`,
   },
-  { accessorKey: 'rate', header: 'Quote', cell: ({ row }) => `${Math.round(row.original.rate * 100)}%` },
+  { id: 'rate', header: 'Quote', cell: (row) => `${Math.round(row.rate * 100)}%` },
 ];
 
 export function AttendanceTable({ rows }: { rows: AttendanceStat[] }) {
-  return <StatTable rows={rows} columns={attendanceColumns} />;
+  return <Table rows={rows} columns={attendanceColumns} rowKey={byUserId} />;
 }
 
-const pickCountColumns: ColumnDef<PickCountStat>[] = [
-  { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
-  { accessorKey: 'pickCount', header: 'Auswählen', cell: ({ row }) => row.original.pickCount },
+const pickCountColumns: Column<PickCountStat>[] = [
+  { id: 'name', header: 'Name', cell: (row) => row.name },
+  { id: 'pickCount', header: 'Auswählen', cell: (row) => row.pickCount },
 ];
 
 export function PickCountsTable({ rows }: { rows: PickCountStat[] }) {
-  return <StatTable rows={rows} columns={pickCountColumns} />;
+  return <Table rows={rows} columns={pickCountColumns} rowKey={byUserId} />;
 }
 
-const createPickerBiasColumns = (highlightDelta: number | undefined): ColumnDef<PickerBiasStat>[] => [
-  { accessorKey: 'name', header: 'Name', cell: ({ row }) => row.original.name },
+const createPickerBiasColumns = (highlightDelta: number | undefined): Column<PickerBiasStat>[] => [
+  { id: 'name', header: 'Name', cell: (row) => row.name },
   {
-    accessorKey: 'pickCount',
+    id: 'pickCount',
     header: 'Auswählen',
-    meta: { className: 'hidden sm:table-cell' },
-    cell: ({ row }) => row.original.pickCount,
+    className: 'hidden sm:table-cell',
+    cell: (row) => row.pickCount,
   },
   {
-    accessorKey: 'groupAverage',
+    id: 'groupAverage',
     header: 'Gruppe Ø',
-    cell: ({ row }) => row.original.groupAverage.toFixed(1),
+    cell: (row) => row.groupAverage.toFixed(1),
   },
   {
-    accessorKey: 'ownAverage',
+    id: 'ownAverage',
     header: 'Eigene Ø',
-    cell: ({ row }) => row.original.ownAverage?.toFixed(1) ?? '-',
+    cell: (row) => row.ownAverage?.toFixed(1) ?? '-',
   },
   {
-    accessorKey: 'delta',
+    id: 'delta',
     header: 'Δ',
-    cell: ({ row }) => {
-      const isMax = highlightDelta !== undefined && row.original.delta === highlightDelta;
+    cell: (row) => {
+      const isMax = highlightDelta !== undefined && row.delta === highlightDelta;
 
-      return <span className={cn('font-bold', isMax && 'text-primary')}>{formatDelta(row.original.delta)}</span>;
+      return <span className={cn('font-bold', isMax && 'text-primary')}>{formatDelta(row.delta)}</span>;
     },
   },
 ];
 
 export function PickerBiasTable({ rows }: { rows: PickerBiasStat[] }) {
-  const columns = useMemo(() => {
-    const deltas = rows.map((row) => row.delta).filter((delta): delta is number => delta !== undefined);
-    const maxDelta = deltas.length > 0 ? Math.max(...deltas) : undefined;
+  const deltas = rows.map((row) => row.delta).filter((delta): delta is number => delta !== undefined);
+  const maxDelta = deltas.length > 0 ? Math.max(...deltas) : undefined;
+  const columns = createPickerBiasColumns(maxDelta !== undefined && maxDelta > 0 ? maxDelta : undefined);
 
-    return createPickerBiasColumns(maxDelta !== undefined && maxDelta > 0 ? maxDelta : undefined);
-  }, [rows]);
-
-  return <StatTable rows={rows} columns={columns} />;
+  return <Table rows={rows} columns={columns} rowKey={byUserId} />;
 }

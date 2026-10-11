@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
+import { AppError } from '@/lib/action-result';
 import { auth } from '@/lib/auth';
 
 export const verifySession = cache(async () => {
@@ -25,7 +26,7 @@ export const requireAdmin = async () => {
   const { session, user } = await verifySession();
 
   if (!user.isAdmin) {
-    throw new Error('Nur Administratoren können diese Aktion ausführen');
+    throw new AppError('Nur Administratoren können diese Aktion ausführen');
   }
 
   return { session, user };

@@ -13,7 +13,13 @@ export function proxy(request: NextRequest) {
 
   const sessionCookie = getSessionCookie(request);
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Remember where they wanted to go, so a shared restaurant link still lands on that restaurant after login.
+    const loginUrl = new URL('/login', request.url);
+    if (pathname !== '/') {
+      loginUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`);
+    }
+
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

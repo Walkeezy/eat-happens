@@ -1,7 +1,7 @@
 import { UtensilsCrossed } from 'lucide-react';
 import type { FC } from 'react';
+import { Avatar } from '@/components/avatar';
 import { Banner } from '@/components/banner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar';
 import type { NextPicker } from '@/lib/pick-rotation';
 import { displayName, getInitials } from '@/lib/user';
 
@@ -13,12 +13,12 @@ export const NextPickerBanner: FC<NextPicker> = ({ name, user, isMakeUpTurn }) =
       variant="highlight"
       icon={
         user ? (
-          <Avatar className="size-12 ring-2 ring-primary/30">
-            <AvatarImage src={user.image ?? undefined} alt={pickerName} />
-            <AvatarFallback className="bg-primary font-semibold text-primary-foreground">
-              {getInitials(user.name ?? name)}
-            </AvatarFallback>
-          </Avatar>
+          <Avatar
+            src={user.image}
+            fallback={getInitials(user.name ?? name)}
+            className="size-12 ring-2 ring-primary/30"
+            fallbackClassName="bg-primary font-semibold text-primary-foreground"
+          />
         ) : (
           <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <UtensilsCrossed className="size-5" />

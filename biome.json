@@ -75,7 +75,8 @@
         "useDefaultSwitchClause": "error"
       },
       "correctness": {
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
       }
     }
   },

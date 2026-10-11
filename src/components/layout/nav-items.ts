@@ -1,7 +1,8 @@
 import { CalendarDays, ChartNoAxesCombined, House, type LucideIcon, ShieldUser, Users, UtensilsCrossed } from 'lucide-react';
+import type { Route } from 'next';
 
 type NavItem = {
-  href: string;
+  href: Route;
   label: string;
   icon: LucideIcon;
   isActive: (pathname: string) => boolean;

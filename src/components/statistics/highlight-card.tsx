@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react';
+import type { Route } from 'next';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/shadcn-utils';
@@ -8,7 +9,7 @@ type Props = {
   name: string;
   detail: string;
   icon?: ReactNode;
-  href?: string;
+  href?: Route;
   className?: string;
 };
 

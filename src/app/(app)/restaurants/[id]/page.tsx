@@ -15,7 +15,6 @@ import type { RestaurantDetail } from '@/lib/restaurant-detail';
 import { displayName } from '@/lib/user';
 import { verifySession } from '@/lib/verify-session';
 import { getRestaurantDetail, getYearRank } from '@/services/restaurants';
-import type { EventWithDetails } from '@/types/events';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -31,9 +30,16 @@ function scoreTiles(detail: RestaurantDetail): { title: string; value: number }[
 }
 
 export default async function RestaurantDetailPage({ params }: Props) {
-  const { session } = await verifySession();
+  // The dinner query starts as soon as the id is known; only the ratings-visibility step waits for the session.
+  const sessionPromise = verifySession();
   const { id } = await params;
-  const result = await getRestaurantDetail(id, session.user.id);
+  const [{ session }, result] = await Promise.all([
+    sessionPromise,
+    getRestaurantDetail(
+      id,
+      sessionPromise.then(({ user }) => user.id),
+    ),
+  ]);
 
   if (!result) {
     notFound();
@@ -105,7 +111,7 @@ export default async function RestaurantDetailPage({ params }: Props) {
             ) : null}
             {/* Last, so the row streaming in later does not push the others around. */}
             <Suspense fallback={null}>
-              <YearRankRow event={event} currentUserId={session.user.id} />
+              <YearRankRow eventId={event.id} date={event.date} />
             </Suspense>
           </dl>
         </Section>
@@ -138,8 +144,8 @@ export default async function RestaurantDetailPage({ params }: Props) {
   );
 }
 
-async function YearRankRow({ event, currentUserId }: { event: EventWithDetails; currentUserId: string }) {
-  const yearRank = await getYearRank(event, currentUserId);
+async function YearRankRow({ eventId, date }: { eventId: string; date: string }) {
+  const yearRank = await getYearRank(eventId, date);
   if (!yearRank) {
     return null;
   }

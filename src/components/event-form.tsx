@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -40,8 +39,6 @@ type Props = {
 
 /** Loaded on demand by EventDialog, so react-hook-form and zod stay out of the first page load. */
 export function EventForm({ mode, event, users, assignedUserIds, onSaved }: Props) {
-  const router = useRouter();
-
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -54,29 +51,27 @@ export function EventForm({ mode, event, users, assignedUserIds, onSaved }: Prop
   });
 
   const onSubmit = async ({ restaurant, date, users, totalCost, pickedByUserId }: EventFormData) => {
-    try {
-      const eventData = {
-        restaurant,
-        date,
-        assignedUserIds: users,
-        totalCost: parseOptionalTotalCost(totalCost),
-        pickedByUserId: pickedByUserId === '' ? null : pickedByUserId,
-      };
+    const eventData = {
+      restaurant,
+      date,
+      assignedUserIds: users,
+      totalCost: parseOptionalTotalCost(totalCost),
+      pickedByUserId: pickedByUserId === '' ? null : pickedByUserId,
+    };
 
-      if (mode === 'edit' && event) {
-        await updateEventWithAssignmentsAction(event.id, eventData);
-      } else {
-        await createEventWithAssignmentsAction(eventData);
-      }
+    // The action revalidates the layout, so the table re-renders with the change in the same round trip.
+    const result =
+      mode === 'edit' && event
+        ? await updateEventWithAssignmentsAction(event.id, eventData)
+        : await createEventWithAssignmentsAction(eventData);
 
-      toast.success(mode === 'edit' ? 'Event wurde aktualisiert' : 'Event wurde erstellt');
-      onSaved();
-      router.refresh();
-    } catch (error) {
-      console.error('Error saving event:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Event konnte nicht gespeichert werden';
-      form.setError('root', { message: errorMessage });
+    if (!result.success) {
+      form.setError('root', { message: result.error });
+      return;
     }
+
+    toast.success(mode === 'edit' ? 'Event wurde aktualisiert' : 'Event wurde erstellt');
+    onSaved();
   };
 
   return (
@@ -188,7 +183,9 @@ export function EventForm({ mode, event, users, assignedUserIds, onSaved }: Prop
           )}
         />
 
-        {form.formState.errors.root && <div className="text-sm text-destructive">{form.formState.errors.root.message}</div>}
+        {form.formState.errors.root ? (
+          <div className="text-sm text-destructive">{form.formState.errors.root.message}</div>
+        ) : null}
 
         <div className="flex justify-end">
           <Button type="submit" disabled={form.formState.isSubmitting}>

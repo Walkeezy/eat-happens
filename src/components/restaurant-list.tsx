@@ -1,12 +1,10 @@
 'use client';
 
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { ChevronRight, Search, Star } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { Input } from '@/components/shadcn/input';
-import { Table } from '@/components/table';
-import { displayCalendarDate } from '@/lib/calendar-date';
+import { type Column, Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
 import { filterAndSortRestaurants, type RestaurantRow, type RestaurantSort } from '@/lib/restaurants';
 import { cn } from '@/lib/shadcn-utils';
@@ -19,70 +17,67 @@ const sortOptions: { value: RestaurantSort; label: string }[] = [
 
 const score = (value: number | undefined) => (value === undefined ? '–' : value.toFixed(1));
 
-const columns: ColumnDef<RestaurantRow>[] = [
+const columns: Column<RestaurantRow>[] = [
   {
-    accessorKey: 'restaurant',
+    id: 'restaurant',
     header: 'Restaurant',
-    meta: { className: 'whitespace-normal' },
-    cell: ({ row }) => (
+    className: 'whitespace-normal',
+    cell: (row) => (
       <div className="min-w-0">
-        <RestaurantLink id={row.original.id}>{row.original.restaurant}</RestaurantLink>
+        <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>
         <div className="text-xs text-muted-foreground">
-          {displayCalendarDate(row.original.date)}
-          {row.original.pickerName ? ` · ${row.original.pickerName}` : null}
-          {row.original.costPerPerson === null ? null : (
-            <span className="sm:hidden"> · {formatCurrency(row.original.costPerPerson)} p.P.</span>
+          {row.displayDate}
+          {row.pickerName ? ` · ${row.pickerName}` : null}
+          {row.costPerPerson === null ? null : (
+            <span className="sm:hidden"> · {formatCurrency(row.costPerPerson)} p.P.</span>
           )}
         </div>
       </div>
     ),
   },
   {
-    accessorKey: 'food',
+    id: 'food',
     header: 'Essen',
-    meta: { className: 'hidden text-right md:table-cell' },
-    cell: ({ row }) => <span className="text-muted-foreground">{score(row.original.food)}</span>,
+    className: 'hidden text-right md:table-cell',
+    cell: (row) => <span className="text-muted-foreground">{score(row.food)}</span>,
   },
   {
-    accessorKey: 'ambience',
+    id: 'ambience',
     header: 'Ambiente',
-    meta: { className: 'hidden text-right md:table-cell' },
-    cell: ({ row }) => <span className="text-muted-foreground">{score(row.original.ambience)}</span>,
+    className: 'hidden text-right md:table-cell',
+    cell: (row) => <span className="text-muted-foreground">{score(row.ambience)}</span>,
   },
   {
-    accessorKey: 'pricePerformance',
+    id: 'pricePerformance',
     header: 'P/L',
-    meta: { className: 'hidden text-right md:table-cell' },
-    cell: ({ row }) => <span className="text-muted-foreground">{score(row.original.pricePerformance)}</span>,
+    className: 'hidden text-right md:table-cell',
+    cell: (row) => <span className="text-muted-foreground">{score(row.pricePerformance)}</span>,
   },
   {
-    accessorKey: 'costPerPerson',
+    id: 'costPerPerson',
     header: 'p.P.',
-    meta: { className: 'hidden text-right sm:table-cell' },
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.costPerPerson === null ? '–' : formatCurrency(row.original.costPerPerson)}
-      </span>
+    className: 'hidden text-right sm:table-cell',
+    cell: (row) => (
+      <span className="text-muted-foreground">{row.costPerPerson === null ? '–' : formatCurrency(row.costPerPerson)}</span>
     ),
   },
   {
-    accessorKey: 'overall',
+    id: 'overall',
     header: 'Ø',
-    meta: { className: 'w-16 text-right' },
-    cell: ({ row }) =>
-      row.original.overall === undefined ? (
+    className: 'w-16 text-right',
+    cell: (row) =>
+      row.overall === undefined ? (
         <span className="text-muted-foreground">–</span>
       ) : (
         <div className="flex items-center justify-end gap-1">
           <Star className="size-3.5 fill-star text-star" />
-          <span className="font-bold">{row.original.overall.toFixed(1)}</span>
+          <span className="font-bold">{row.overall.toFixed(1)}</span>
         </div>
       ),
   },
   {
     id: 'open',
-    header: '',
-    meta: { className: 'w-6 pl-0' },
+    className: 'w-6 pl-0',
     cell: () => <ChevronRight className="size-4 text-muted-foreground" aria-hidden />,
   },
 ];
@@ -92,12 +87,6 @@ export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
   const [sort, setSort] = useState<RestaurantSort>('date');
   const visibleRows = useMemo(() => filterAndSortRestaurants(rows, query, sort), [rows, query, sort]);
   const hiddenYear = rows.find((row) => row.ratingsHidden)?.date.slice(0, 4);
-
-  const table = useReactTable({
-    data: visibleRows,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
 
   return (
     <div className="space-y-3">
@@ -132,7 +121,7 @@ export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
           </fieldset>
         </div>
       </div>
-      <Table table={table} columns={columns} rowHref={(row) => restaurantHref(row.id)} />
+      <Table rows={visibleRows} columns={columns} rowKey={(row) => row.id} rowHref={(row) => restaurantHref(row.id)} />
       {hiddenYear ? (
         <p className="text-sm text-muted-foreground">Die Bewertungen aus {hiddenYear} gibt’s ab 1. Januar.</p>
       ) : null}

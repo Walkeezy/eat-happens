@@ -1,3 +1,4 @@
+import 'server-only';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { user } from '@/db/schema';

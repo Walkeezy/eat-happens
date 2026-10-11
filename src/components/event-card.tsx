@@ -37,8 +37,9 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
   const hasAssignedUsers = assignedUsers.length > 0;
   const ratedCount = assignedUsers.filter((user) => event.ratings?.some((rating) => rating.userId === user.id)).length;
 
+  // content-visibility lets the browser skip layout and paint for cards below the fold; the intrinsic size keeps the scrollbar steady.
   return (
-    <Card className="group relative h-full gap-0 p-4 transition-colors hover:border-primary/40">
+    <Card className="group relative h-full gap-0 p-4 transition-colors [contain-intrinsic-size:auto_11rem] [content-visibility:auto] hover:border-primary/40">
       <div className="flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 leading-snug font-semibold">
           {/* The overlay makes the whole card a link; the rating controls below sit on top of it. */}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  calendarDateOf,
   calendarYear,
   calendarYearRange,
   displayCalendarDate,
@@ -22,6 +23,16 @@ describe('todayCalendarDate', () => {
   });
 });
 
+describe('calendarDateOf', () => {
+  it('reads the calendar day in Zurich, not in UTC', () => {
+    // 23:30 UTC on New Year's Eve is already 00:30 on New Year's Day in Zurich (CET, UTC+1).
+    expect(calendarDateOf(new Date('2026-12-31T23:30:00Z'))).toBe('2027-01-01');
+    // 22:30 UTC in summer is already past midnight in Zurich (CEST, UTC+2).
+    expect(calendarDateOf(new Date('2026-07-14T22:30:00Z'))).toBe('2026-07-15');
+    expect(calendarDateOf(new Date('2026-07-14T21:30:00Z'))).toBe('2026-07-14');
+  });
+});
+
 describe('displayCalendarDate', () => {
   it('formats a calendar date in local time without UTC conversion', () => {
     expect(displayCalendarDate('2026-01-01')).toBe('1. Januar 2026');
@@ -34,6 +45,9 @@ describe('isValidCalendarDate', () => {
     expect(isValidCalendarDate('2026-02-28')).toBe(true);
     expect(isValidCalendarDate('2026-02-31')).toBe(false);
     expect(isValidCalendarDate('not-a-date')).toBe(false);
+    expect(isValidCalendarDate('2028-02-29')).toBe(true);
+    expect(isValidCalendarDate('2026-13-01')).toBe(false);
+    expect(isValidCalendarDate('2026-1-01')).toBe(false);
   });
 });
 

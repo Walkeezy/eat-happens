@@ -1,25 +1,56 @@
-import { dayjs } from './dayjs';
+/**
+ * Calendar dates are plain `YYYY-MM-DD` strings, the same as the `date` column in Postgres. Everything here is
+ * string arithmetic plus `Intl`, so it is safe in the browser bundle and does not need a date library.
+ */
 
-const CALENDAR_DATE_FORMAT = 'YYYY-MM-DD';
+/** The group dines in Switzerland; "today" follows that clock, not the server's (UTC on Vercel). */
+const APP_TIME_ZONE = 'Europe/Zurich';
 
-function parseCalendarDate(value: string) {
-  return dayjs(value, CALENDAR_DATE_FORMAT, true);
+const CALENDAR_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const calendarDateParts = new Intl.DateTimeFormat('en-CA', {
+  timeZone: APP_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const displayFormat = new Intl.DateTimeFormat('de-CH', {
+  timeZone: 'UTC',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** The calendar date of a moment in time, as seen from the app's time zone. */
+export function calendarDateOf(date: Date): string {
+  const parts = Object.fromEntries(calendarDateParts.formatToParts(date).map((part) => [part.type, part.value]));
+
+  return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
 export function todayCalendarDate(): string {
-  return dayjs().format(CALENDAR_DATE_FORMAT);
+  return calendarDateOf(new Date());
 }
 
 export function isValidCalendarDate(value: string): boolean {
-  return parseCalendarDate(value).isValid();
+  if (!CALENDAR_DATE_PATTERN.test(value)) {
+    return false;
+  }
+
+  // Round-tripping through UTC catches days that do not exist, like 2026-02-31.
+  const parsed = new Date(`${value}T00:00:00Z`);
+
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 export function calendarYear(value: string): number {
-  return parseCalendarDate(value).year();
+  return Number(value.slice(0, 4));
 }
 
+/** `1. Januar 2026` - formatted in UTC so the calendar day never shifts with a time zone. */
 export function displayCalendarDate(value: string): string {
-  return parseCalendarDate(value).format('D. MMMM YYYY');
+  return displayFormat.format(new Date(`${value}T00:00:00Z`));
 }
 
 export function calendarYearRange(year: number): { year: number; start: string; end: string } {

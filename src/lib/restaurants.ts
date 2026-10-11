@@ -1,21 +1,10 @@
-import { shouldHideRatings } from './ratings-visibility';
-import { eventOverall, type RatingScores, scoreAverage } from './scores';
-import { costPerPerson } from './statistics';
-
-type RestaurantEvent = {
-  id: string;
-  date: string;
-  restaurant: string;
-  totalCost: string | null;
-  pickerName: string | null;
-  attendeeCount: number;
-  ratings: RatingScores[];
-};
-
+/** One row of the restaurant list. Built on the server (see `restaurant-rows.ts`), filtered and sorted in the browser. */
 export type RestaurantRow = {
   id: string;
   restaurant: string;
   date: string;
+  /** Formatted on the server, so the list needs no date code in the browser. */
+  displayDate: string;
   pickerName: string | null;
   costPerPerson: number | null;
   /** The current year's group scores stay hidden until January, just like on the statistics page. */
@@ -27,26 +16,6 @@ export type RestaurantRow = {
 };
 
 export type RestaurantSort = 'date' | 'rating' | 'cost';
-
-export function buildRestaurantRows(events: RestaurantEvent[]): RestaurantRow[] {
-  return events.map((event) => {
-    const ratingsHidden = shouldHideRatings(event.date);
-    const score = (value: number | undefined) => (ratingsHidden ? undefined : value);
-
-    return {
-      id: event.id,
-      restaurant: event.restaurant,
-      date: event.date,
-      pickerName: event.pickerName,
-      costPerPerson: costPerPerson(event.totalCost, event.attendeeCount),
-      ratingsHidden,
-      overall: score(eventOverall(event.ratings)),
-      food: score(scoreAverage(event.ratings, 'foodScore')),
-      ambience: score(scoreAverage(event.ratings, 'ambienceScore')),
-      pricePerformance: score(scoreAverage(event.ratings, 'pricePerformanceScore')),
-    };
-  });
-}
 
 /** Lower-cased and without accents, so "cafe" finds "Café". */
 function normalize(value: string): string {

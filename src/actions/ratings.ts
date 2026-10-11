@@ -1,33 +1,31 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { unstable_rethrow } from 'next/navigation';
+import { type ActionResult, AppError, actionFailure } from '@/lib/action-result';
 import { createRatingSchema } from '@/lib/schemas';
 import { verifySession } from '@/lib/verify-session';
 import { isUserAssignedToEvent } from '@/services/assignments';
 import { saveRating } from '@/services/ratings';
 import type { CreateRatingData } from '@/types/events';
 
-export async function saveRatingAction(data: CreateRatingData) {
+export async function saveRatingAction(data: CreateRatingData): Promise<ActionResult> {
   const { session } = await verifySession();
-  const validatedData = createRatingSchema.parse(data);
-
-  const isAssigned = await isUserAssignedToEvent(session.user.id, validatedData.eventId);
-  if (!isAssigned) {
-    throw new Error('Du kannst nur Events bewerten, denen du zugewiesen bist');
-  }
 
   try {
-    const rating = await saveRating(session.user.id, validatedData);
+    const validatedData = createRatingSchema.parse(data);
 
+    const isAssigned = await isUserAssignedToEvent(session.user.id, validatedData.eventId);
+    if (!isAssigned) {
+      throw new AppError('Du kannst nur Events bewerten, denen du zugewiesen bist');
+    }
+
+    await saveRating(session.user.id, validatedData);
     revalidatePath('/', 'layout');
 
-    return { success: true, rating };
+    return { success: true };
   } catch (error) {
-    console.error('Error saving rating:', error);
-    // Re-throw the error from the service layer to preserve the message
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('Bewertung konnte nicht gespeichert werden');
+    unstable_rethrow(error);
+    return actionFailure(error, 'Bewertung konnte nicht gespeichert werden');
   }
 }
