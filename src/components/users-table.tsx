@@ -1,7 +1,7 @@
 'use client';
 
 import { UserCheck, UserX } from 'lucide-react';
-import { useTransition } from 'react';
+import { useOptimistic, useTransition } from 'react';
 import { toast } from 'sonner';
 import { setUserConfirmedAction } from '@/actions/users';
 import { Avatar } from '@/components/avatar';
@@ -28,10 +28,20 @@ type Props = {
 };
 
 export const UsersTable = ({ users, currentUserId }: Props) => {
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  // The badge flips on tap; if the action fails, React drops the optimistic value when the transition ends.
+  const [optimisticUsers, setOptimisticConfirmed] = useOptimistic(
+    users,
+    (current, { userId, isConfirmed }: { userId: string; isConfirmed: boolean }) =>
+      current.map((user) => (user.id === userId ? { ...user, isConfirmed } : user)),
+  );
+  // A row is in flight while its optimistic state differs from the server's - only that row's button is disabled.
+  const confirmedOnServer = new Map(users.map((user) => [user.id, user.isConfirmed]));
+  const isSaving = (user: AdminUserRow) => confirmedOnServer.get(user.id) !== user.isConfirmed;
 
   const toggleConfirmation = (user: AdminUserRow) => {
     startTransition(async () => {
+      setOptimisticConfirmed({ userId: user.id, isConfirmed: !user.isConfirmed });
       // The action revalidates /users, so the table re-renders with the change in the same round trip.
       const result = await setUserConfirmedAction({ userId: user.id, isConfirmed: !user.isConfirmed });
 
@@ -87,7 +97,7 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
           <Button
             variant={user.isConfirmed ? 'outline' : 'default'}
             size="sm"
-            disabled={isPending}
+            disabled={isSaving(user)}
             onClick={() => toggleConfirmation(user)}
             aria-label={user.isConfirmed ? 'Bestätigung entziehen' : 'Bestätigen'}
           >
@@ -98,5 +108,5 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
     },
   ];
 
-  return <Table rows={users} columns={columns} rowKey={(user) => user.id} />;
+  return <Table rows={optimisticUsers} columns={columns} rowKey={(user) => user.id} />;
 };

@@ -1,9 +1,26 @@
 'use client';
 
-import NextLink from 'next/link';
+import type { LucideIcon } from 'lucide-react';
+import NextLink, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { bottomNavItems } from '@/components/layout/nav-items';
 import { cn } from '@/lib/shadcn-utils';
+
+/** Lights up as soon as the tab is tapped, so the bar reacts before the next page has rendered. */
+function TabIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) {
+  const { pending } = useLinkStatus();
+
+  return (
+    <span
+      className={cn(
+        'flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,scale] duration-150 group-active:scale-90 group-active:bg-primary/10',
+        (active || pending) && 'bg-primary/10',
+      )}
+    >
+      <Icon className="size-5" />
+    </span>
+  );
+}
 
 export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
@@ -11,10 +28,11 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <nav
       aria-label="Hauptnavigation"
-      className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-lg md:hidden"
+      // Named so the bar stays put above the page while a page transition runs.
+      className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/85 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] backdrop-blur-lg [view-transition-name:app-nav] md:hidden"
     >
       <ul className="mx-auto flex max-w-md">
-        {bottomNavItems(isAdmin).map(({ href, label, icon: Icon, isActive }) => {
+        {bottomNavItems(isAdmin).map(({ href, label, icon, isActive }) => {
           const active = isActive(pathname);
 
           return (
@@ -23,18 +41,11 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors',
+                  'group flex h-16 touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors',
                   active && 'text-primary',
                 )}
               >
-                <span
-                  className={cn(
-                    'flex h-7 w-12 items-center justify-center rounded-full transition-colors',
-                    active && 'bg-primary/10',
-                  )}
-                >
-                  <Icon className="size-5" />
-                </span>
+                <TabIcon icon={icon} active={active} />
                 {label}
               </NextLink>
             </li>

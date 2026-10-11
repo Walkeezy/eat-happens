@@ -1,6 +1,6 @@
-import { LogOut } from 'lucide-react';
 import { signOutAction } from '@/actions/auth';
 import { Avatar } from '@/components/avatar';
+import { SignOutButton } from '@/components/layout/sign-out-button';
 import { getInitials } from '@/lib/user';
 
 type Props = {
@@ -11,7 +11,8 @@ const MENU_ID = 'account-menu';
 
 /**
  * The account menu is a native popover: the browser handles opening, closing on Escape and on outside clicks,
- * so the header needs no client JavaScript. Sign-out is a form posting to a server action.
+ * so the header needs no client JavaScript beyond the sign-out button's pending state. Sign-out is a form
+ * posting to a server action.
  */
 export function Menu({ user }: Props) {
   const avatar = (className: string) => (
@@ -48,13 +49,7 @@ export function Menu({ user }: Props) {
         </div>
         <div className="-mx-1 my-1 h-px bg-border" />
         <form action={signOutAction}>
-          <button
-            type="submit"
-            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent"
-          >
-            <LogOut className="size-4" />
-            Abmelden
-          </button>
+          <SignOutButton />
         </form>
       </div>
     </>

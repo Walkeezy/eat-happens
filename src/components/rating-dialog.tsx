@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { type FC, type ReactNode, useState } from 'react';
+import { type FC, type ReactNode, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/shadcn/dialog';
 import { Skeleton } from '@/components/shadcn/skeleton';
 
@@ -22,6 +22,18 @@ export const RatingDialog: FC<Props> = ({ eventId, trigger }) => {
 
   // Start fetching the form as soon as someone reaches for the trigger, so it is usually there when the dialog opens.
   const preloadForm = () => void loadRatingForm();
+
+  // On touch screens there is no hover to warn us, and the trigger only shows when the user can rate - so fetch
+  // the form once the browser is idle, and the sheet opens with the form instead of a skeleton.
+  useEffect(() => {
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(() => void loadRatingForm());
+      return () => cancelIdleCallback(id);
+    }
+
+    const id = setTimeout(() => void loadRatingForm(), 2000);
+    return () => clearTimeout(id);
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

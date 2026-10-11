@@ -3,6 +3,7 @@ import type { FC, PropsWithChildren } from 'react';
 import { BottomNav } from '@/components/layout/bottom-nav';
 import { Menu } from '@/components/layout/menu';
 import { NavLinks } from '@/components/layout/nav-links';
+import { PageTransition } from '@/components/layout/page-transition';
 import { Logo } from '@/components/logo';
 import { verifySession } from '@/lib/verify-session';
 
@@ -12,7 +13,8 @@ export const AppLayout: FC<PropsWithChildren> = async ({ children }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-lg">
+      {/* Named so the header stays put above the page while a page transition runs. */}
+      <header className="sticky top-0 z-50 border-b bg-background/85 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] backdrop-blur-lg [view-transition-name:app-header]">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-6 px-4 sm:px-6">
           <NextLink href="/" className="flex items-center gap-2">
             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -26,8 +28,8 @@ export const AppLayout: FC<PropsWithChildren> = async ({ children }) => {
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 md:pt-10 md:pb-16">
-        {children}
+      <main className="mx-auto w-full max-w-5xl px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-[max(1.5rem,env(safe-area-inset-left),env(safe-area-inset-right))] md:pt-10 md:pb-16">
+        <PageTransition>{children}</PageTransition>
       </main>
       <BottomNav isAdmin={user.isAdmin} />
     </>
