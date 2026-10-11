@@ -13,6 +13,9 @@ const EventForm = dynamic(loadEventForm, {
   loading: () => <Skeleton className="h-[30rem]" />,
 });
 
+// Hoisted so a dialog without assignees does not hand the form a new array on every render.
+const noAssignees: string[] = [];
+
 type Props = {
   mode: 'create' | 'edit';
   event?: EventFormEvent;
@@ -21,7 +24,7 @@ type Props = {
   trigger: ReactNode;
 };
 
-export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = [], trigger }) => {
+export const EventDialog: FC<Props> = ({ mode, event, users, assignedUserIds = noAssignees, trigger }) => {
   const [open, setOpen] = useState(false);
 
   // Start fetching the form as soon as someone reaches for the trigger, so it is usually there when the dialog opens.

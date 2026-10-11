@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronRight, Search, Star } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
 import { Input } from '@/components/shadcn/input';
 import { type Column, Table } from '@/components/table';
@@ -85,7 +85,9 @@ const columns: Column<RestaurantRow>[] = [
 export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<RestaurantSort>('date');
-  const visibleRows = useMemo(() => filterAndSortRestaurants(rows, query, sort), [rows, query, sort]);
+  // Typing stays responsive on slow phones: the input updates at once, the filtered table catches up after.
+  const deferredQuery = useDeferredValue(query);
+  const visibleRows = useMemo(() => filterAndSortRestaurants(rows, deferredQuery, sort), [rows, deferredQuery, sort]);
   const hiddenYear = rows.find((row) => row.ratingsHidden)?.date.slice(0, 4);
 
   return (
