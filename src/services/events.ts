@@ -1,3 +1,4 @@
+import 'server-only';
 import { desc, eq, lte, type SQL } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { type DbClient, db } from '@/db';

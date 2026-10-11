@@ -1,3 +1,4 @@
+import 'server-only';
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { rating } from '@/db/schema';

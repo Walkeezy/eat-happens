@@ -1,5 +1,6 @@
 'use client';
 
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import type { MouseEvent, ReactNode } from 'react';
 import { TableRow } from '@/components/shadcn/table';
@@ -9,7 +10,7 @@ import { TableRow } from '@/components/shadcn/table';
  * link inside the row - this only widens the area a pointer can hit. It is the one client component a table
  * needs, so the cells themselves can render on the server.
  */
-export function ClickableRow({ href, children }: { href: string; children: ReactNode }) {
+export function ClickableRow({ href, children }: { href: Route; children: ReactNode }) {
   const router = useRouter();
 
   const openRow = (event: MouseEvent<HTMLTableRowElement>) => {

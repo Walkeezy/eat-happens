@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react';
+import type { Route } from 'next';
 import NextLink from 'next/link';
 import { restaurantHref } from '@/components/restaurant-link';
 import { formatCurrency } from '@/lib/format';
@@ -9,7 +10,7 @@ type Summary = {
   title: string;
   value: string;
   detail?: string;
-  href?: string;
+  href?: Route;
 };
 
 /** Only the totals we can actually put a number on. */

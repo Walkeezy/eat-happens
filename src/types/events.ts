@@ -5,7 +5,6 @@ import type { RatingScores } from '@/lib/scores';
 // Basic types from schema
 export type Event = InferSelectModel<typeof event>;
 export type User = InferSelectModel<typeof user>;
-export type Rating = InferSelectModel<typeof rating>;
 
 // Insert types
 export type CreateEventData = Pick<InferInsertModel<typeof event>, 'restaurant' | 'date' | 'totalCost' | 'pickedByUserId'>;

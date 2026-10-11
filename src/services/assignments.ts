@@ -1,3 +1,4 @@
+import 'server-only';
 import { and, eq, type InferSelectModel, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { type DbClient, db } from '@/db';

@@ -7,7 +7,7 @@ import { cn } from '@/lib/shadcn-utils';
 const tabs = [
   { href: '/events', label: 'Events' },
   { href: '/users', label: 'Benutzer' },
-];
+] as const;
 
 /** On phones the bottom bar has a single "Admin" tab, so the admin pages switch between each other here. */
 export function AdminTabs() {

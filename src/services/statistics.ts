@@ -1,3 +1,4 @@
+import 'server-only';
 import { and, gte, lte, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { event } from '@/db/schema';

@@ -4,13 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { unstable_rethrow } from 'next/navigation';
 import { type ActionResult, AppError, actionFailure } from '@/lib/action-result';
 import { createRatingSchema } from '@/lib/schemas';
-import { verifySession } from '@/lib/verify-session';
+import { verifySessionForAction } from '@/lib/verify-session';
 import { isUserAssignedToEvent } from '@/services/assignments';
 import { saveRating } from '@/services/ratings';
 import type { CreateRatingData } from '@/types/events';
 
 export async function saveRatingAction(data: CreateRatingData): Promise<ActionResult> {
-  const { session } = await verifySession();
+  const { session } = await verifySessionForAction();
 
   try {
     const validatedData = createRatingSchema.parse(data);

@@ -1,5 +1,6 @@
 'use server';
 
+import type { Route } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
@@ -23,7 +24,8 @@ export async function signInWithGoogleAction(formData: FormData) {
     console.error('Google sign-in could not be started', error);
   }
 
-  redirect(url ?? '/login?error=1');
+  // Google's authorization URL is external, so it is not one of the app's typed routes.
+  redirect((url ?? '/login?error=1') as Route);
 }
 
 export async function signOutAction() {

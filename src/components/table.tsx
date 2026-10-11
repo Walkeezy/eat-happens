@@ -1,3 +1,4 @@
+import type { Route } from 'next';
 import type { ReactNode } from 'react';
 import { ClickableRow } from '@/components/clickable-row';
 import { Table as ShadcnTable, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/shadcn/table';
@@ -16,7 +17,7 @@ type Props<TRow> = {
   columns: Column<TRow>[];
   rowKey: (row: TRow) => string;
   /** Makes the whole row a click target; the row still needs a visible link for keyboard and screen reader users. */
-  rowHref?: (row: TRow) => string | undefined;
+  rowHref?: (row: TRow) => Route | undefined;
 };
 
 /**

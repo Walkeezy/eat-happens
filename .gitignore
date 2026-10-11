@@ -12,6 +12,7 @@ yarn-error.log*
 .env.local
 .vercel
 .env*
+!.env.template
 
 # TypeScript incremental build info
 *.tsbuildinfo
