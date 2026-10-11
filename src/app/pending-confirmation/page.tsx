@@ -8,8 +8,7 @@ import { auth } from '@/lib/auth';
 
 export default async function PendingConfirmationPage() {
   // Not verifySession(): that one sends unconfirmed users here, so it would redirect in a loop.
-  // Always from the database: the cookie cache could still say "not confirmed" right after an admin confirmed the account.
-  const session = await auth.api.getSession({ headers: await headers(), query: { disableCookieCache: true } });
+  const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
     redirect('/login');
