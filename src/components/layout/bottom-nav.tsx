@@ -3,6 +3,7 @@
 import type { LucideIcon } from 'lucide-react';
 import NextLink, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { MouseEvent } from 'react';
 import { bottomNavItems } from '@/components/layout/nav-items';
 import { cn } from '@/lib/shadcn-utils';
 
@@ -25,6 +26,14 @@ function TabIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) 
 export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
 
+  // Tapping the tab you are already on scrolls back to the top, like a native tab bar.
+  const scrollToTop = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.currentTarget.pathname === pathname) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <nav
       aria-label="Hauptnavigation"
@@ -39,6 +48,7 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
             <li key={label} className="flex-1">
               <NextLink
                 href={href}
+                onClick={scrollToTop}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'group flex h-16 touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors',

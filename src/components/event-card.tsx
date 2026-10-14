@@ -2,8 +2,8 @@ import { CalendarIcon, ChevronDown, ChevronRight, Star, UserRound, Wallet } from
 import NextLink from 'next/link';
 import type { FC, ReactNode } from 'react';
 import { AvatarStack } from '@/components/avatar-stack';
-import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { RatingDialog } from '@/components/rating-dialog';
+import { RatingRow } from '@/components/rating-row';
 import { restaurantHref } from '@/components/restaurant-link';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -43,7 +43,7 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
       <div className="flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 leading-snug font-semibold">
           {/* The overlay makes the whole card a link; the rating controls below sit on top of it. */}
-          <NextLink href={restaurantHref(event.id)} className="after:absolute after:inset-0 group-hover:underline">
+          <NextLink href={restaurantHref(event.id)} className="after:absolute after:inset-0">
             {event.restaurant}
           </NextLink>
         </h3>
@@ -83,17 +83,18 @@ export const EventCard: FC<Props> = ({ event, currentUserId, hideRatings }) => {
               </span>
               <ChevronDown className="ml-auto size-4 text-muted-foreground transition-transform group-open/ratings:rotate-180" />
             </summary>
-            <div className="mt-2 flex flex-col gap-1.5">
+            <ul className="mt-2 divide-y rounded-lg bg-muted/70">
               {assignedUsers.map((user) => (
-                <EventCardUserRating
+                <RatingRow
                   key={user.id}
                   user={user}
-                  userRating={event.ratings?.find((rating) => rating.userId === user.id)}
+                  rating={event.ratings?.find((rating) => rating.userId === user.id)}
                   isCurrentUser={user.id === currentUserId}
                   hideRatings={hideRatings}
+                  className="min-h-11 px-2 py-1.5"
                 />
               ))}
-            </div>
+            </ul>
           </details>
         )
       )}
