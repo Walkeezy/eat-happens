@@ -64,19 +64,3 @@ export function screenFor(pathname: string): NavItem | undefined {
 export function parentScreen(pathname: string): NavItem | undefined {
   return pathname.startsWith('/restaurants/') ? restaurants : undefined;
 }
-
-export type NavDirection = 'push' | 'pop' | 'tab';
-
-/** Opening a detail screen pushes it on top of its tab; leaving it pops it. Everything else is a switch between tabs. */
-export function navigationDirection(from: string, to: string): NavDirection {
-  const fromParent = parentScreen(from);
-  const toParent = parentScreen(to);
-  if (toParent && !fromParent) {
-    return 'push';
-  }
-  if (fromParent && !toParent) {
-    return 'pop';
-  }
-
-  return 'tab';
-}

@@ -1,13 +1,11 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { createContext, type ReactNode, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { type NavDirection, navigationDirection } from '@/components/layout/nav-items';
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 
 type NavigationState = {
   pathname: string;
   previousPathname: string | undefined;
-  direction: NavDirection;
   /** How many steps back stay inside the app. Reloading resets it; the back button then falls back to a plain link. */
   depth: number;
 };
@@ -41,7 +39,6 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const [navigation, setNavigation] = useState<NavigationState>({
     pathname,
     previousPathname: undefined,
-    direction: 'tab',
     depth: 0,
   });
   const [screen, setScreen] = useState<ScreenState>({ pathname, title: null, collapsed: false });
@@ -50,13 +47,12 @@ export function ShellProvider({ children }: { children: ReactNode }) {
     setNavigation({
       pathname,
       previousPathname: navigation.pathname,
-      direction: navigationDirection(navigation.pathname, pathname),
       // Going back is far more common than forward, so a history navigation counts as one step back.
       depth: popped ? Math.max(0, navigation.depth - 1) : navigation.depth + 1,
     });
     setPopped(false);
   }
-  // Reset with the route, so the bar's view-transition snapshot never carries the previous screen's title.
+  // Reset with the route, so the bar never shows the previous screen's title.
   if (screen.pathname !== pathname) {
     setScreen({ pathname, title: null, collapsed: false });
   }
@@ -67,12 +63,6 @@ export function ShellProvider({ children }: { children: ReactNode }) {
 
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
-
-  // A layout effect runs inside the view transition's update callback, i.e. before the browser resolves which
-  // animation the page pseudo-elements get - see the `html[data-nav]` rules in globals.css.
-  useLayoutEffect(() => {
-    document.documentElement.dataset.nav = navigation.direction;
-  }, [navigation.direction]);
 
   const value = useMemo<ShellContextValue>(
     () => ({
