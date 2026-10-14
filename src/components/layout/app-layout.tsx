@@ -5,7 +5,6 @@ import { BarTitle } from '@/components/layout/bar-title';
 import { BottomNav } from '@/components/layout/bottom-nav';
 import { Menu } from '@/components/layout/menu';
 import { NavLinks } from '@/components/layout/nav-links';
-import { PageTransition } from '@/components/layout/page-transition';
 import { ShellProvider } from '@/components/layout/shell-context';
 import { Logo } from '@/components/logo';
 import { verifySession } from '@/lib/verify-session';
@@ -19,10 +18,9 @@ type ShellUser = { name: string | null; email: string; image?: string | null; is
 function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) {
   return (
     <ShellProvider>
-      {/* Named so the bar stays put above the page while a page transition runs. */}
       <header
         id="app-header"
-        className="sticky top-0 z-50 bg-muted/85 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] backdrop-blur-lg transition-[background-color,border-color] duration-200 has-[[data-collapsed=true]]:border-b has-[[data-collapsed=true]]:bg-background/85 md:border-b md:bg-background/85 [view-transition-name:app-header]"
+        className="sticky top-0 z-50 bg-muted/85 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] backdrop-blur-lg transition-[background-color,border-color] duration-200 has-[[data-collapsed=true]]:border-b has-[[data-collapsed=true]]:bg-background/85 md:border-b md:bg-background/85"
       >
         <div className="relative mx-auto flex h-14 w-full max-w-5xl items-center gap-6 px-4 sm:px-6">
           <BackButton className="md:hidden" />
@@ -40,7 +38,7 @@ function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) 
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl px-[max(1rem,env(safe-area-inset-left),env(safe-area-inset-right))] pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-[max(1.5rem,env(safe-area-inset-left),env(safe-area-inset-right))] md:pt-10 md:pb-16">
-        <PageTransition>{children}</PageTransition>
+        {children}
       </main>
       <BottomNav isAdmin={user.isAdmin} />
     </ShellProvider>

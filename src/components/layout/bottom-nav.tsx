@@ -37,8 +37,7 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <nav
       aria-label="Hauptnavigation"
-      // Named so the bar stays put above the page while a page transition runs.
-      className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/85 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] backdrop-blur-lg [view-transition-name:app-nav] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/85 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] backdrop-blur-lg md:hidden"
     >
       <ul className="mx-auto flex max-w-md">
         {bottomNavItems(isAdmin).map(({ href, label, icon, isActive }) => {
