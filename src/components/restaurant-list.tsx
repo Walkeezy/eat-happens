@@ -1,10 +1,10 @@
 'use client';
 
-import { ChevronRight, Search, Star } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { useDeferredValue, useMemo, useState } from 'react';
-import { RestaurantLink, restaurantHref } from '@/components/restaurant-link';
+import { ListGroup, ListRow } from '@/components/list-group';
+import { restaurantHref } from '@/components/restaurant-link';
 import { Input } from '@/components/shadcn/input';
-import { type Column, Table } from '@/components/table';
 import { formatCurrency } from '@/lib/format';
 import { filterAndSortRestaurants, type RestaurantRow, type RestaurantSort } from '@/lib/restaurants';
 import { cn } from '@/lib/shadcn-utils';
@@ -17,75 +17,45 @@ const sortOptions: { value: RestaurantSort; label: string }[] = [
 
 const score = (value: number | undefined) => (value === undefined ? '–' : value.toFixed(1));
 
-const columns: Column<RestaurantRow>[] = [
-  {
-    id: 'restaurant',
-    header: 'Restaurant',
-    className: 'whitespace-normal',
-    cell: (row) => (
-      <div className="min-w-0">
-        <RestaurantLink id={row.id}>{row.restaurant}</RestaurantLink>
-        <div className="text-xs text-muted-foreground">
-          {row.displayDate}
-          {row.pickerName ? ` · ${row.pickerName}` : null}
-          {row.costPerPerson === null ? null : (
-            <span className="sm:hidden"> · {formatCurrency(row.costPerPerson)} p.P.</span>
+function RestaurantRowItem({ row }: { row: RestaurantRow }) {
+  const subtitle = [
+    row.displayDate,
+    row.pickerName,
+    row.costPerPerson === null ? null : `${formatCurrency(row.costPerPerson)} p.P.`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  return (
+    <ListRow
+      href={restaurantHref(row.id)}
+      title={row.restaurant}
+      subtitle={subtitle}
+      trailing={
+        <>
+          {row.food === undefined ? null : (
+            <span className="hidden text-xs text-muted-foreground lg:inline">
+              Essen {score(row.food)} · Ambiente {score(row.ambience)} · P/L {score(row.pricePerformance)}
+            </span>
           )}
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 'food',
-    header: 'Essen',
-    className: 'hidden text-right md:table-cell',
-    cell: (row) => <span className="text-muted-foreground">{score(row.food)}</span>,
-  },
-  {
-    id: 'ambience',
-    header: 'Ambiente',
-    className: 'hidden text-right md:table-cell',
-    cell: (row) => <span className="text-muted-foreground">{score(row.ambience)}</span>,
-  },
-  {
-    id: 'pricePerformance',
-    header: 'P/L',
-    className: 'hidden text-right md:table-cell',
-    cell: (row) => <span className="text-muted-foreground">{score(row.pricePerformance)}</span>,
-  },
-  {
-    id: 'costPerPerson',
-    header: 'p.P.',
-    className: 'hidden text-right sm:table-cell',
-    cell: (row) => (
-      <span className="text-muted-foreground">{row.costPerPerson === null ? '–' : formatCurrency(row.costPerPerson)}</span>
-    ),
-  },
-  {
-    id: 'overall',
-    header: 'Ø',
-    className: 'w-16 text-right',
-    cell: (row) =>
-      row.overall === undefined ? (
-        <span className="text-muted-foreground">–</span>
-      ) : (
-        <div className="flex items-center justify-end gap-1">
-          <Star className="size-3.5 fill-star text-star" />
-          <span className="font-bold">{row.overall.toFixed(1)}</span>
-        </div>
-      ),
-  },
-  {
-    id: 'open',
-    className: 'w-6 pl-0',
-    cell: () => <ChevronRight className="size-4 text-muted-foreground" aria-hidden />,
-  },
-];
+          {row.overall === undefined ? (
+            <span className="text-muted-foreground">–</span>
+          ) : (
+            <span className="flex items-center gap-1 font-bold">
+              <Star className="size-3.5 fill-star text-star" />
+              {row.overall.toFixed(1)}
+            </span>
+          )}
+        </>
+      }
+    />
+  );
+}
 
 export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<RestaurantSort>('date');
-  // Typing stays responsive on slow phones: the input updates at once, the filtered table catches up after.
+  // Typing stays responsive on slow phones: the input updates at once, the filtered list catches up after.
   const deferredQuery = useDeferredValue(query);
   const visibleRows = useMemo(() => filterAndSortRestaurants(rows, deferredQuery, sort), [rows, deferredQuery, sort]);
   const hiddenYear = rows.find((row) => row.ratingsHidden)?.date.slice(0, 4);
@@ -123,7 +93,13 @@ export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
           </fieldset>
         </div>
       </div>
-      <Table rows={visibleRows} columns={columns} rowKey={(row) => row.id} rowHref={(row) => restaurantHref(row.id)} />
+      <ListGroup>
+        {visibleRows.length > 0 ? (
+          visibleRows.map((row) => <RestaurantRowItem key={row.id} row={row} />)
+        ) : (
+          <li className="px-4 py-8 text-center text-sm text-muted-foreground">Keine Ergebnisse.</li>
+        )}
+      </ListGroup>
       {hiddenYear ? (
         <p className="text-sm text-muted-foreground">Die Bewertungen aus {hiddenYear} gibt’s ab 1. Januar.</p>
       ) : null}

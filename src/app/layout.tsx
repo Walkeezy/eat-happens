@@ -1,6 +1,5 @@
 import { notoSans } from '@/app/fonts';
 import { LazyToaster } from '@/components/lazy-toaster';
-import { StarSymbol } from '@/components/star-rating';
 import '@/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
@@ -29,7 +28,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="de" className={`${notoSans.variable} bg-muted text-foreground antialiased`}>
       <body>
-        <StarSymbol />
         {children}
         <LazyToaster />
       </body>

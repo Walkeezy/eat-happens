@@ -54,3 +54,29 @@ export function bottomNavItems(isAdmin: boolean): NavItem[] {
 
   return isAdmin ? [home, restaurants, statistics, admin] : [home, restaurants, statistics];
 }
+
+/** The tab screen a path belongs to, whether it is the tab itself or a screen pushed on top of it. */
+export function screenFor(pathname: string): NavItem | undefined {
+  return headerNavItems(true).find((item) => item.isActive(pathname));
+}
+
+/** The tab a drill-down screen was pushed from - undefined for the tab screens themselves. */
+export function parentScreen(pathname: string): NavItem | undefined {
+  return pathname.startsWith('/restaurants/') ? restaurants : undefined;
+}
+
+export type NavDirection = 'push' | 'pop' | 'tab';
+
+/** Opening a detail screen pushes it on top of its tab; leaving it pops it. Everything else is a switch between tabs. */
+export function navigationDirection(from: string, to: string): NavDirection {
+  const fromParent = parentScreen(from);
+  const toParent = parentScreen(to);
+  if (toParent && !fromParent) {
+    return 'push';
+  }
+  if (fromParent && !toParent) {
+    return 'pop';
+  }
+
+  return 'tab';
+}

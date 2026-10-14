@@ -173,22 +173,41 @@
   }
 }
 
-/* Stroke for the shared star symbol; fill and colour come from the usual utilities. */
-@utility icon-star {
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Page transitions - the old page fades out quickly, the new one settles in from slightly below. */
+/* Page transitions. Tab switches crossfade; a detail screen slides in over its tab (push) and slides away again (pop).
+   The direction comes from `html[data-nav]`, set by ShellProvider while the transition is being prepared. */
 @media (prefers-reduced-motion: no-preference) {
+  /* The bars stay above both pages: a page captured at a restored scroll offset would otherwise paint over them. */
+  ::view-transition-group(app-header),
+  ::view-transition-group(app-nav) {
+    z-index: 2;
+  }
+
   ::view-transition-old(.page-exit) {
     animation: 120ms ease-in both page-fade-out;
   }
 
   ::view-transition-new(.page-enter) {
     animation: 220ms cubic-bezier(0.2, 0, 0, 1) 60ms both page-fade-in;
+  }
+
+  html[data-nav="push"]::view-transition-old(.page-exit) {
+    animation: 320ms cubic-bezier(0.2, 0, 0, 1) both page-push-out;
+  }
+
+  html[data-nav="push"]::view-transition-new(.page-enter) {
+    animation: 320ms cubic-bezier(0.2, 0, 0, 1) both page-push-in;
+  }
+
+  html[data-nav="pop"]::view-transition-group(.page-exit) {
+    z-index: 1;
+  }
+
+  html[data-nav="pop"]::view-transition-old(.page-exit) {
+    animation: 320ms cubic-bezier(0.2, 0, 0, 1) both page-pop-out;
+  }
+
+  html[data-nav="pop"]::view-transition-new(.page-enter) {
+    animation: 320ms cubic-bezier(0.2, 0, 0, 1) both page-pop-in;
   }
 }
 
@@ -202,6 +221,32 @@
   from {
     opacity: 0;
     transform: translateY(0.5rem);
+  }
+}
+
+@keyframes page-push-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes page-push-out {
+  to {
+    opacity: 0.5;
+    transform: translateX(-25%);
+  }
+}
+
+@keyframes page-pop-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes page-pop-in {
+  from {
+    opacity: 0.5;
+    transform: translateX(-25%);
   }
 }
 

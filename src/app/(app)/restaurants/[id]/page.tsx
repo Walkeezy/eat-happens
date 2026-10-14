@@ -1,15 +1,16 @@
-import { ChevronLeft, Star } from 'lucide-react';
-import NextLink from 'next/link';
+import { Star } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { type ReactNode, Suspense } from 'react';
 import { AvatarStack } from '@/components/avatar-stack';
-import { EventCardUserRating } from '@/components/event-card-user-rating';
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
+import { ListGroup } from '@/components/list-group';
 import { RatingDialog } from '@/components/rating-dialog';
+import { RatingRow } from '@/components/rating-row';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { calendarYear, displayCalendarDate } from '@/lib/calendar-date';
+import { ratingCategories } from '@/lib/constants';
 import { formatCurrency } from '@/lib/format';
 import type { RestaurantDetail } from '@/lib/restaurant-detail';
 import { displayName } from '@/lib/user';
@@ -19,15 +20,6 @@ import { getRestaurantDetail, getYearRank } from '@/services/restaurants';
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-/** Only the scores someone actually gave - legacy dinners have no categories. */
-function scoreTiles(detail: RestaurantDetail): { title: string; value: number }[] {
-  return [
-    { title: 'Essen', value: detail.food },
-    { title: 'Ambiente/Service', value: detail.ambience },
-    { title: 'Preis-Leistung', value: detail.pricePerformance },
-  ].filter((tile): tile is { title: string; value: number } => tile.value !== undefined);
-}
 
 export default async function RestaurantDetailPage({ params }: Props) {
   // The dinner query starts as soon as the id is known; only the ratings-visibility step waits for the session.
@@ -54,67 +46,57 @@ export default async function RestaurantDetailPage({ params }: Props) {
 
   return (
     <>
-      <Button variant="ghost" size="sm" className="-ml-2 mb-2 text-muted-foreground" asChild>
-        <NextLink href="/restaurants">
-          <ChevronLeft />
-          Restaurants
-        </NextLink>
-      </Button>
       <PageHeader
+        back
         title={event.restaurant}
         description={[displayCalendarDate(event.date), pickerName ? `gewählt von ${pickerName}` : null]
           .filter(Boolean)
           .join(' · ')}
       />
 
-      <div className="space-y-10">
+      <div className="space-y-6">
+        {canRate ? (
+          <RatingDialog
+            eventId={event.id}
+            trigger={
+              <Button size="lg" className="w-full sm:w-auto">
+                <Star />
+                Jetzt bewerten
+              </Button>
+            }
+          />
+        ) : null}
+
         {detail.ratingsHidden ? (
-          <p className="rounded-xl border bg-card p-4 text-sm text-muted-foreground shadow-xs">
+          <p className="text-sm text-muted-foreground">
             Die Bewertungen aus {calendarYear(event.date)} gibt’s ab 1. Januar.
           </p>
         ) : detail.overall !== undefined ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div className="flex flex-col rounded-xl border bg-card p-3 shadow-xs sm:p-4">
-              <p className="text-xs text-muted-foreground">Gesamt</p>
-              <p className="mt-1 flex items-center gap-1.5 text-2xl font-bold">
-                <Star className="size-5 fill-star text-star" />
-                {detail.overall.toFixed(1)}
-              </p>
-            </div>
-            {scoreTiles(detail).map((tile) => (
-              <div key={tile.title} className="flex flex-col rounded-xl border bg-card p-3 shadow-xs sm:p-4">
-                <p className="text-xs text-muted-foreground">{tile.title}</p>
-                <p className="mt-1 text-2xl font-bold">{tile.value.toFixed(1)}</p>
-              </div>
-            ))}
-          </div>
+          <ScoreCard detail={detail} overall={detail.overall} />
         ) : null}
 
-        <Section title="Details">
-          <dl className="divide-y rounded-xl border bg-card px-4 shadow-xs">
-            <DetailRow label="Datum">{displayCalendarDate(event.date)}</DetailRow>
-            {pickerName ? <DetailRow label="Gewählt von">{pickerName}</DetailRow> : null}
-            <DetailRow label="Gesamtkosten">{formatCurrency(event.totalCost)}</DetailRow>
-            <DetailRow label="Pro Person">{formatCurrency(detail.costPerPerson)}</DetailRow>
-            {assignedUsers.length > 0 ? (
-              <DetailRow label="Teilnehmende">
-                <span className="inline-flex items-center gap-2">
-                  <AvatarStack users={assignedUsers} />
-                  {assignedUsers.length}
-                </span>
-              </DetailRow>
-            ) : null}
-            {detail.spread ? (
-              <DetailRow label="Spannweite">
-                {detail.spread.min.toFixed(1)} – {detail.spread.max.toFixed(1)}
-              </DetailRow>
-            ) : null}
-            {/* Last, so the row streaming in later does not push the others around. */}
-            <Suspense fallback={null}>
-              <YearRankRow eventId={event.id} date={event.date} />
-            </Suspense>
-          </dl>
-        </Section>
+        <ListGroup>
+          {event.totalCost === null ? null : (
+            <InfoRow label="Kosten">
+              {formatCurrency(event.totalCost)}
+              {detail.costPerPerson === null ? null : (
+                <span className="font-normal text-muted-foreground"> · {formatCurrency(detail.costPerPerson)} p.P.</span>
+              )}
+            </InfoRow>
+          )}
+          {assignedUsers.length > 0 ? (
+            <InfoRow label="Teilnehmende">
+              <span className="inline-flex items-center gap-2">
+                <AvatarStack users={assignedUsers} />
+                {assignedUsers.length}
+              </span>
+            </InfoRow>
+          ) : null}
+          {/* Last, so the row streaming in later does not push the others around. */}
+          <Suspense fallback={null}>
+            <YearRankRow eventId={event.id} date={event.date} />
+          </Suspense>
+        </ListGroup>
 
         {detail.people.length > 0 ? (
           <Section
@@ -124,23 +106,61 @@ export default async function RestaurantDetailPage({ params }: Props) {
                 {detail.ratedCount} / {detail.people.length}
               </Badge>
             }
-            action={canRate ? <RatingDialog eventId={event.id} trigger={<Button size="sm">Jetzt bewerten</Button>} /> : null}
           >
-            <div className="grid gap-2 sm:grid-cols-2">
+            <ListGroup>
               {detail.people.map(({ person, rating }) => (
-                <EventCardUserRating
+                <RatingRow
                   key={person.id}
                   user={person}
-                  userRating={rating}
+                  rating={rating}
                   isCurrentUser={person.id === session.user.id}
                   hideRatings={detail.ratingsHidden}
                 />
               ))}
-            </div>
+            </ListGroup>
           </Section>
         ) : null}
       </div>
     </>
+  );
+}
+
+/** The group's verdict at a glance: the overall score large, the categories beside it, how it came about below. */
+function ScoreCard({ detail, overall }: { detail: RestaurantDetail; overall: number }) {
+  // Only the categories someone actually scored - legacy dinners have none.
+  const scored: { label: string; value: number | undefined }[] = [
+    { label: ratingCategories[0].shortLabel, value: detail.food },
+    { label: ratingCategories[1].shortLabel, value: detail.ambience },
+    { label: ratingCategories[2].shortLabel, value: detail.pricePerformance },
+  ];
+  const categories = scored.filter((category): category is { label: string; value: number } => category.value !== undefined);
+
+  return (
+    <div className="rounded-xl border bg-card p-4 shadow-xs">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="flex items-center gap-1.5 text-3xl leading-none font-bold">
+            <Star className="size-6 fill-star text-star" />
+            {overall.toFixed(1)}
+          </p>
+          <p className="mt-1.5 text-xs text-muted-foreground">Gesamt</p>
+        </div>
+        {categories.length > 0 ? (
+          <dl className="flex gap-5 text-center sm:gap-8">
+            {categories.map((category) => (
+              <div key={category.label}>
+                <dd className="text-lg leading-none font-semibold">{category.value.toFixed(1)}</dd>
+                <dt className="mt-1.5 text-xs text-muted-foreground">{category.label}</dt>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </div>
+      <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
+        {detail.ratedCount} von {detail.people.length} bewertet
+        {detail.spread ? ` · Spannweite ${detail.spread.min.toFixed(1)} – ${detail.spread.max.toFixed(1)}` : null}
+      </p>
+    </div>
   );
 }
 
@@ -151,17 +171,17 @@ async function YearRankRow({ eventId, date }: { eventId: string; date: string })
   }
 
   return (
-    <DetailRow label={`Rang ${yearRank.year}`}>
-      Platz {yearRank.rank} von {yearRank.total}
-    </DetailRow>
+    <InfoRow label={`Rang ${yearRank.year}`}>
+      {yearRank.rank}. von {yearRank.total}
+    </InfoRow>
   );
 }
 
-function DetailRow({ label, children }: { label: string; children: ReactNode }) {
+function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 text-sm">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{children}</dd>
-    </div>
+    <li className="flex min-h-12 items-center justify-between gap-4 px-4 py-2.5 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-medium">{children}</span>
+    </li>
   );
 }
