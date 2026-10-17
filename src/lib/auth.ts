@@ -49,5 +49,10 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 60, // 60 days
     updateAge: 60 * 60 * 24, // 1 day
   },
+  advanced: {
+    // Every page and action checks the session. With joins, that is one query (session joined with its user)
+    // instead of a session lookup followed by a user lookup. Needs the session/account relations in the schema.
+    database: { joins: true },
+  },
   trustedOrigins: [appBaseURL],
 });

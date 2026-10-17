@@ -1,8 +1,8 @@
 'use client';
 
+import { clsx } from 'clsx';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/shadcn-utils';
 
 const tabs = [
   { href: '/events', label: 'Events' },
@@ -23,9 +23,9 @@ export function AdminTabs() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={cn(
-              'rounded-full py-1.5 text-center text-sm font-medium text-muted-foreground',
-              active && 'bg-primary text-primary-foreground',
+            className={clsx(
+              'rounded-full py-1.5 text-center text-sm font-medium',
+              active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
             )}
           >
             {label}

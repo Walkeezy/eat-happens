@@ -3,7 +3,6 @@
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { type MouseEvent, type ReactNode, useTransition } from 'react';
-import { TableRow } from '@/components/shadcn/table';
 
 /**
  * Makes a whole table row a click target. Keyboard, screen reader and cmd/middle-click users still need a real
@@ -24,13 +23,16 @@ export function ClickableRow({ href, children }: { href: Route; children: ReactN
     startTransition(() => router.push(href));
   };
 
+  // The shadcn TableRow's classes plus the pointer ones, written out: going through TableRow would pull
+  // tailwind-merge into the first load of every page with a table, for a merge whose result is this one string.
   return (
-    <TableRow
+    <tr
+      data-slot="table-row"
       onClick={openRow}
       data-pending={isPending || undefined}
-      className="cursor-pointer transition-[background-color,opacity] active:bg-muted data-pending:opacity-60"
+      className="cursor-pointer border-b transition-[background-color,opacity] hover:bg-muted/50 active:bg-muted data-pending:opacity-60"
     >
       {children}
-    </TableRow>
+    </tr>
   );
 }
