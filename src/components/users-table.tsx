@@ -2,7 +2,6 @@
 
 import { UserCheck, UserX } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
-import { toast } from 'sonner';
 import { setUserConfirmedAction } from '@/actions/users';
 import { Avatar } from '@/components/avatar';
 import { Badge } from '@/components/shadcn/badge';
@@ -44,6 +43,8 @@ export const UsersTable = ({ users, currentUserId }: Props) => {
       setOptimisticConfirmed({ userId: user.id, isConfirmed: !user.isConfirmed });
       // The action revalidates /users, so the table re-renders with the change in the same round trip.
       const result = await setUserConfirmedAction({ userId: user.id, isConfirmed: !user.isConfirmed });
+      // Loaded with the first toast, like the toaster itself, so sonner stays out of this page's first-load bundle.
+      const { toast } = await import('sonner');
 
       if (result.success) {
         toast.success(user.isConfirmed ? 'Bestätigung wurde entzogen' : 'Benutzer wurde bestätigt');

@@ -1,11 +1,11 @@
 'use client';
 
+import { clsx } from 'clsx';
 import type { LucideIcon } from 'lucide-react';
 import NextLink, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { MouseEvent } from 'react';
 import { bottomNavItems } from '@/components/layout/nav-items';
-import { cn } from '@/lib/shadcn-utils';
 
 /** Lights up as soon as the tab is tapped, so the bar reacts before the next page has rendered. */
 function TabIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) {
@@ -13,7 +13,7 @@ function TabIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) 
 
   return (
     <span
-      className={cn(
+      className={clsx(
         'flex h-7 w-12 items-center justify-center rounded-full transition-[background-color,scale] duration-150 group-active:scale-90 group-active:bg-primary/10',
         (active || pending) && 'bg-primary/10',
       )}
@@ -49,9 +49,9 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
                 href={href}
                 onClick={scrollToTop}
                 aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'group flex h-16 touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors',
-                  active && 'text-primary',
+                className={clsx(
+                  'group flex h-16 touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors',
+                  active ? 'text-primary' : 'text-muted-foreground',
                 )}
               >
                 <TabIcon icon={icon} active={active} />

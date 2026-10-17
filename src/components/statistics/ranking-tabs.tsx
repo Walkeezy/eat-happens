@@ -1,7 +1,7 @@
 'use client';
 
+import { clsx } from 'clsx';
 import { type ReactNode, useState } from 'react';
-import { cn } from '@/lib/shadcn-utils';
 
 export type RankingTab = {
   label: string;
@@ -26,9 +26,9 @@ export function RankingTabs({ tabs }: { tabs: RankingTab[] }) {
                 role="tab"
                 aria-selected={index === selected}
                 onClick={() => setSelected(index)}
-                className={cn(
-                  'rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground',
-                  index === selected && 'bg-primary text-primary-foreground hover:text-primary-foreground',
+                className={clsx(
+                  'rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors',
+                  index === selected ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {tab.label}

@@ -1,5 +1,6 @@
 'use client';
 
+import { clsx } from 'clsx';
 import { Search, Star } from 'lucide-react';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { ListGroup, ListRow } from '@/components/list-group';
@@ -7,7 +8,6 @@ import { restaurantHref } from '@/components/restaurant-link';
 import { Input } from '@/components/shadcn/input';
 import { formatCurrency } from '@/lib/format';
 import { filterAndSortRestaurants, type RestaurantRow, type RestaurantSort } from '@/lib/restaurants';
-import { cn } from '@/lib/shadcn-utils';
 
 const sortOptions: { value: RestaurantSort; label: string }[] = [
   { value: 'date', label: 'Neueste' },
@@ -82,9 +82,11 @@ export function RestaurantList({ rows }: { rows: RestaurantRow[] }) {
                 type="button"
                 aria-pressed={option.value === sort}
                 onClick={() => setSort(option.value)}
-                className={cn(
-                  'rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground',
-                  option.value === sort && 'bg-primary text-primary-foreground hover:text-primary-foreground',
+                className={clsx(
+                  'rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors',
+                  option.value === sort
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {option.label}

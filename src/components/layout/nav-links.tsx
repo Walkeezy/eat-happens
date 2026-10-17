@@ -1,9 +1,9 @@
 'use client';
 
+import { clsx } from 'clsx';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { headerNavItems } from '@/components/layout/nav-items';
-import { cn } from '@/lib/shadcn-utils';
 
 export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
@@ -18,9 +18,11 @@ export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
             key={label}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={cn(
-              'rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
-              active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
+            className={clsx(
+              'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+              active
+                ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
             )}
           >
             {label}

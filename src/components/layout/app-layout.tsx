@@ -23,7 +23,7 @@ function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) 
         className="sticky top-0 z-50 bg-muted/85 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] backdrop-blur-lg transition-[background-color,border-color] duration-200 has-[[data-collapsed=true]]:border-b has-[[data-collapsed=true]]:bg-background/85 md:border-b md:bg-background/85"
       >
         <div className="relative mx-auto flex h-14 w-full max-w-5xl items-center gap-6 px-4 sm:px-6">
-          <BackButton className="md:hidden" />
+          <BackButton className="inline-flex md:hidden" />
           <NextLink href="/" className="hidden items-center gap-2 md:flex">
             <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Logo className="h-auto w-3.5" />

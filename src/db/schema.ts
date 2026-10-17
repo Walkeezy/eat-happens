@@ -165,11 +165,29 @@ export const eventAssignment = pgTable(
 );
 
 // Relations
+// `sessions`, `accounts` and their inverses exist for better-auth: with native joins enabled (see `src/lib/auth.ts`)
+// it loads a session together with its user in one query instead of two, and links OAuth accounts the same way.
 export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
   ratings: many(rating),
   assignments: many(eventAssignment, { relationName: 'assignedUser' }),
   assignedBy: many(eventAssignment, { relationName: 'assignedByUser' }),
   pickedEvents: many(event, { relationName: 'pickedByUser' }),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
 }));
 
 export const eventRelations = relations(event, ({ many, one }) => ({
