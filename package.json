@@ -21,7 +21,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "engines": {
-    "node": "^24.0.0"
+    "node": "^26.0.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",
