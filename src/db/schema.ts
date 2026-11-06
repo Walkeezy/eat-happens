@@ -164,6 +164,23 @@ export const eventAssignment = pgTable(
   ],
 );
 
+// One installed app (phone, browser) that agreed to push messages. The endpoint is the push service's address for
+// it; p256dh and auth encrypt the messages. A person may have several.
+export const pushSubscription = pgTable(
+  'push_subscription',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => [index('push_subscription_user_id_idx').on(table.userId)],
+);
+
 // Relations
 // `sessions`, `accounts` and their inverses exist for better-auth: with native joins enabled (see `src/lib/auth.ts`)
 // it loads a session together with its user in one query instead of two, and links OAuth accounts the same way.

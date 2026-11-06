@@ -1,7 +1,8 @@
 import { getSessionCookie } from 'better-auth/cookies';
 import { type NextRequest, NextResponse } from 'next/server';
 
-const PUBLIC_ROUTES = ['/login', '/api/auth', '/pending-confirmation'];
+// `/api/cron` checks its own bearer token.
+const PUBLIC_ROUTES = ['/login', '/api/auth', '/pending-confirmation', '/api/cron'];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

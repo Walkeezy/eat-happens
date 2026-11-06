@@ -35,6 +35,10 @@ A restaurant rating app for a group of friends who dine together monthly. Rate r
    | `BETTER_AUTH_SECRET`   | Auth secret, generate with `openssl rand -base64 32` |
    | `GOOGLE_CLIENT_ID`     | Google OAuth client ID                               |
    | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret                           |
+   | `VAPID_PUBLIC_KEY`     | Optional, push reminders: from `npx web-push generate-vapid-keys` |
+   | `VAPID_PRIVATE_KEY`    | Optional, push reminders: the matching private key   |
+   | `VAPID_SUBJECT`        | Optional, push reminders: `mailto:` contact for the push services |
+   | `CRON_SECRET`          | Optional, push reminders: `openssl rand -hex 32`, Vercel Cron sends it as bearer token |
 
 3. Set up the database:
 
@@ -62,6 +66,14 @@ A restaurant rating app for a group of friends who dine together monthly. Rate r
    ```bash
    npm run dev
    ```
+
+### Push reminders
+
+With the four optional variables set, the home page offers reminders. A Vercel Cron (`vercel.json`) calls
+`/api/cron/rating-reminders` daily at 16:00 UTC and notifies everyone on the guest list of a dinner 3 or 7 days ago
+who has not rated it yet. Changing the VAPID key pair later drops every subscription; people have to turn reminders
+on again. On iPhones, notifications only arrive in the app added to the home screen. The service worker only runs in
+production builds, so test locally with `npm run build && npm start`.
 
 New users sign in with Google and must be confirmed by an admin (via `/users`) before they can use the app. The first admin must be set directly in the database (`user.is_admin = true`).
 
