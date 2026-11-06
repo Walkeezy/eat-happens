@@ -3,6 +3,7 @@ import { EventCard } from '@/components/event-card';
 import { PageHeader } from '@/components/layout/page-header';
 import { Section } from '@/components/layout/section';
 import { NextPickerBanner } from '@/components/next-picker-banner';
+import { PushBanner } from '@/components/push-banner';
 import { RateLastDinnerBanner } from '@/components/rate-last-dinner-banner';
 import { Badge } from '@/components/shadcn/badge';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
@@ -13,6 +14,7 @@ import { displayName } from '@/lib/user';
 import { verifySession } from '@/lib/verify-session';
 import { getAllConfirmedUsers } from '@/services/assignments';
 import { getEvents } from '@/services/events';
+import { vapidPublicKey } from '@/services/push';
 
 export default async function HomePage() {
   // The queries start right away; only the ratings-visibility step waits for the verified session.
@@ -27,6 +29,7 @@ export default async function HomePage() {
     getAllConfirmedUsers(),
   ]);
   const nextPicker = determineNextPicker(confirmedUsers, events);
+  const pushKey = vapidPublicKey();
 
   const lastAssignedEvent = events.find((event) => event.assignedUsers?.some((user) => user.id === session.user.id));
   const lastDinnerNeedsRating =
@@ -70,6 +73,7 @@ export default async function HomePage() {
       <div className="space-y-3">
         <NextPickerBanner {...nextPicker} />
         {lastDinnerNeedsRating && lastAssignedEvent ? <RateLastDinnerBanner event={lastAssignedEvent} /> : null}
+        {pushKey ? <PushBanner publicKey={pushKey} /> : null}
       </div>
 
       {events.length === 0 ? (

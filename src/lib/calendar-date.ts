@@ -44,6 +44,14 @@ export function isValidCalendarDate(value: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
+/** The calendar date `days` later (or earlier, when negative). Counted in UTC, so a DST switch never skips a day. */
+export function addCalendarDays(value: string, days: number): string {
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+
+  return date.toISOString().slice(0, 10);
+}
+
 export function calendarYear(value: string): number {
   return Number(value.slice(0, 4));
 }

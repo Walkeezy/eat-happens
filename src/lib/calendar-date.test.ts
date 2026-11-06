@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addCalendarDays,
   calendarDateOf,
   calendarYear,
   calendarYearRange,
@@ -30,6 +31,16 @@ describe('calendarDateOf', () => {
     // 22:30 UTC in summer is already past midnight in Zurich (CEST, UTC+2).
     expect(calendarDateOf(new Date('2026-07-14T22:30:00Z'))).toBe('2026-07-15');
     expect(calendarDateOf(new Date('2026-07-14T21:30:00Z'))).toBe('2026-07-14');
+  });
+});
+
+describe('addCalendarDays', () => {
+  it('counts across month, year and DST boundaries', () => {
+    expect(addCalendarDays('2026-11-06', -3)).toBe('2026-11-03');
+    expect(addCalendarDays('2026-03-02', -7)).toBe('2026-02-23');
+    expect(addCalendarDays('2027-01-02', -3)).toBe('2026-12-30');
+    expect(addCalendarDays('2026-03-31', -3)).toBe('2026-03-28');
+    expect(addCalendarDays('2026-02-27', 3)).toBe('2026-03-02');
   });
 });
 
