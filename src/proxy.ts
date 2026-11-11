@@ -26,6 +26,8 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Icons and the manifest stay public: iOS fetches the home screen icon without the session cookie, so a redirect to
+// /login would leave it without an icon.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon-.*\\.png|manifest\\.webmanifest).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|apple-icon\\.png|icon-.*\\.png|manifest\\.webmanifest).*)'],
 };
