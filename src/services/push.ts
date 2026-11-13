@@ -1,6 +1,6 @@
 import 'server-only';
 import { eq, inArray } from 'drizzle-orm';
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 import { db } from '@/db';
 import { pushSubscription } from '@/db/schema';
 import type { PushMessage } from '@/lib/sw-push';
