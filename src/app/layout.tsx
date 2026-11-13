@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 export const metadata: Metadata = {
   title: 'Eat Happens',
   manifest: '/manifest.webmanifest',
+  icons: { apple: '/apple-touch-icon.png' },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
